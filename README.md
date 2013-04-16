@@ -1,4 +1,4 @@
-endless-core-meta
-=================
+eos-shell-apps
+==============
 
-Repository for keeping track of changes to the main meta-package for OBS
+Applications for EndlessOS (for use with new eos-shell)
