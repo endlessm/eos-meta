@@ -1,0 +1,16 @@
+Source: endlessos-base-games
+Section: non-free/misc
+Priority: extra
+Maintainer: EndlessMobile <endlessmobile@gmail.com>
+Build-Depends: debhelper (>= 7.0.0)
+Standards-Version: 3.9.2
+Homepage: http://www.endlessm.com
+
+Package: endlessos-base-games
+Replaces: endless-os-games
+Breaks: endless-os-games
+Provides: endless-os-games
+Architecture: all
+Depends: numptyphysics, supertuxkart, supertux, chromium-bsu, openarena, billard-gl, gbrainy, gnome-genius, goldendict, lbreakout2, tuxtype, tuxmath, pingus, teeworlds, audacity, gcompris, kobodeluxe, armagetronad, blockout2
+Description: Endless OS Games
+ This is a collection of games for the EndlessOS operating system.
