@@ -28,7 +28,7 @@ pushd `dirname $0`
   debuild -k4EB55A92 -b
   
   # Move package to this directory and clean up
-   mv ../*games*.deb .
-   mv ../*games*.changes .
+   mv ../*apps*.deb .
+   mv ../*apps*.changes .
    rm -f ../*.build
 popd
