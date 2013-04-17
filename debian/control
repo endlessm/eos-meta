@@ -8,6 +8,6 @@ Homepage: http://www.endlessm.com
 
 Package: endlessos-base-apps
 Architecture: all
-Depends: armagetronad, audacity, beatbox, billard-gl, blockout2, chromium-bsu, epiphany-browser-webkit2, evolution, gbrainy, gcompris, gimp(>=2.8), gnome-calculator, gnome-genius, gnuchess, goldendict, gstreamer0.10-ffmpeg, kobodeluxe, lbreakout2, libreoffice, libreoffice-help-es, libreoffice-help-pt-br, libreoffice-l10n-es, libreoffice-l10n-pt-br, nautilus, numptyphysics, openarena, pingus, qbittorrent, shotwell, skype, stellarium, sudoku, supertux, supertuxkart, teeworlds, totem, tuxmath, tuxtype
+Depends: armagetronad, audacity, beatbox, billard-gl, blockout2, chromium-bsu, evolution, gbrainy, gcompris, gimp(>=2.8), gnome-calculator, gnome-genius, gnuchess, goldendict, gstreamer0.10-ffmpeg, kobodeluxe, lbreakout2, libreoffice, libreoffice-help-es, libreoffice-help-pt-br, libreoffice-l10n-es, libreoffice-l10n-pt-br, nautilus, numptyphysics, openarena, pingus, qbittorrent, shotwell, skype, stellarium, sudoku, supertux, supertuxkart, teeworlds, totem, tuxmath, tuxtype
 Description: EndlessOS Applications
  This is a collection of applications for the EndlessOS operating system.
