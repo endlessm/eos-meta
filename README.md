@@ -10,7 +10,6 @@ packages, it is recommended that the latest version available be chosen)
 regarding missing dependencies -- they will be resolved with the final
 "sudo apt-get install -f")
 
-git clone https://github.com/endlessm/eos-build
 git clone https://github.com/endlessm/eos-shell-apps
 git clone https://github.com/endlessm/eos-third-party
 

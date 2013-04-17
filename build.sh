@@ -19,13 +19,8 @@ pushd `dirname $0`
 		rm -rf *.changes
    set -e
 
-	pushd ../eos-build &> /dev/null
-      INSTALL_DIR=$(pwd)
-		export GNUPGHOME=${INSTALL_DIR}/gnupg
-	popd &> /dev/null
-
   # Build package
-  debuild -k4EB55A92 -b
+  debuild -uc -us -b
   
   # Move package to this directory and clean up
    mv ../*apps*.deb .
