@@ -23,8 +23,6 @@ sudo apt-get install -f
 
 cd ../eos-third-party
 sudo dpkg -i photos/endlessos-base-photos_2.1_all.deb
-sudo dpkg -i python-skimage/python-skimage_0.6.1-1_all.deb
-sudo dpkg -i python-skimage/python-skimage-lib_0.6.1-1_i386.deb
 sudo dpkg -i social/endlessos-base-social_1.0.20_all.deb
 sudo dpkg -i weather/endlessos-base-weather_1.0.20_all.deb
 sudo dpkg -i youtube/endlessos-base-youtube_1.0.20.1_all.deb
