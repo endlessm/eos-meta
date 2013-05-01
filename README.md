@@ -29,6 +29,13 @@ sudo dpkg -i youtube/endlessos-base-youtube_1.0.20.1_all.deb
 sudo apt-get install libgtk-3-dev
 sudo apt-get install -f
 
+If running via JHBuild, the following will enable the Epiphany browser to access secure URLs:
+jhbuild buildone glib-networking
+
+If running via JHBuild, the following will allow the Endless photo app to run:
+jhbuild buildone clutter-gtk
+sudo sed -i "s/engine: unico/engine: endlessos/g" /usr/share/endless-os-photos/data/endless_photos.css
+
 Note that a "raring" version of beatbox is not currently available in the PPA,
 so for now we point to the older "quantal" version.
 Once the "raring" version is available, the addition of the sgringwe
