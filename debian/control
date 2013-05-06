@@ -1,4 +1,4 @@
-Source: endlessos-base-apps
+Source: eos-shell-apps
 Section: non-free/misc
 Priority: extra
 Maintainer: EndlessMobile <endlessmobile@gmail.com>
@@ -6,8 +6,8 @@ Build-Depends: debhelper (>= 7.0.0)
 Standards-Version: 3.9.2
 Homepage: http://www.endlessm.com
 
-Package: endlessos-base-apps
+Package: eos-shell-apps
 Architecture: all
-Depends: armagetronad, audacity, beatbox, billard-gl, blockout2, chromium-bsu, epiphany-browser-webkit2, evolution, gbrainy, gcompris, gimp(>=2.8), gnome-calculator, gnome-genius, gnuchess, goldendict, gstreamer0.10-ffmpeg, kobodeluxe, lbreakout2, libreoffice, libreoffice-help-es, libreoffice-help-pt-br, libreoffice-l10n-es, libreoffice-l10n-pt-br, nautilus, numptyphysics, openarena, pingus, qbittorrent, shotwell, skype, stellarium, sudoku, supertux, supertuxkart, teeworlds, totem, tuxmath, tuxtype
+Depends: endlessos-base-photos, endlessos-base-social, endlessos-base-weather, endlessos-base-youtube, armagetronad, audacity, beatbox, billard-gl, blockout2, chromium-bsu, epiphany-browser-webkit2, evolution, gbrainy, gcompris, gimp(>=2.8), gnome-calculator, gnome-genius, gnuchess, goldendict, gstreamer0.10-ffmpeg, kobodeluxe, lbreakout2, libreoffice, libreoffice-help-es, libreoffice-help-pt-br, libreoffice-l10n-es, libreoffice-l10n-pt-br, nautilus, numptyphysics, openarena, pingus, qbittorrent, shotwell, skype, stellarium, sudoku, supertux, supertuxkart, teeworlds, totem, tuxmath, tuxtype
 Description: EndlessOS Applications
  This is a collection of applications for the EndlessOS operating system.
