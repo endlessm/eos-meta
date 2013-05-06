@@ -18,8 +18,8 @@ cd eos-shell-apps
 sudo add-apt-repository -y "deb http://archive.canonical.com/ubuntu $(lsb_release -sc) partner"
 sudo add-apt-repository -y "deb http://ppa.launchpad.net/sgringwe/beatbox/ubuntu quantal main"
 sudo apt-get update
-sudo dpkg -i endlessos-base-apps_1.0_all.deb
-sudo apt-get install -f
+sudo dpkg -i eos-shell-apps_1.0_all.deb
+sudo apt-get install -fy
 
 cd ../eos-third-party
 sudo dpkg -i photos/endlessos-base-photos_2.1_all.deb
@@ -27,7 +27,7 @@ sudo dpkg -i social/endlessos-base-social_1.0.20_all.deb
 sudo dpkg -i weather/endlessos-base-weather_1.0.20_all.deb
 sudo dpkg -i youtube/endlessos-base-youtube_1.0.20.1_all.deb
 sudo apt-get install libgtk-3-dev
-sudo apt-get install -f
+sudo apt-get install -fy
 
 If running via JHBuild, the following will enable the Epiphany browser to access secure URLs:
 jhbuild buildone glib-networking
