@@ -14,6 +14,7 @@ git clone https://github.com/endlessm/eos-shell-apps
 git clone https://github.com/endlessm/eos-third-party
 
 cd eos-shell-apps
+git checkout debian-build
 ./build.sh
 sudo add-apt-repository -y "deb http://archive.canonical.com/ubuntu $(lsb_release -sc) partner"
 sudo add-apt-repository -y "deb http://ppa.launchpad.net/sgringwe/beatbox/ubuntu quantal main"
