@@ -1,0 +1,5 @@
+files
+*.substvars
+*.log
+*~
+eos-shell-apps/
