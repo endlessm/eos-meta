@@ -1,7 +1,7 @@
 Source: eos-shell-apps
 Section: non-free/misc
 Priority: extra
-Maintainer: EndlessMobile <maintainers@endlessm.com>
+Maintainer: Endless Mobile <maintainers@endlessm.com>
 Build-Depends: debhelper (>= 7.0.0)
 Standards-Version: 3.9.2
 Homepage: http://www.endlessm.com
