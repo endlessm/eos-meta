@@ -1,0 +1,22 @@
+#!/bin/bash -e
+
+BROWSER_LOCATION=/usr/bin/epiphany-browser
+BROWSER_LAUNCHERS="x-www-browser gnome-www-browser"
+
+BROWSER_DESKTOP_FILE=epiphany-browser.desktop
+BROWSER_MIME_TYPES="x-scheme-handler/http x-scheme-handler/https"
+
+for browser_launcher in ${BROWSER_LAUNCHERS}; do
+  echo "Setting default browser (${browser_launcher}) to be ${BROWSER_LOCATION}"
+  set +e
+    update-alternatives --remove ${browser_launcher} "${BROWSER_LOCATION}"
+  set +e
+
+  update-alternatives --install /usr/bin/${browser_launcher} ${browser_launcher} "${BROWSER_LOCATION}" 99
+  update-alternatives --set ${browser_launcher} "${BROWSER_LOCATION}"
+done
+
+for mime_type in ${BROWSER_MIME_TYPES}; do
+  echo "Setting $BROWSER_DESKTOP_FILE to be the launcher for ${mime_type}"
+  xdg-mime default $BROWSER_DESKTOP_FILE $mime_type
+done
