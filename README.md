@@ -23,10 +23,7 @@ regarding missing dependencies -- they will be resolved with the final
     sudo apt-get install -fy
     
     cd ../eos-third-party
-    sudo dpkg -i photos/endlessos-base-photos_2.1_all.deb
-    sudo dpkg -i social/endlessos-base-social_1.0.20_all.deb
-    sudo dpkg -i weather/endlessos-base-weather_1.0.20_all.deb
-    sudo dpkg -i youtube/endlessos-base-youtube_1.0.20.1_all.deb
+    find . -name *.deb | xargs sudo dpkg -i
     sudo apt-get install libgtk-3-dev
     sudo apt-get install -fy
 
