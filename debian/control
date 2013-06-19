@@ -7,10 +7,8 @@ Standards-Version: 3.9.2
 Homepage: http://www.endlessm.com
 
 Package: eos-shell-apps
-Architecture: any
-Depends: adobe-flashplugin [i386],
-         adobe-flashplugin [amd64],
-         armagetronad,
+Architecture: all
+Depends: armagetronad,
          audacity,
          beatbox,
          billard-gl,
@@ -21,8 +19,6 @@ Depends: adobe-flashplugin [i386],
          gbrainy,
          gcompris,
          gimp(>=2.8),
-         gnash [armel],
-         gnash [armhf],
          gnome-calculator,
          gnome-genius,
          gnuchess,
