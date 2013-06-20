@@ -1,3 +1,9 @@
+eos-shell-apps (1.1.2~dev1) unstable; urgency=low
+
+  * Updating version to 1.1.2~dev1
+
+ -- Roddy Shuler <roddy@endlessm.com>  Thu, 20 Jun 2013 14:38:53 -0500
+
 eos-shell-apps (1.1.1~dev5) unstable; urgency=low
 
   * Updating version to 1.1.1~dev5
