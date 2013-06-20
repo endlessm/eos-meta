@@ -1,3 +1,6 @@
 [Default Applications]
+application/xhtml+xml=epiphany.desktop
+text/html=epiphany.desktop
+text/xml=epiphany.desktop
 x-scheme-handler/https=epiphany.desktop
 x-scheme-handler/http=epiphany.desktop
