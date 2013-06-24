@@ -48,5 +48,6 @@ Depends: armagetronad,
          totem,
          tuxmath,
          tuxtype
+Replaces: update-notifier-common
 Description: EndlessOS Applications
  This is a collection of applications for the EndlessOS operating system.
