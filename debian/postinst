@@ -13,3 +13,34 @@ for browser_launcher in ${BROWSER_LAUNCHERS}; do
   update-alternatives --set ${browser_launcher} "${BROWSER_LOCATION}"
 done
 
+# Update default save formats for LibreOffice
+
+if [ "x`getopt LONG_BIT`" == "x64" ]; then
+  LO_BASEPATH="/usr/lib64/libreoffice/share/registry"
+else
+  LO_BASEPATH="/usr/lib/libreoffice/share/registry"
+fi
+
+LO_WRITER_CURRENT_FORMAT="<prop oor:name=\"ooSetupFactoryDefaultFilter\"><value>writer8</value></prop>"
+LO_WRITER_NEW_FORMAT="<prop oor:name=\"ooSetupFactoryDefaultFilter\" oor:op=\"fuse\"><value>MS Word 97</value></prop>"
+LO_WRITER_FILE="writer.xcd"
+
+LO_CALC_CURRENT_FORMAT="<prop oor:name=\"ooSetupFactoryDefaultFilter\"><value>calc8</value></prop>"
+LO_CALC_NEW_FORMAT="<prop oor:name=\"ooSetupFactoryDefaultFilter\" oor:op=\"fuse\"><value>MS Excel 97</value></prop>"
+LO_CALC_FILE="calc.xcd"
+
+LO_IMPRESS_CURRENT_FORMAT="<prop oor:name=\"ooSetupFactoryDefaultFilter\"><value>impress8</value></prop>"
+LO_IMPRESS_NEW_FORMAT="<prop oor:name=\"ooSetupFactoryDefaultFilter\" oor:op=\"fuse\"><value>MS PowerPoint 97</value></prop>"
+LO_IMPRESS_FILE="impress.xcd"
+
+if [ -f ${LO_BASEPATH}/${LO_WRITER_FILE} ]; then
+  sed -i "s#${LO_WRITER_CURRENT_FORMAT}#${LO_WRITER_NEW_FORMAT}#g" ${LO_BASEPATH}/${LO_WRITER_FILE}
+fi
+
+if [ -f ${LO_BASEPATH}/${LO_CALC_FILE} ]; then
+  sed -i "s#${LO_CALC_CURRENT_FORMAT}#${LO_CALC_NEW_FORMAT}#g" ${LO_BASEPATH}/${LO_CALC_FILE}
+fi
+
+if [ -f ${LO_BASEPATH}/${LO_IMPRESS_FILE} ]; then
+  sed -i "s#${LO_IMPRESS_CURRENT_FORMAT}#${LO_IMPRESS_NEW_FORMAT}#g" ${LO_BASEPATH}/${LO_IMPRESS_FILE}
+fi
