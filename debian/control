@@ -24,10 +24,17 @@ Depends: armagetronad,
          gnuchess,
          goldendict,
          gstreamer0.10-ffmpeg,
+         gstreamer0.10-fluendo-mp3,
+         gstreamer0.10-plugins-bad,
+         gstreamer0.10-plugins-bad-multiverse,
+         gstreamer0.10-plugins-ugly,
          gstreamer1.0-libav,
+         gstreamer1.0-plugins-bad,
+         gstreamer1.0-plugins-ugly,
          icedtea-plugin,
          kobodeluxe,
          lbreakout2,
+         libavcodec-extra-53,
          libreoffice,
          libreoffice-help-es,
          libreoffice-help-pt-br,
@@ -46,7 +53,8 @@ Depends: armagetronad,
          teeworlds,
          totem,
          tuxmath,
-         tuxtype
+         tuxtype,
+         unrar
 Replaces: update-notifier-common
 Description: EndlessOS Applications
  This is a collection of applications for the EndlessOS operating system.
