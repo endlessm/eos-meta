@@ -10,7 +10,6 @@ Package: eos-shell-apps
 Architecture: all
 Depends: armagetronad,
          audacity,
-         beatbox,
          billard-gl,
          blockout2,
          chromium-bsu,
