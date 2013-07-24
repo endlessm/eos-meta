@@ -14,11 +14,9 @@ Depends: armagetronad,
          blockout2,
          chromium-bsu,
          epiphany-browser-webkit2,
-         eos-language-pack-en-gb,
-         eos-language-pack-en-us,
+         eos-language-pack-en,
          eos-language-pack-es,
          eos-language-pack-pt,
-         eos-language-pack-pt-br,
          evolution,
          gcompris,
          gimp(>=2.8),
@@ -59,23 +57,14 @@ Replaces: update-notifier-common
 Description: EndlessOS Applications
  This is a collection of applications for the EndlessOS operating system.
 
-Package: eos-language-pack-en-gb
-Architecture: all
-Depends: gcompris-sound-en,
-         libreoffice-help-en-gb,
-         libreoffice-l10n-en-gb,
-         myspell-en-gb,
-Description: EndlessOS English British Language Pack
- This is a collection of English British language packs for the EndlessOS operating system.
-
-Package: eos-language-pack-en-us
+Package: eos-language-pack-en
 Architecture: all
 Depends: gcompris-sound-en,
          libreoffice-help-en-us,
          libreoffice-l10n-en-us,
          myspell-en-us,
-Description: EndlessOS English American Language Pack
- This is a collection of English American language packs for the EndlessOS operating system.
+Description: EndlessOS English Language Pack
+ This is a collection of English  language packs for the EndlessOS operating system.
 
 Package: eos-language-pack-es
 Architecture: all
@@ -89,19 +78,13 @@ Description: EndlessOS Spanish Language Pack
 Package: eos-language-pack-pt
 Architecture: all
 Depends: gcompris-sound-pt,
+         gcompris-sound-ptbr,
          libreoffice-help-pt,
+         libreoffice-help-pt-br,
          libreoffice-l10n-pt,
+         libreoffice-l10n-pt-br,
          myspell-pt,
          myspell-pt-pt
 Description: EndlessOS Portuguese Language Pack
  This is a collection of Portuguese language packs for the EndlessOS operating system.
 
-Package: eos-language-pack-pt-br
-Architecture: all
-Depends: gcompris-sound-ptbr,
-         libreoffice-help-pt-br,
-         libreoffice-l10n-pt-br,
-         myspell-pt,
-         myspell-pt-br
-Description: EndlessOS Portuguese Brazilian Language Pack
- This is a collection of Portuguese Brazilian language packs for the EndlessOS operating system.
