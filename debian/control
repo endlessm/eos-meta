@@ -72,7 +72,8 @@ Architecture: all
 Depends: gcompris-sound-es,
          libreoffice-help-es,
          libreoffice-l10n-es,
-         myspell-es
+         myspell-es,
+         wspanish
 Description: EndlessOS Spanish Language Pack
  This is a collection of Spanish language packs for the EndlessOS operating system.
 
