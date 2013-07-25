@@ -60,6 +60,7 @@ Description: EndlessOS Applications
 Package: eos-language-pack-en
 Architecture: all
 Depends: gcompris-sound-en,
+         hyphen-en-us,
          libreoffice-help-en-us,
          libreoffice-l10n-en-us,
          myspell-en-us,
