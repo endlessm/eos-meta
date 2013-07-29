@@ -7,8 +7,10 @@ Standards-Version: 3.9.2
 Homepage: http://www.endlessm.com
 
 Package: eos-shell-apps
-Architecture: all
-Depends: armagetronad,
+Architecture: any
+Depends: adobe-flashplugin [i386],
+         adobe-flashplugin [amd64],
+         armagetronad,
          audacity,
          billard-gl,
          blockout2,
