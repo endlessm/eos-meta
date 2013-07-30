@@ -1,2 +1,1 @@
-debian/mimeapps.list usr/share/applications
 debian/10periodic etc/apt/apt.conf.d

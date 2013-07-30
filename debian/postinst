@@ -1,18 +1,5 @@
 #!/bin/bash -e
 
-BROWSER_LOCATION=/usr/bin/epiphany-browser
-BROWSER_LAUNCHERS="x-www-browser gnome-www-browser"
-
-for browser_launcher in ${BROWSER_LAUNCHERS}; do
-  echo "Setting default browser (${browser_launcher}) to be ${BROWSER_LOCATION}"
-  set +e
-    update-alternatives --remove ${browser_launcher} "${BROWSER_LOCATION}"
-  set +e
-
-  update-alternatives --install /usr/bin/${browser_launcher} ${browser_launcher} "${BROWSER_LOCATION}" 99
-  update-alternatives --set ${browser_launcher} "${BROWSER_LOCATION}"
-done
-
 # Update default save formats for LibreOffice
 
 if [ "x`getopt LONG_BIT`" == "x64" ]; then
