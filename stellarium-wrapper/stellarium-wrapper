@@ -1,0 +1,65 @@
+#!/usr/bin/gjs
+// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
+
+const Gio = imports.gi.Gio;
+const GLib = imports.gi.GLib;
+
+const DEST_CONFIG = '~/.stellarium/config.ini';
+const DEFAULT_CONFIGS_DIR = '/usr/share/stellarium/default-configs';
+const DEFAULT_CONFIG_NAME_BASE = 'stellarium-default';
+const PERSONALITY_FILE = '/usr/share/EndlessOS/personality.txt';
+const STELLARIUM_COMMAND = 'stellarium -f no';
+
+// Expands a tilde into the current user's home directory
+var expandHome = function(path) {
+    if (path.charAt(0) === '~') {
+        return GLib.get_home_dir() + path.slice(1);
+    }
+    return path;
+}
+
+let configDest = Gio.File.new_for_path(expandHome(DEST_CONFIG));
+
+// Only copy in the default config file if it doesn't exist
+if (!configDest.query_exists(null)) {
+    // Check if we know where we are
+    let personalityFile = Gio.File.new_for_path(PERSONALITY_FILE);
+    let configSource = null;
+    if (personalityFile.query_exists(null)) {
+        // Read the file
+        let [success, personality] = personalityFile.load_contents(null);
+        if (success) {
+            personality = new String(personality).trim();
+            let path = DEFAULT_CONFIGS_DIR + '/' +
+                DEFAULT_CONFIG_NAME_BASE + '-' + personality + '.ini';
+
+            let locationSpecificSource = Gio.File.new_for_path(path);
+            if (locationSpecificSource.query_exists(null)) {
+                configSource = locationSpecificSource;
+            }
+        }
+    }
+
+    // If we don't know where we are or can't find a config file for our
+    // location, use the default
+    if (configSource === null) {
+        let path = DEFAULT_CONFIGS_DIR + '/' +
+            DEFAULT_CONFIG_NAME_BASE + '-default.ini';
+        configSource = Gio.File.new_for_path(path);
+    }
+
+    // Create the parent directory (if needed)
+    let destParent = configDest.get_parent();
+    if (!destParent.query_exists(null)) {
+        destParent.make_directory(null);
+    }
+
+    // Copy over the default file
+    configSource.copy(configDest, Gio.FileCopyFlags.NONE, null, null, null);
+}
+
+try {
+    GLib.spawn_command_line_async(STELLARIUM_COMMAND);
+} catch (e) {
+    logError(e, 'Error executing \'' + STELLARIUM_COMMNAD + '\'');
+}
