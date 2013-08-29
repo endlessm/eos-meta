@@ -10,6 +10,7 @@ Package: eos-shell-apps
 Architecture: any
 Depends: adobe-flashplugin [i386],
          adobe-flashplugin [amd64],
+         aisleriot,
          armagetronad,
          audacity,
          billard-gl,
