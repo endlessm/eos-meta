@@ -1,0 +1,30 @@
+From d427e2a2dcfd50bd7f5ba53811ca018e65788dcd Mon Sep 17 00:00:00 2001
+From: Roddy Shuler <roddy@endlessm.com>
+Date: Mon, 9 Sep 2013 15:46:09 -0700
+Subject: [PATCH] Run script that links user dirs to eos-media
+
+The script is provided by the eos-media repo.
+If eos-media is not installed, the spawn attempt will silently fail.
+
+[endlessm/eos-shell#827]
+---
+ update.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/update.c b/update.c
+index 8710c79..fca4cdc 100644
+--- a/update.c
++++ b/update.c
+@@ -399,5 +399,9 @@ main (int argc, char *argv[])
+   g_free (new_entries);
+   g_free (old_entries);
+   
++  /* Run the script to link user directories to eos-media */
++  /* If script is not installed, simply ignore the error */
++  g_spawn_command_line_sync ("eos-link-user-dirs", NULL, NULL, NULL, NULL);
++
+   return 0;
+ }
+-- 
+1.8.1.2
+
