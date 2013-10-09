@@ -1,0 +1,17 @@
+Source: endless-core-meta
+Section: metapackages
+Priority: optional
+Maintainer: Collabora maintainers
+Uploaders: Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Hector Oron <hector.oron@collabora.co.uk>
+Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 9), germinate (>= 1.18)
+
+Package: endless-core
+Architecture: any
+Depends: ${misc:Depends}, ${germinate:Depends}
+Recommends: ${germinate:Recommends}
+Description: Target packages of the Endless distribution
+ This package depends on all packages required for the Endless OS core images
+ .
+ It is also used to help ensure proper upgrades, so it is recommended that
+ it not be removed.
