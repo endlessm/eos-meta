@@ -1,3 +1,9 @@
+endless-core-meta (0.25) eos; urgency=low
+
+  * Add chromium-browser to the dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 09 Oct 2013 14:04:03 -0600
+
 endless-core-meta (0.24) eos; urgency=low
 
   * Drop -khanakadamy, it's postinst does things it shouldn't be done making

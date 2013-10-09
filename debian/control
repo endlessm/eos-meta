@@ -2,7 +2,7 @@ Source: endless-core-meta
 Section: metapackages
 Priority: optional
 Maintainer: Collabora maintainers
-Uploaders: Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Hector Oron <hector.oron@collabora.co.uk>
+Uploaders: Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Hector Oron <hector.oron@collabora.co.uk>, Srdjan Grubor <sgnn7@sgnn7.org>
 Standards-Version: 3.9.3
 Build-Depends: debhelper (>= 9), germinate (>= 1.18)
 

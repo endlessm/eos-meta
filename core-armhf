@@ -12,6 +12,7 @@ btrfs-tools
 bzip2
 ca-certificates
 chromium-bsu
+chromium-browser
 dbus-x11
 debconf-i18n
 dosfstools
