@@ -124,6 +124,7 @@ xterm
 
 ostree
 libnss-altfiles
+endlessos-base-photos
 eos-social
 eos-translation
 eos-typing
@@ -131,7 +132,6 @@ eos-wikipedia
 eos-wikipedia-brazil
 eos-wikipedia-health
 eos-youtube
-eos-photos
 eos-khanacademy
 eos-weather
 eos-exploration-center
