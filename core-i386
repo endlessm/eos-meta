@@ -76,7 +76,6 @@ lzma
 mawk
 metacity-common
 module-init-tools
-nautilus
 net-tools
 netbase
 network-manager
@@ -126,6 +125,9 @@ xterm
 ostree
 libnss-altfiles
 endlessos-base-photos
+eos-exploration-center
+eos-file-manager
+eos-khanacademy
 eos-social
 eos-translation
 eos-typing
@@ -133,6 +135,4 @@ eos-wikipedia
 eos-wikipedia-brazil
 eos-wikipedia-health
 eos-youtube
-eos-khanacademy
 eos-weather
-eos-exploration-center

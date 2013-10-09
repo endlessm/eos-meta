@@ -1,3 +1,11 @@
+endless-core-meta (0.27) eos; urgency=low
+
+  * Changed photos package name
+  * Removed out nautilus and added eos-file-manager
+  * Ordered the packaged alphabetically
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 09 Oct 2013 17:16:16 -0500
+
 endless-core-meta (0.26) eos; urgency=low
 
   * Added eos-photos, eos-khan-academy, eos-weather, and eos-
