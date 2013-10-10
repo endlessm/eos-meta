@@ -121,6 +121,8 @@ xserver-xorg-input-evdev
 xserver-xorg-video-fbdev
 xterm
 
+aisleriot
+
 ostree
 libnss-altfiles
 endlessos-base-photos
