@@ -1,3 +1,9 @@
+endless-core-meta (0.30) eos; urgency=low
+
+  * Removed out debian dir
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Fri, 11 Oct 2013 16:56:36 -0500
+
 endless-core-meta (0.29) eos; urgency=low
 
   * Autoadd - Added eos-english eos-programming eos-resume eos-media to
