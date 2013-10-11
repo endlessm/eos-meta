@@ -7,4 +7,6 @@ echo "Old Version: $OLD_VERSION"
 NEW_VERSION=$(bc <<< "new_ver = $OLD_VERSION + 0.01; if (new_ver < 1) print 0; new_ver")
 echo "New Version: $NEW_VERSION"
 
-dch --force-distribution -m "$@" -D eos -v $NEW_VERSION
+COMMENT="${@}"
+
+dch --force-distribution -m "${COMMENT}" -D eos -v $NEW_VERSION
