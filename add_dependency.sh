@@ -21,11 +21,12 @@ fi
 #SECTION=$1
 #shift
 
-echo "Adding packages $@"
+PACKAGES=$@
+echo "Adding packages $PACKAGES"
 
 for arch_file in $(ls core-* | grep -v recommends); do
   echo "Processing arch: $arch_file"
-  for package_name in $@; do
+  for package_name in $PACKAGES; do
     echo "- Adding $package_name"
     echo "$package_name" >> $arch_file
   done
@@ -34,11 +35,14 @@ for arch_file in $(ls core-* | grep -v recommends); do
   $GIT add -p -- $arch_file
 done
 
-$GIT commit -m "Added $@ as dependencies"
+echo "Commiting changes to Git"
+$GIT commit -m "Added $PACKAGES as dependencies"
 
-./bump_version.sh "Autoadd - Added $@ to dependencies"
+echo "Updating changelog version"
+./bump_version.sh "Autoadd - Added $PACKAGES to dependencies"
 
+echo "Saving changelog to Git"
 $GIT add debian/changelog
-$GIT commit -m "Updated the changelog"
+$GIT commit -m \"Updated the changelog\"
 
 echo "Done. Make sure that the git patch is correct before pushing"
