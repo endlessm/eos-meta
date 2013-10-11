@@ -1,22 +1,29 @@
 #!/bin/bash -e
 
-if [[ $# -lt 2 ]]; then
-  echo "Usage $0 [ core, endless, extra ] <package_name>..." 2>&1
+GIT=git
+
+if [[ $# -le 0 ]]; then
+  echo "Usage $0 <package_name>..." 2>&1
   exit 1
 fi
 
-if [[ ! $1 =~ core|endless|extra ]]; then
-  echo "Section must be one of core, endless, or extra" 2>&1
-  exit 1
-fi
+# Removed until we can have comments in the file
+#  echo "Usage $0 [ core, endless, extra ] <package_name>..." 2>&1
+#  exit 1
+#fi
 
-echo "Using section: $1"
-SECTION=$1
-shift
+#if [[ ! $1 =~ core|endless|extra ]]; then
+#  echo "Section must be one of core, endless, or extra" 2>&1
+#  exit 1
+#fi
+
+#echo "Using section: $1"
+#SECTION=$1
+#shift
 
 echo "Adding packages $@"
 
-for arch_file in core-*; do
+for arch_file in $(ls core-* | grep -v recommends); do
   echo "Processing arch: $arch_file"
   for package_name in $@; do
     echo "- Adding $package_name"
@@ -24,8 +31,14 @@ for arch_file in core-*; do
   done
 
   echo "Confirm the changes!"
-  git add -p -- $arch_file
+  $GIT add -p -- $arch_file
 done
 
-git commit -m "Added $@ as dependencies"
+$GIT commit -m "Added $@ as dependencies"
 
+./bump_version.sh "Autoadd - Added $@ to dependencies"
+
+$GIT add debian/changelog
+$GIT commit -m "Updated the changelog"
+
+echo "Done. Make sure that the git patch is correct before pushing"
