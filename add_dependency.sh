@@ -43,6 +43,6 @@ echo "Updating changelog version"
 
 echo "Saving changelog to Git"
 $GIT add debian/changelog
-$GIT commit -m \"Updated the changelog\"
+$GIT commit -m "Updated the changelog"
 
 echo "Done. Make sure that the git patch is correct before pushing"
