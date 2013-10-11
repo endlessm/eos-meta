@@ -1,3 +1,4 @@
 *.log
 debian/*substvars
 debian/endless-core
+*.swp
