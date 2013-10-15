@@ -1,3 +1,9 @@
+endless-core-meta (0.31) eos; urgency=low
+
+  * Autoadd - Added eog to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Tue, 15 Oct 2013 14:32:38 -0700
+
 endless-core-meta (0.30) eos; urgency=low
 
   * Removed out debian dir
