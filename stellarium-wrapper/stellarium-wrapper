@@ -7,7 +7,7 @@ const GLib = imports.gi.GLib;
 const DEST_CONFIG = '~/.stellarium/config.ini';
 const DEFAULT_CONFIGS_DIR = '/usr/share/stellarium/default-configs';
 const DEFAULT_CONFIG_NAME_BASE = 'stellarium-default';
-const PERSONALITY_FILE = '/usr/share/EndlessOS/personality.txt';
+const PERSONALITY_FILE = '/etc/EndlessOS/personality.txt';
 const STELLARIUM_COMMAND = 'stellarium -f no';
 
 // Expands a tilde into the current user's home directory
