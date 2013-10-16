@@ -1,3 +1,9 @@
+endless-core-meta (0.32) eos; urgency=low
+
+  * Autoadd - Added xdg-user-dirs-gtk to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 16 Oct 2013 14:46:14 -0700
+
 endless-core-meta (0.31) eos; urgency=low
 
   * Autoadd - Added eog to dependencies
