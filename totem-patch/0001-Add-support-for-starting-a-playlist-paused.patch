@@ -1,0 +1,84 @@
+From cce483d0505dc3dc618864696a25d6801eaf6829 Mon Sep 17 00:00:00 2001
+From: Cosimo Cecchi <cosimo@endlessm.com>
+Date: Mon, 16 Sep 2013 11:49:42 -0700
+Subject: [PATCH] Add support for starting a playlist paused
+
+Currently, when --pause is specified in the first command line
+invocation of Totem, the passed-in media will still start.
+This patch saves the initial state of the pause option to a separate
+variable, so that when we receive the first playlist changed event, we
+can avoid starting up the stream if the option was specified.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=708184
+---
+ src/totem-object.c  | 12 ++++++++++--
+ src/totem-options.c |  3 +++
+ src/totem-private.h |  1 +
+ 3 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/src/totem-object.c b/src/totem-object.c
+index e50c1aa..6dc6aa4 100644
+--- a/src/totem-object.c
++++ b/src/totem-object.c
+@@ -1688,6 +1688,7 @@ totem_action_set_mrl_with_warning (TotemObject *totem,
+ 	if (totem->mrl != NULL) {
+ 		totem->seek_to = 0;
+ 		totem->seek_to_start = 0;
++		totem->pause_start = FALSE;
+ 
+ 		totem_save_position (totem);
+ 		g_free (totem->mrl);
+@@ -2443,6 +2444,7 @@ on_error_event (BaconVideoWidget *bvw, char *message,
+ 	 * the first file, even if it's not there */
+ 	totem->seek_to = 0;
+ 	totem->seek_to_start = 0;
++	totem->pause_start = FALSE;
+ 
+ 	if (playback_stopped)
+ 		play_pause_set_label (totem, STATE_STOPPED);
+@@ -3193,8 +3195,14 @@ playlist_changed_cb (GtkWidget *playlist, TotemObject *totem)
+ 	if (mrl == NULL)
+ 		return;
+ 
+-	if (totem_playlist_get_playing (totem->playlist) == TOTEM_PLAYLIST_STATUS_NONE)
+-		totem_action_set_mrl_and_play (totem, mrl, subtitle);
++	if (totem_playlist_get_playing (totem->playlist) == TOTEM_PLAYLIST_STATUS_NONE) {
++		if (!totem->pause_start)
++			totem_action_set_mrl_and_play (totem, mrl, subtitle);
++		else
++			totem_action_set_mrl (totem, mrl, subtitle);
++	}
++
++	totem->pause_start = FALSE;
+ 
+ 	g_free (mrl);
+ 	g_free (subtitle);
+diff --git a/src/totem-options.c b/src/totem-options.c
+index 1c6ae68..17ca257 100644
+--- a/src/totem-options.c
++++ b/src/totem-options.c
+@@ -106,6 +106,9 @@ totem_options_process_late (Totem *totem, const TotemCmdLineOptions *options)
+ 
+ 	/* Handle --seek */
+ 	totem->seek_to_start = options->seek;
++
++	/* Handle --pause */
++	totem->pause_start = options->pause;
+ }
+ 
+ void
+diff --git a/src/totem-private.h b/src/totem-private.h
+index 2034f82..755eef9 100644
+--- a/src/totem-private.h
++++ b/src/totem-private.h
+@@ -140,6 +140,7 @@ struct _TotemObject {
+ 	/* session */
+ 	const char *argv0;
+ 	gint64 seek_to_start;
++	gboolean pause_start;
+ 	guint index;
+ 	gboolean session_restored;
+ 
+-- 
+1.8.1.2
+
