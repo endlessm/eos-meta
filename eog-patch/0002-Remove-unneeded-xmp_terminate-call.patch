@@ -1,0 +1,37 @@
+From ac5fa5e36975edc613007fb5b26bbd5dce79d2bf Mon Sep 17 00:00:00 2001
+From: Felix Riemann <friemann@gnome.org>
+Date: Sun, 6 Oct 2013 15:36:08 +0200
+Subject: [PATCH 2/2] Remove unneeded xmp_terminate call
+
+This is called by EogApplication if needed.
+---
+ src/main.c | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index 1483b0d..6ec3884 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -39,10 +39,6 @@
+ #include <stdlib.h>
+ #include <glib/gi18n.h>
+ 
+-#if HAVE_RSVG
+-#include <librsvg/rsvg.h>
+-#endif
+-
+ static EogStartupFlags flags;
+ 
+ static gboolean fullscreen = FALSE;
+@@ -138,8 +134,5 @@ main (int argc, char **argv)
+ 	g_application_run (G_APPLICATION (EOG_APP), argc, argv);
+ 	g_object_unref (EOG_APP);
+ 
+-#ifdef HAVE_EXEMPI
+-	xmp_terminate();
+-#endif
+ 	return 0;
+ }
+-- 
+1.8.1.2
+
