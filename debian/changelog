@@ -1,3 +1,9 @@
+endless-core-meta (0.35) eos; urgency=low
+
+  * Autoadd - Added eos-keyring to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Fri, 18 Oct 2013 11:50:52 -0500
+
 endless-core-meta (0.34) eos; urgency=low
 
   * Autoadd - Added gnome-sushi to dependencies
