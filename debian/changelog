@@ -1,3 +1,9 @@
+endless-core-meta (0.34) eos; urgency=low
+
+  * Autoadd - Added gnome-sushi to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Thu, 17 Oct 2013 18:29:32 -0700
+
 endless-core-meta (0.33) eos; urgency=low
 
   * Autoadd - Added rhythmbox to dependencies
