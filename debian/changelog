@@ -1,3 +1,9 @@
+endless-core-meta (0.36) eos; urgency=low
+
+  * Autoadd - Added eos-updater to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Fri, 18 Oct 2013 11:52:40 -0500
+
 endless-core-meta (0.35) eos; urgency=low
 
   * Autoadd - Added eos-keyring to dependencies
