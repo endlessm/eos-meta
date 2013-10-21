@@ -1,3 +1,9 @@
+endless-core-meta (0.38) eos; urgency=low
+
+  * Autoadd - Added inkscape to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Mon, 21 Oct 2013 16:50:25 -0700
+
 endless-core-meta (0.37) eos; urgency=low
 
   * Autoadd - Added gnome-sudoku to dependencies
