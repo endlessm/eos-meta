@@ -1,3 +1,9 @@
+endless-core-meta (0.37) eos; urgency=low
+
+  * Autoadd - Added gnome-sudoku to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Mon, 21 Oct 2013 11:31:27 -0700
+
 endless-core-meta (0.36) eos; urgency=low
 
   * Autoadd - Added eos-updater to dependencies
