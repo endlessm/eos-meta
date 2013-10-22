@@ -1,3 +1,9 @@
+endless-core-meta (0.39) eos; urgency=low
+
+  * Autoadd - Added frozen-bubble to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Tue, 22 Oct 2013 14:42:29 -0700
+
 endless-core-meta (0.38) eos; urgency=low
 
   * Autoadd - Added inkscape to dependencies
