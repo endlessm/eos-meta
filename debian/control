@@ -70,6 +70,17 @@ Depends: endlessos-base-photos,
          tuxmath,
          tuxtype,
          xdg-user-dirs-gtk
+Recommends: eos-plymouth-theme,
+            gstreamer0.10-fluendo-mp3,
+            gstreamer0.10-plugins-bad,
+            gstreamer0.10-plugins-bad-multiverse,
+            gstreamer0.10-plugins-ugly,
+            gstreamer1.0-libav,
+            gstreamer1.0-plugins-bad,
+            gstreamer1.0-plugins-ugly,
+            libavcodec-extra-53,
+            libreoffice,
+            unrar
 Replaces: update-notifier-common
 Description: EndlessOS Applications
  This is a collection of applications for the EndlessOS operating system.
