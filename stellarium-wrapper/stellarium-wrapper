@@ -7,7 +7,7 @@ const GLib = imports.gi.GLib;
 const DEST_CONFIG = '~/.stellarium/config.ini';
 const DEFAULT_CONFIGS_DIR = '/usr/share/stellarium/default-configs';
 const DEFAULT_CONFIG_NAME_BASE = 'stellarium-default';
-const PERSONALITY_FILE = '/etc/EndlessOS/personality.txt';
+const PERSONALITY_FILE = '/etc/EndlessOS/personality.conf';
 const STELLARIUM_COMMAND = 'stellarium -f no';
 
 // Expands a tilde into the current user's home directory
@@ -22,23 +22,32 @@ let configDest = Gio.File.new_for_path(expandHome(DEST_CONFIG));
 
 // Only copy in the default config file if it doesn't exist
 if (!configDest.query_exists(null)) {
-    // Check if we know where we are
-    let personalityFile = Gio.File.new_for_path(PERSONALITY_FILE);
+    // Check if we have a personality configured
+    let personalityFile = new GLib.KeyFile();
     let configSource = null;
-    if (personalityFile.query_exists(null)) {
-        // Read the file
-        let [success, personality] = personalityFile.load_contents(null);
-        if (success) {
-            personality = new String(personality).trim();
-            let path = DEFAULT_CONFIGS_DIR + '/' +
-                DEFAULT_CONFIG_NAME_BASE + '-' + personality + '.ini';
 
-            let locationSpecificSource = Gio.File.new_for_path(path);
-            if (locationSpecificSource.query_exists(null)) {
-                configSource = locationSpecificSource;
-            }
+    let personality = null;
+    // Read the file
+    try {
+        personalityFile.load_from_file(PERSONALITY_FILE,
+                                       GLib.KeyFileFlags.NONE);
+        personality = personalityFile.get_string ("Personality",
+                                                  "PersonalityName");
+    } catch (e) {
+        log('Personality file \'' + PERSONALITY_FILE + '\' cannot be read');
+    }
+
+    if (personality !== null) {
+        // Look for the personality-specific config file
+        let path = DEFAULT_CONFIGS_DIR + '/' +
+            DEFAULT_CONFIG_NAME_BASE + '-' + personality + '.ini';
+
+        let locationSpecificSource = Gio.File.new_for_path(path);
+        if (locationSpecificSource.query_exists(null)) {
+            configSource = locationSpecificSource;
         }
     }
+
 
     // If we don't know where we are or can't find a config file for our
     // location, use the default
