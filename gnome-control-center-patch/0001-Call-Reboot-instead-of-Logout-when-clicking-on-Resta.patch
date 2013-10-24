@@ -1,0 +1,27 @@
+From f83a9042ceac704a7a4962d13f9cfd3d440b1bdd Mon Sep 17 00:00:00 2001
+From: Cosimo Cecchi <cosimo@endlessm.com>
+Date: Tue, 22 Oct 2013 17:53:32 -0700
+Subject: [PATCH] Call Reboot instead of Logout when clicking on Restart Now
+
+---
+ panels/region/cc-region-panel.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/panels/region/cc-region-panel.c b/panels/region/cc-region-panel.c
+index 83c8946..8209d8e 100644
+--- a/panels/region/cc-region-panel.c
++++ b/panels/region/cc-region-panel.c
+@@ -205,8 +205,8 @@ restart_now (CcRegionPanel *self)
+         gd_notification_dismiss (GD_NOTIFICATION (self->priv->notification));
+ 
+         g_dbus_proxy_call (priv->session,
+-                           "Logout",
+-                           g_variant_new ("(u)", 0),
++                           "Reboot",
++                           NULL,
+                            G_DBUS_CALL_FLAGS_NONE,
+                            -1, NULL, NULL, NULL);
+ }
+-- 
+1.8.1.2
+
