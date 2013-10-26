@@ -1,6 +1,0 @@
-[Default Applications]
-application/xhtml+xml=eos-app-chromium-browser.desktop
-text/html=eos-app-chromium-browser.desktop
-text/xml=eos-app-chromium-browser.desktop
-x-scheme-handler/https=eos-app-chromium-browser.desktop
-x-scheme-handler/http=eos-app-chromium-browser.desktop

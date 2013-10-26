@@ -1,4 +1,3 @@
-debian/mimeapps.list usr/share/applications
 debian/10periodic etc/apt/apt.conf.d
 stellarium-wrapper/stellarium-wrapper usr/bin
 stellarium-wrapper/default-configs usr/share/stellarium
