@@ -108,7 +108,7 @@ Depends: gcompris-sound-pt,
          libreoffice-l10n-pt,
          libreoffice-l10n-pt-br,
          myspell-pt,
-         myspell-pt-pt
+         myspell-pt-br
 Description: EndlessOS Portuguese Language Pack
  This is a collection of Portuguese language packs for the EndlessOS operating system.
 
