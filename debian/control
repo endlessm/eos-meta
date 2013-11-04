@@ -85,7 +85,7 @@ Architecture: all
 Depends: gcompris-sound-en,
          hyphen-en-us,
          libreoffice-help-en-us,
-         myspell-en-us
+         hunspell-en-us
 Recommends: libreoffice-l10n-en-us
 Description: EndlessOS English Language Pack
  This is a collection of English  language packs for the EndlessOS operating system.
