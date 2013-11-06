@@ -1,3 +1,9 @@
+endless-core-meta (0.43) eos; urgency=low
+
+  * Autoadd - Added gstreamer1.0-plugins-ugly to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 06 Nov 2013 10:55:40 -0800
+
 endless-core-meta (0.42) eos; urgency=low
 
   * Autoadd - Added ntp to dependencies
