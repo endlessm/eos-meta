@@ -80,6 +80,7 @@ Depends: endlessos-base-photos,
          totem,
          tuxmath,
          tuxtype,
+         unoconv,
          xdg-user-dirs-gtk
 Recommends: eos-plymouth-theme,
             libreoffice,
