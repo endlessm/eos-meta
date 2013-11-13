@@ -81,6 +81,7 @@ Depends: endlessos-base-photos,
          tuxmath,
          tuxtype[i386],
          unoconv,
+         xkb-data-i18n,
          xdg-user-dirs-gtk
 Recommends: eos-plymouth-theme,
             libreoffice,
