@@ -79,7 +79,7 @@ Depends: endlessos-base-photos,
          teeworlds[i386],
          totem,
          tuxmath,
-         tuxtype,
+         tuxtype[i386],
          unoconv,
          xdg-user-dirs-gtk
 Recommends: eos-plymouth-theme,
