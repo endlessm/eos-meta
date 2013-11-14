@@ -79,7 +79,7 @@ Depends: endlessos-base-photos,
          teeworlds[i386],
          totem,
          tuxmath,
-         tuxtype[i386],
+         tuxtype,
          unoconv,
          xkb-data-i18n,
          xdg-user-dirs-gtk
