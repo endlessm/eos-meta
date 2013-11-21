@@ -1,7 +1,10 @@
 #!/bin/bash -e
 
+# Set Chromium as default browser
+
 BROWSER_LOCATION=/usr/bin/chromium-browser
 BROWSER_LAUNCHERS="x-www-browser gnome-www-browser"
+BROWSER_SCHEMAS="http https about"
 
 for browser_launcher in ${BROWSER_LAUNCHERS}; do
   echo "Setting default browser (${browser_launcher}) to be ${BROWSER_LOCATION}"
@@ -13,3 +16,10 @@ for browser_launcher in ${BROWSER_LAUNCHERS}; do
   update-alternatives --set ${browser_launcher} "${BROWSER_LOCATION}"
 done
 
+for browser_schema in ${BROWSER_SCHEMAS}; do
+  gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults --type string \
+    --set /desktop/gnome/url-handlers/${browser_schema}/command "${BROWSER_LOCATION} %s"
+done
+
+gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults --type string \
+  --set /desktop/gnome/applications/browser/exec ${BROWSER_LOCATION}
