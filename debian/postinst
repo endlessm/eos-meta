@@ -6,6 +6,9 @@ BROWSER_LOCATION=/usr/bin/chromium-browser
 BROWSER_LAUNCHERS="x-www-browser gnome-www-browser"
 BROWSER_SCHEMAS="http https about"
 
+EOS_APP_URI_SCHEME="endlessm-app"
+EOS_LAUNCHER="gjs /usr/share/eos-shell/js/misc/eos-launch.js"
+
 for browser_launcher in ${BROWSER_LAUNCHERS}; do
   echo "Setting default browser (${browser_launcher}) to be ${BROWSER_LOCATION}"
   set +e
@@ -23,3 +26,6 @@ done
 
 gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults --type string \
   --set /desktop/gnome/applications/browser/exec ${BROWSER_LOCATION}
+
+gconftool-2 --direct --config-source xml:readwrite:/etc/gconf/gconf.xml.defaults --type string \
+  --set /desktop/gnome/url-handlers/${EOS_APP_URI_SCHEME}/command "${EOS_LAUNCHER} %s"
