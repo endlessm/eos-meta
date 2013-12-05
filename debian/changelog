@@ -1,3 +1,9 @@
+endless-core-meta (0.44) eos; urgency=low
+
+  * Autoadd - Added network-manager-vpnc-gnome to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Thu, 05 Dec 2013 14:36:58 -0600
+
 endless-core-meta (0.43) eos; urgency=low
 
   * Autoadd - Added gstreamer1.0-plugins-ugly to dependencies

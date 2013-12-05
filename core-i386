@@ -90,3 +90,4 @@ eos-shell-apps
 cups
 ntp
 gstreamer1.0-plugins-ugly
+network-manager-vpnc-gnome
