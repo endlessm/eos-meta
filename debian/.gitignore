@@ -1,0 +1,5 @@
+*.log
+*substvars
+endless-core
+*.swp
+*~

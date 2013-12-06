@@ -1,0 +1,467 @@
+endless-core-meta (0.43) eos; urgency=low
+
+  * Autoadd - Added gstreamer1.0-plugins-ugly to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 06 Nov 2013 10:55:40 -0800
+
+endless-core-meta (0.42) eos; urgency=low
+
+  * Autoadd - Added ntp to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Thu, 24 Oct 2013 12:06:01 -0600
+
+endless-core-meta (0.41) eos; urgency=low
+
+  * Autoadd - Added cups to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 23 Oct 2013 12:06:19 -0700
+
+endless-core-meta (0.40) eos; urgency=low
+
+  * Bumped version for pull request
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Tue, 22 Oct 2013 17:14:34 -0500
+
+endless-core-meta (0.39) eos; urgency=low
+
+  * Autoadd - Added frozen-bubble to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Tue, 22 Oct 2013 14:42:29 -0700
+
+endless-core-meta (0.38) eos; urgency=low
+
+  * Autoadd - Added inkscape to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Mon, 21 Oct 2013 16:50:25 -0700
+
+endless-core-meta (0.37) eos; urgency=low
+
+  * Autoadd - Added gnome-sudoku to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Mon, 21 Oct 2013 11:31:27 -0700
+
+endless-core-meta (0.36) eos; urgency=low
+
+  * Autoadd - Added eos-updater to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Fri, 18 Oct 2013 11:52:40 -0500
+
+endless-core-meta (0.35) eos; urgency=low
+
+  * Autoadd - Added eos-keyring to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Fri, 18 Oct 2013 11:50:52 -0500
+
+endless-core-meta (0.34) eos; urgency=low
+
+  * Autoadd - Added gnome-sushi to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Thu, 17 Oct 2013 18:29:32 -0700
+
+endless-core-meta (0.33) eos; urgency=low
+
+  * Autoadd - Added rhythmbox to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Thu, 17 Oct 2013 14:36:23 -0700
+
+endless-core-meta (0.32) eos; urgency=low
+
+  * Autoadd - Added xdg-user-dirs-gtk to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 16 Oct 2013 14:46:14 -0700
+
+endless-core-meta (0.31) eos; urgency=low
+
+  * Autoadd - Added eog to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Tue, 15 Oct 2013 14:32:38 -0700
+
+endless-core-meta (0.30) eos; urgency=low
+
+  * Removed out debian dir
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Fri, 11 Oct 2013 16:56:36 -0500
+
+endless-core-meta (0.29) eos; urgency=low
+
+  * Autoadd - Added eos-english eos-programming eos-resume eos-media to
+    dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Fri, 11 Oct 2013 16:40:50 -0500
+
+endless-core-meta (0.28) eos; urgency=low
+
+  * Added aislerot to the dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Thu, 10 Oct 2013 13:45:28 -0500
+
+endless-core-meta (0.27) eos; urgency=low
+
+  * Changed photos package name
+  * Removed out nautilus and added eos-file-manager
+  * Ordered the packaged alphabetically
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 09 Oct 2013 17:16:16 -0500
+
+endless-core-meta (0.26) eos; urgency=low
+
+  * Added eos-photos, eos-khan-academy, eos-weather, and eos-
+    exploration-center to dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 09 Oct 2013 15:36:59 -0600
+
+endless-core-meta (0.25) eos; urgency=low
+
+  * Add chromium-browser to the dependencies
+
+ -- Srdjan Grubor <sgnn7@sgnn7.org>  Wed, 09 Oct 2013 14:04:03 -0600
+
+endless-core-meta (0.24) eos; urgency=low
+
+  * Drop -khanakadamy, it's postinst does things it shouldn't be done making
+    image builds fail
+
+ -- Sjoerd Simons <sjoerd.simons@collabora.co.uk>  Mon, 02 Sep 2013 11:20:03 +0200
+
+endless-core-meta (0.23) eos; urgency=low
+
+  * Drop eos-exploration-center and eos-wikipedia-api-web, missing depends in
+    the archive.
+
+ -- Sjoerd Simons <sjoerd.simons@collabora.co.uk>  Mon, 02 Sep 2013 10:52:02 +0200
+
+endless-core-meta (0.22) eos; urgency=low
+
+  * Add ostree and libnss-altfiles to core for usage as ostree images
+  * Add endless applications to core:
+    + eos-exploration-center
+    + eos-khanacademy
+    + eos-social
+    + eos-translation
+    + eos-typing
+    + eos-wikipedia
+    + eos-wikipedia-api-web
+    + eos-wikipedia-brazil
+    + eos-wikipedia-health
+    + eos-youtube
+
+ -- Sjoerd Simons <sjoerd.simons@collabora.co.uk>  Mon, 02 Sep 2013 09:57:47 +0200
+
+endless-core-meta (0.21) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added dracut to core
+  * Added plymouth-themes-solar to core
+  * Removed initramfs-tools from core
+  * Removed plymouth-theme-solar from core
+  * Removed flash-kernel from core [armhf]
+
+ -- Sjoerd Simons <sjoerd.simons@collabora.co.uk>  Fri, 09 Aug 2013 19:19:59 +0200
+
+endless-core-meta (0.20) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added gnome-initial-setup to core
+
+ -- Javier Martinez Canillas <javier.martinez@collabora.co.uk>  Thu, 08 Aug 2013 08:23:54 +0000
+
+endless-core-meta (0.19) eos; urgency=low
+
+  * Refreshed dependencies
+  * Removed icedtea-plugin from core [armhf]
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Tue, 23 Jul 2013 11:07:50 +0200
+
+endless-core-meta (0.18) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added fonts-ubuntu-font-family-console to core
+  * Added icedtea-plugin to core [armhf]
+  * Added ttf-ubuntu-font-family to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Tue, 23 Jul 2013 00:26:16 +0200
+
+endless-core-meta (0.17.1) eos; urgency=low
+
+  * Temporarily drop icedtea-plugin from armhf, to be able to build images.
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Fri, 19 Jul 2013 13:35:58 +0200
+
+endless-core-meta (0.17) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added icedtea-plugin to core
+  * Added plymouth-theme-solar to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Thu, 11 Jul 2013 14:49:06 +0200
+
+endless-core-meta (0.16) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added libreoffice-help-es to core
+  * Added libreoffice-help-pt-br to core
+  * Removed plymouth-theme-fade-in from core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Wed, 03 Jul 2013 19:31:27 +0200
+
+endless-core-meta (0.15) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added plymouth-theme-fade-in to core
+  * Added python-scipy to core [armhf]
+  * Removed plymouth-themes-fade-in from core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Wed, 03 Jul 2013 17:04:52 +0200
+
+endless-core-meta (0.14) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added alsa-utils to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Wed, 03 Jul 2013 15:06:51 +0200
+
+endless-core-meta (0.13) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added plymouth-themes-fade-in to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Wed, 03 Jul 2013 14:56:47 +0200
+
+endless-core-meta (0.12) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added libreoffice-l10n-es to core
+  * Added libreoffice-l10n-pt-br to core
+  * Added python-scipy to core [i386]
+  * Added python-skimage to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Wed, 03 Jul 2013 12:28:59 +0200
+
+endless-core-meta (0.11) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added armagetronad to core
+  * Added billard-gl to core
+  * Added blockout2 to core
+  * Added chromium-bsu to core
+  * Added epiphany-browser-webkit2 to core
+  * Added evolution to core
+  * Added gcompris to core
+  * Added gimp to core
+  * Added gnome-calculator to core
+  * Added gnome-genius to core
+  * Added gnuchess to core
+  * Added gstreamer0.10-ffmpeg to core
+  * Added kobodeluxe to core
+  * Added lbreakout2 to core
+  * Added nautilus to core
+  * Added numptyphysics to core
+  * Added openarena to core
+  * Added pingus to core
+  * Added shotwell to core
+  * Added sudoku to core
+  * Added supertux to core
+  * Added supertuxkart to core
+  * Added teeworlds to core
+  * Added totem to core
+  * Added tuxmath to core
+  * Added tuxtype to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Tue, 02 Jul 2013 14:48:52 +0200
+
+endless-core-meta (0.10) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added openssh-client to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Tue, 02 Jul 2013 14:07:11 +0200
+
+endless-core-meta (0.9) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added gnome-terminal to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Mon, 01 Jul 2013 23:30:54 +0200
+
+endless-core-meta (0.8) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added libreoffice-calc to core
+  * Added libreoffice-writer to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Wed, 26 Jun 2013 20:43:01 +0200
+
+endless-core-meta (0.7) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added gnome-control-center to core
+  * Removed eos-shell-apps from core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Wed, 26 Jun 2013 20:17:52 +0200
+
+endless-core-meta (0.6) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added gnome-session to core
+  * Added xserver-xorg-video-intel to core [i386]
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Tue, 25 Jun 2013 14:01:11 +0200
+
+endless-core-meta (0.5) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added singularity-archive-keyring to core
+  * Added xdg-utils to core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Fri, 21 Jun 2013 21:30:02 +0200
+
+endless-core-meta (0.4) eos; urgency=low
+
+  * Refreshed dependencies
+  * Removed obexd-server from core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Fri, 21 Jun 2013 20:50:05 +0200
+
+endless-core-meta (0.3) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added network-manager to core
+  * Removed connman from core
+  * Removed connman-tests from core
+  * Removed gstreamer1.0-clutter from core
+  * Removed libchamplain-0.12-0 from core
+  * Removed libclutter-1.0-0 from core
+  * Removed libclutter-gst-2.0-0 from core
+  * Removed libcurl3 from core
+  * Removed libgdata13 from core
+  * Removed libgupnp-1.0-4 from core
+  * Removed libgupnp-av-1.0-2 from core
+  * Removed librest-0.7-0 from core
+  * Removed libsoup2.4-1 from core
+  * Removed libwebkit-clutter-0 from core
+  * Removed libwebsockets1 from core
+  * Removed libwnck-3-0 from core
+  * Removed mutter from core
+  * Removed ofono from core
+  * Removed python-gobject from core
+  * Removed tracker from core
+  * Removed tracker-miner-fs from core
+  * Removed tumbler from core
+  * Removed tumbler-plugins-extra from core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Fri, 21 Jun 2013 20:18:09 +0200
+
+endless-core-meta (0.2) eos; urgency=low
+
+  * Refreshed dependencies
+  * Added adduser to core
+  * Added apt to core
+  * Added apt-transport-https to core
+  * Added apt-utils to core
+  * Added avahi-daemon to core
+  * Added bluez to core
+  * Added btrfs-tools to core
+  * Added bzip2 to core
+  * Added ca-certificates to core
+  * Added connman to core
+  * Added connman-tests to core
+  * Added dbus-x11 to core
+  * Added debconf-i18n to core
+  * Added dosfstools to core
+  * Added eos-shell to core
+  * Added eos-shell-apps to core
+  * Added eos-theme to core
+  * Added evolution-data-server to core
+  * Added file to core
+  * Added flash-kernel to core [armhf]
+  * Added geoclue to core
+  * Added gnupg to core
+  * Added grilo-plugins-0.2 to core
+  * Added gstreamer1.0-clutter to core
+  * Added gstreamer1.0-plugins-good to core
+  * Added gstreamer1.0-pulseaudio to core
+  * Added gstreamer1.0-x to core
+  * Added initramfs-tools to core
+  * Added iproute to core
+  * Added less to core
+  * Added libasound2 to core
+  * Added libbluetooth3 to core
+  * Added libchamplain-0.12-0 to core
+  * Added libclutter-1.0-0 to core
+  * Added libclutter-1.0-common to core
+  * Added libclutter-gst-2.0-0 to core
+  * Added libcogl-common to core
+  * Added libcurl3 to core
+  * Added libfolks-eds25 to core
+  * Added libfolks-telepathy25 to core
+  * Added libgdata13 to core
+  * Added libglib2.0-data to core
+  * Added libgrilo-0.2-1 to core
+  * Added libgrilo-0.2-bin to core
+  * Added libgupnp-1.0-4 to core
+  * Added libgupnp-av-1.0-2 to core
+  * Added liblockfile-bin to core
+  * Added libpam-runtime to core
+  * Added libpam-systemd to core
+  * Added libpulse-mainloop-glib0 to core
+  * Added libpulse0 to core
+  * Added libreoffice-core to core
+  * Added librest-0.7-0 to core
+  * Added librest-extras-0.7-0 to core
+  * Added libsoup2.4-1 to core
+  * Added libtelepathy-farstream3 to core
+  * Added libwebkit-clutter-0 to core
+  * Added libwebsockets1 to core
+  * Added libwnck-3-0 to core
+  * Added linux-firmware to core
+  * Added locales to core
+  * Added lsb-base to core
+  * Added lsb-release to core
+  * Added lzma to core
+  * Added mawk to core
+  * Added metacity-common to core
+  * Added module-init-tools to core
+  * Added mutter to core
+  * Added net-tools to core
+  * Added netbase to core
+  * Added obexd-client to core
+  * Added obexd-server to core
+  * Added ofono to core
+  * Added policykit-1 to core
+  * Added pulseaudio to core
+  * Added pulseaudio-module-bluetooth to core
+  * Added pulseaudio-module-x11 to core
+  * Added pulseaudio-utils to core
+  * Added python-gobject to core
+  * Added rtkit to core
+  * Added sudo to core
+  * Added syncevolution to core
+  * Added systemd-sysv to core
+  * Added telepathy-gabble to core
+  * Added telepathy-mission-control-5 to core
+  * Added tracker to core
+  * Added tracker-miner-fs to core
+  * Added tumbler to core
+  * Added tumbler-plugins-extra to core
+  * Added u-boot-tools to core [armhf]
+  * Added udev to core
+  * Added usb-modeswitch to core
+  * Added vim-tiny to core
+  * Added whiptail to core
+  * Added wpasupplicant to core
+  * Added xauth to core
+  * Added xdg-user-dirs to core
+  * Added xserver-xorg to core
+  * Added xserver-xorg-input-evdev to core
+  * Added xserver-xorg-video-fbdev to core [armhf]
+  * Added xserver-xorg-video-vesa to core [i386]
+  * Added xterm to core
+  * Removed  from core
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Fri, 21 Jun 2013 17:31:08 +0200
+
+endless-core-meta (0.1) eos; urgency=low
+
+  * Initial release.
+
+ -- Hector Oron <hector.oron@collabora.co.uk>  Wed, 19 Jun 2013 17:31:54 +0200
