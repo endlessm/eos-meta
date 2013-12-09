@@ -45,10 +45,10 @@ COMMENT="Autoadd - Added ${@} to dependencies"
 dch --force-distribution -m "${COMMENT}" -D eos -v $NEW_VERSION
 
 debian_branch=$(git branch | grep \* | awk '{print $2}')
-original_branch=${debian_branch#debian-}
 
-echo "Creating tags on $debian_branch and $original_branch"
-git tag -a "Version_${NEW_VERSION}_debian" -m "Autoadd - Added ${@} to dependencies"
-git tag -a "Version_${NEW_VERSION}" -m "Autoadd - Added ${@} to dependencies" origin/$original_branch
+echo "Creating tags on $debian_branch"
+git add debian/changelog
+git commit -m "Added ${@} to dependencies"
+git tag -f -a "Version_${NEW_VERSION}_debian" -m "Autoadd - Added ${@} to dependencies"
 
-echo "Done. Don't forget to commit changes, push, and push tags with git push origin --tags"
+echo "Done. Don't forget to push, and push tags with git push origin --tags"
