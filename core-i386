@@ -53,6 +53,7 @@ module-init-tools
 net-tools
 netbase
 network-manager
+network-manager-vpnc-gnome
 obexd-client
 openssh-client
 ostree
