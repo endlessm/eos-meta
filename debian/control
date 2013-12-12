@@ -8,8 +8,7 @@ Homepage: http://www.endlessm.com
 
 Package: eos-shell-apps
 Architecture: any
-Depends: endlessos-base-photos,
-         eos-celebrities,
+Depends: eos-celebrities,
          eos-cooking,
          eos-english,
          eos-exploration-center,
@@ -24,6 +23,7 @@ Depends: endlessos-base-photos,
          eos-language-pack-en,
          eos-language-pack-es,
          eos-language-pack-pt,
+         eos-photos,
          eos-programming,
          eos-resume,
          eos-science,
