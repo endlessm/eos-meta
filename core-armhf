@@ -12,7 +12,7 @@ dbus-x11
 debconf-i18n
 dosfstools
 dracut
-epiphany-browser-webkit2
+epiphany-browser
 file
 fonts-ubuntu-font-family-console
 geoclue
