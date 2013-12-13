@@ -1,0 +1,9 @@
+#!/bin/sh
+
+mount -o remount,rw /usr
+
+if [ ! -d /var/lib/dpkg ]; then
+  cp -r /ostree/deploy/dev/current/var/lib/dpkg /var/lib/
+  cp -r /ostree/deploy/dev/current/var/cache/debconf /var/cache/
+  apt-get update
+fi
