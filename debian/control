@@ -28,6 +28,7 @@ Depends: endlessos-base-photos,
          eos-resume,
          eos-science,
          eos-social,
+         eos-tech-support,
          eos-translation,
          eos-travel,
          eos-typing,
@@ -126,3 +127,9 @@ Depends: gcompris-sound-pt,
 Description: EndlessOS Portuguese Language Pack
  This is a collection of Portuguese language packs for the EndlessOS operating system.
 
+Package: eos-tech-support
+Architecture: all
+Depends: lshw,
+         traceroute,
+Description: EndlessOS Technical Support Tools
+ This is a collection technical support tools that are installed by default with the EndlessOS operating system.  They are not required as part of the normal user experience but are relatively small and helpful for advanced troubleshooting.
