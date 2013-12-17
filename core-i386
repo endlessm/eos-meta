@@ -91,3 +91,4 @@ eos-shell-apps
 cups
 ntp
 gstreamer1.0-plugins-ugly
+libdvdcss2
