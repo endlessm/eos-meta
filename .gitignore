@@ -1,3 +1,9 @@
 *.swp
 *.deb
 *.changes
+
+debian/eos-dev/
+debian/eos-language-pack-en/
+debian/eos-language-pack-es/
+debian/eos-language-pack-pt/
+debian/eos-tech-support/
