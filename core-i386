@@ -8,10 +8,14 @@ bluez
 btrfs-tools
 bzip2
 ca-certificates
+cups
 dbus-x11
 debconf-i18n
 dosfstools
 dracut
+eos-shell
+eos-shell-apps
+eos-theme
 epiphany-browser
 file
 fonts-ubuntu-font-family-console
@@ -23,6 +27,7 @@ gnome-terminal
 gnupg
 grilo-plugins-0.2
 gstreamer1.0-plugins-good
+gstreamer1.0-plugins-ugly
 gstreamer1.0-pulseaudio
 iproute
 less
@@ -30,6 +35,7 @@ libasound2
 libbluetooth3
 libclutter-1.0-common
 libcogl-common
+libdvdcss2
 libfolks-eds25
 libfolks-telepathy25
 libglib2.0-data
@@ -54,6 +60,7 @@ net-tools
 netbase
 network-manager
 network-manager-vpnc-gnome
+ntp
 obexd-client
 openssh-client
 ostree
@@ -81,15 +88,7 @@ xdg-user-dirs
 xdg-utils
 xserver-xorg
 xserver-xorg-input-evdev
+xserver-xorg-input-synaptics
 xserver-xorg-video-intel
 xserver-xorg-video-vesa
 xterm
-
-eos-shell
-eos-theme
-eos-shell-apps
-cups
-ntp
-gstreamer1.0-plugins-ugly
-libdvdcss2
-xserver-xorg-input-synaptics
