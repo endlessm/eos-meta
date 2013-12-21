@@ -42,6 +42,7 @@ libglib2.0-data
 libgrilo-0.2-1
 libgrilo-0.2-bin
 liblockfile-bin
+libnss-myhostname
 libpam-runtime
 libpam-systemd
 libpulse-mainloop-glib0
