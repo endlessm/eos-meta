@@ -188,7 +188,6 @@ Depends: apt-file                       ,
          screen                         ,
          sl                             ,
          strace                         ,
-         synergy                        ,
          sysstat                        ,
          tcpdump                        ,
          tig                            ,
@@ -204,6 +203,7 @@ Depends: apt-file                       ,
 Recommends: devhelp                        ,
             gnome-api-docs                 ,
             putty                          ,
-            pyflakes
+            pyflakes                       ,
+            synergy
 Description: EndlessOS Development Tools
  This is a collection of development tools that make development and debugging of EndlessOS easier and more efficient.
