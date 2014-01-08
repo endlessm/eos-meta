@@ -204,6 +204,8 @@ Depends: apt-file                       ,
          x11-xserver-utils              ,
          zenity                         ,
          zsh
-Recommends: synergy
+Recommends: eos-dev-config              ,
+            synergy
 Description: EndlessOS Development Tools
- This is a collection of development tools that make development and debugging of EndlessOS easier and more efficient.
+ This is a collection of development tools that make development and debugging
+ of EndlessOS easier and more efficient.
