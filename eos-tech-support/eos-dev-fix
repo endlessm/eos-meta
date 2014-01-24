@@ -21,10 +21,10 @@ fi
 echo "Copying files from $OSTREE_DEPLOY"
 
 if [ ! -d /var/lib/dpkg ]; then
-  cp -r $(OSTREE_DEPLOY)/current/var/lib/dpkg /var/lib/
-  cp -r $(OSTREE_DEPLOY)/current/var/lib/xml-core /var/lib/
-  cp -r $(OSTREE_DEPLOY)/current/var/lib/sgml-base /var/lib/
-  cp -r $(OSTREE_DEPLOY)/current/var/cache/debconf /var/cache/
+  cp -r $OSTREE_DEPLOY/current/var/lib/dpkg /var/lib/
+  cp -r $OSTREE_DEPLOY/current/var/lib/xml-core /var/lib/
+  cp -r $OSTREE_DEPLOY/current/var/lib/sgml-base /var/lib/
+  cp -r $OSTREE_DEPLOY/current/var/cache/debconf /var/cache/
   apt-get update
 else
   echo "dpkg database already found - exiting"
