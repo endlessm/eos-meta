@@ -2,10 +2,30 @@
 
 mount -o remount,rw /usr
 
+if [ $? -ne 0 ]; then
+  echo "Failed to remount /usr readwrite - exiting"
+  exit 1
+fi
+
+if [ -d /ostree/deploy/master ]; then
+  echo "Detected master OSTree deploy"
+  OSTREE_DEPLOY=/ostree/deploy/master
+elif [ -d /ostree/deploy/dev ]; then
+  echo "Detected dev OSTree deploy"
+  OSTREE_DEPLOY=/ostree/deploy/dev
+else
+  echo "Failed to find OSTree deploy - exiting"
+  exit 1
+fi
+
+echo "Copying files from $OSTREE_DEPLOY"
+
 if [ ! -d /var/lib/dpkg ]; then
-  cp -r /ostree/deploy/dev/current/var/lib/dpkg /var/lib/
-  cp -r /ostree/deploy/dev/current/var/lib/xml-core /var/lib/
-  cp -r /ostree/deploy/dev/current/var/lib/sgml-base /var/lib/
-  cp -r /ostree/deploy/dev/current/var/cache/debconf /var/cache/
+  cp -r $(OSTREE_DEPLOY)/current/var/lib/dpkg /var/lib/
+  cp -r $(OSTREE_DEPLOY)/current/var/lib/xml-core /var/lib/
+  cp -r $(OSTREE_DEPLOY)/current/var/lib/sgml-base /var/lib/
+  cp -r $(OSTREE_DEPLOY)/current/var/cache/debconf /var/cache/
   apt-get update
+else
+  echo "dpkg database already found - exiting"
 fi
