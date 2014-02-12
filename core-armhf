@@ -38,6 +38,7 @@ iproute
 less
 libasound2
 libbluetooth3
+libcanberra-gtk-module
 libcanberra-pulse
 libclutter-1.0-common
 libcogl-common
