@@ -13,6 +13,9 @@ if [ -d /ostree/deploy/master ]; then
 elif [ -d /ostree/deploy/dev ]; then
   echo "Detected dev OSTree deploy"
   OSTREE_DEPLOY=/ostree/deploy/dev
+elif [ -d /ostree/deploy/eos ]; then
+  echo "Detected eos OSTree deploy"
+  OSTREE_DEPLOY=/ostree/deploy/eos
 else
   echo "Failed to find OSTree deploy - exiting"
   exit 1
