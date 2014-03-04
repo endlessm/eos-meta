@@ -32,3 +32,7 @@ if [ ! -d /var/lib/dpkg ]; then
 else
   echo "dpkg database already found - exiting"
 fi
+
+if [ ! -d /var/lib/locales ]; then
+  cp -r $OSTREE_DEPLOY/current/var/lib/locales /var/lib/
+fi
