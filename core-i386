@@ -13,6 +13,7 @@ dbus-x11
 debconf-i18n
 dosfstools
 dracut
+eos-boot-helper
 eos-shell
 eos-shell-apps
 eos-theme
