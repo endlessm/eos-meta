@@ -7,27 +7,20 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-if [ -d /ostree/deploy/master ]; then
-  echo "Detected master OSTree deploy"
-  OSTREE_DEPLOY=/ostree/deploy/master
-elif [ -d /ostree/deploy/dev ]; then
-  echo "Detected dev OSTree deploy"
-  OSTREE_DEPLOY=/ostree/deploy/dev
-elif [ -d /ostree/deploy/eos ]; then
-  echo "Detected eos OSTree deploy"
-  OSTREE_DEPLOY=/ostree/deploy/eos
-else
-  echo "Failed to find OSTree deploy - exiting"
-  exit 1
-fi
+# 4th element in mountinfo is the "root" within a mounted filesystem, 5th is
+# where it's mounted. Hence dig out where our root is coming from, so we're
+# always using the _current_ root filesystem instead of the last updated
+# version
+OSTREE_DEPLOY_CURRENT=$(cat /proc/self/mountinfo | \
+  egrep '([^ ]* ){4}/ ' | cut -d ' ' -f 4)
 
-echo "Copying files from $OSTREE_DEPLOY"
+echo "Copying files from $OSTREE_DEPLOY_CURRENT"
 
 if [ ! -d /var/lib/dpkg ]; then
-  cp -a $OSTREE_DEPLOY/current/var/lib/dpkg /var/lib/
-  cp -a $OSTREE_DEPLOY/current/var/lib/xml-core /var/lib/
-  cp -a $OSTREE_DEPLOY/current/var/lib/sgml-base /var/lib/
-  cp -a $OSTREE_DEPLOY/current/var/cache/debconf /var/cache/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/dpkg /var/lib/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/xml-core /var/lib/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/sgml-base /var/lib/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/cache/debconf /var/cache/
   apt-get update
 else
   echo "dpkg database already found - exiting"
