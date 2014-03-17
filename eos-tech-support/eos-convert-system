@@ -1,0 +1,61 @@
+#!/bin/bash
+
+if [ ! -L /ostree ]; then
+  echo "Not running on an ostree system"
+  exit 1
+fi
+
+if [ -d /ostree/deploy/master ]; then
+  echo "Detected master OSTree deploy"
+  OSTREE_DEPLOY=/ostree/deploy/master
+elif [ -d /ostree/deploy/dev ]; then
+  echo "Detected dev OSTree deploy"
+  OSTREE_DEPLOY=/ostree/deploy/dev
+elif [ -d /ostree/deploy/eos ]; then
+  echo "Detected eos OSTree deploy"
+  OSTREE_DEPLOY=/ostree/deploy/eos
+else
+  echo "Failed to find OSTree deploy - exiting"
+  exit 1
+fi
+
+echo "Hardlinking files from $OSTREE_DEPLOY, this make take a while"
+
+# Copy the system directories to the real filesystems /
+cp -paxl ${OSTREE_DEPLOY}/current/{bin,etc,lib,sbin,usr,var} /sysroot
+
+
+# Overlay the /var as deployed on the systems /var
+echo "Overlaying deployed /var"
+cp -paxl ${OSTREE_DEPLOY}/var /sysroot
+
+# homedirs are /sysroot/home/<user> for some odd reason so point /sysroot/home 
+# to the real /home.
+# Note that making /syroot a symlink to / fails as dracut will 
+# pick that up when re-generating the initramfs and blow up
+mkdir /sysroot/sysroot
+ln -s /home /sysroot/sysroot/
+
+if [ -L /boot/uEnv.txt ] ; then 
+  # Running on ARM
+  echo "Please install flash-kernel after reboot for correct kernel upgrades" 
+  K=$(grep kernel_image /boot/uEnv.txt | cut -d '=' -f 2)
+  U=$(grep ramdisk_image /boot/uEnv.txt | cut -d '=' -f 2)
+  B=$(grep bootargs /boot/uEnv.txt)
+  
+  cp /boot/${K} /boot/uImage
+  cp /boot/${U} /boot/uInitrd
+  echo -e 'kernel_image=uImage\nramdisk_image=uInitrd\n' > /boot/uEnv.txt
+  echo ${B} | sed 's/ostree=[^ ]*//g' >> /boot/uEnv.txt
+else
+  # Intel, put the kernels/initramfs in the expected place by Debian
+  cp -pax ${OSTREE_DEPLOY}/current/boot/{vmlinuz,initramfs}*  /boot
+  rename 's/-\w*$//g,s/initramfs/initrd/g' /boot/{vmlinuz,init}*
+
+  O=$(grep options /boot/loader/entries/*.conf | head -n1 | cut -d ' ' -f 2-)
+  echo GRUB_CMDLINE_LINUX_DEFAULT=\"${O} \" | sed 's/ostree=[^ ]*//g' \
+    >> /etc/default/grub
+  update-grub
+fi
+
+echo "All done, please reboot"
