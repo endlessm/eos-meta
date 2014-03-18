@@ -1,0 +1,78 @@
+#!/bin/bash
+
+if [ ! -L /ostree ]; then
+  echo "Not running on an ostree system"
+  exit 1
+fi
+
+
+# Disable upgrade timer
+systemctl stop eos-updater.timer
+systemctl disable eos-updater.timer
+
+# Unsure if these are necessary after stopping the timer, but better to be
+# sure.
+systemctl stop eos-updater.service
+systemctl kill eos-updater.service
+
+# 4th element in mountinfo is the "root" within a mounted filesystem, 5th is
+# where it's mounted. Hence dig out where our root is coming from, so we're
+# always using the _current_ root filesystem instead of the last updated
+# version
+OSTREE_DEPLOY_CURRENT=$(cat /proc/self/mountinfo | \
+  egrep '([^ ]* ){4}/ ' | cut -d ' ' -f 4)
+
+if [ -d /ostree/deploy/master ]; then
+  echo "Detected master OSTree deploy"
+  OSTREE_DEPLOY=/ostree/deploy/master
+elif [ -d /ostree/deploy/dev ]; then
+  echo "Detected dev OSTree deploy"
+  OSTREE_DEPLOY=/ostree/deploy/dev
+elif [ -d /ostree/deploy/eos ]; then
+  echo "Detected eos OSTree deploy"
+  OSTREE_DEPLOY=/ostree/deploy/eos
+else
+  echo "Failed to find OSTree deploy - exiting"
+  exit 1
+fi
+
+echo "Hardlinking files from $OSTREE_DEPLOY_CURRENT, this make take a while"
+
+# Copy the system directories to the real filesystems /
+cp -paxl ${OSTREE_DEPLOY_CURRENT}/{bin,etc,lib,sbin,usr,var} /sysroot
+
+
+# Overlay the /var as deployed on the systems /var
+echo "Overlaying deployed /var FROM ${OSTREE_DEPLOY}"
+cp -paxl ${OSTREE_DEPLOY}/var /sysroot
+
+# homedirs are /sysroot/home/<user> for some odd reason so point /sysroot/home 
+# to the real /home.
+# Note that making /syroot a symlink to / fails as dracut will 
+# pick that up when re-generating the initramfs and blow up
+mkdir /sysroot/sysroot
+ln -s /home /sysroot/sysroot/
+
+if [ -L /boot/uEnv.txt ] ; then 
+  # Running on ARM
+  echo "Please install flash-kernel after reboot for correct kernel upgrades" 
+  K=$(grep kernel_image /boot/uEnv.txt | cut -d '=' -f 2)
+  U=$(grep ramdisk_image /boot/uEnv.txt | cut -d '=' -f 2)
+  B=$(grep bootargs /boot/uEnv.txt)
+  
+  cp /boot/${K} /boot/uImage
+  cp /boot/${U} /boot/uInitrd
+  echo -e 'kernel_image=uImage\nramdisk_image=uInitrd\n' > /boot/uEnv.txt
+  echo ${B} | sed 's/ostree=[^ ]*//g' >> /boot/uEnv.txt
+else
+  # Intel, put the kernels/initramfs in the expected place by Debian
+  cp -pax ${OSTREE_DEPLOY_CURRENT}/boot/{vmlinuz,initramfs}*  /boot
+  rename 's/-\w*$//g,s/initramfs/initrd/g' /boot/{vmlinuz,init}*
+
+  O=$(grep options /boot/loader/entries/*.conf | head -n1 | cut -d ' ' -f 2-)
+  echo GRUB_CMDLINE_LINUX_DEFAULT=\"${O} \" | sed 's/ostree=[^ ]*//g' \
+    >> /etc/default/grub
+  update-grub
+fi
+
+echo "All done, please reboot"

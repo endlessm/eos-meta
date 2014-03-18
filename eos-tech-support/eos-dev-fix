@@ -21,13 +21,40 @@ else
   exit 1
 fi
 
-echo "Copying files from $OSTREE_DEPLOY"
+# 4th element in mountinfo is the "root" within a mounted filesystem, 5th is
+# where it's mounted. Hence dig out where our root is coming from, so we're
+# always using the _current_ root filesystem instead of the last updated
+# version
+OSTREE_DEPLOY_CURRENT=$(cat /proc/self/mountinfo | \
+  egrep '([^ ]* ){4}/ ' | cut -d ' ' -f 4)
+
+# Disable upgrade timer
+systemctl stop eos-updater.timer
+systemctl disable eos-updater.timer
+
+# Unsure if these are necessary after stopping the timer, but better to be
+# sure.
+systemctl stop eos-updater.service
+systemctl kill eos-updater.service
+
+echo  "\nAutomatic upgrades have been stopped," \
+      "your system can no longer be upgraded using ostree beyond this point!"
+
+if [ $(readlink -f ${OSTREE_DEPLOY_CURRENT}) != \
+     $(readlink -f ${OSTREE_DEPLOY}/current) ] ; then
+  echo "\nA new system upgrade has been already deployed," \
+       " please reboot first and then re-run ${0} again afterwards"
+  exit 1
+fi
+
+
+echo "Copying files from $OSTREE_DEPLOY_CURRENT"
 
 if [ ! -d /var/lib/dpkg ]; then
-  cp -a $OSTREE_DEPLOY/current/var/lib/dpkg /var/lib/
-  cp -a $OSTREE_DEPLOY/current/var/lib/xml-core /var/lib/
-  cp -a $OSTREE_DEPLOY/current/var/lib/sgml-base /var/lib/
-  cp -a $OSTREE_DEPLOY/current/var/cache/debconf /var/cache/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/dpkg /var/lib/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/xml-core /var/lib/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/sgml-base /var/lib/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/cache/debconf /var/cache/
   apt-get update
 else
   echo "dpkg database already found - exiting"
