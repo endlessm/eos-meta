@@ -14,6 +14,7 @@ debconf-i18n
 dosfstools
 dracut
 eos-boot-helper
+eos-plymouth-theme
 eos-shell
 eos-shell-apps
 eos-theme
@@ -21,6 +22,7 @@ epiphany-browser
 exfat-fuse
 file
 fonts-ubuntu-font-family-console
+foomatic-db-compressed-ppds
 fprintd
 geoclue
 gnome-accessibility-themes
@@ -51,6 +53,7 @@ libglib2.0-data
 libgrilo-0.2-1
 libgrilo-0.2-bin
 liblockfile-bin
+libnss-altfiles
 libnss-myhostname
 libpam-fprintd
 libpam-runtime
@@ -72,9 +75,11 @@ network-manager
 network-manager-vpnc-gnome
 ntp
 obexd-client
+openprinting-ppds
 openssh-client
 ostree
 plymouth-themes-solar
+printer-driver-gutenprint
 policykit-1
 pulseaudio
 pulseaudio-module-bluetooth
@@ -84,6 +89,7 @@ rtkit
 singularity-archive-keyring
 sudo
 syncevolution
+system-config-printer
 systemd-sysv
 telepathy-gabble
 telepathy-mission-control-5
@@ -95,7 +101,9 @@ whiptail
 wpasupplicant
 xauth
 xdg-user-dirs
+xdg-user-dirs-gtk
 xdg-utils
+xkb-data-i18n
 xserver-xorg
 xserver-xorg-input-evdev
 xserver-xorg-input-synaptics
