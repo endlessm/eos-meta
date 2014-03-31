@@ -79,7 +79,7 @@ openprinting-ppds
 openssh-client
 ostree
 plymouth-themes-solar
-printer-driver-gutenprint
+printer-driver-all
 policykit-1
 pulseaudio
 pulseaudio-module-bluetooth
