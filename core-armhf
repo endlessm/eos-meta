@@ -14,7 +14,6 @@ debconf-i18n
 dosfstools
 dracut
 eos-boot-helper
-eos-metrics
 eos-metrics-instrumentation
 eos-plymouth-theme
 eos-shell
