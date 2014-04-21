@@ -36,7 +36,7 @@ else
   exit 1
 fi
 
-echo "Hardlinking files from $OSTREE_DEPLOY_CURRENT, this make take a while"
+echo "Hardlinking files from $OSTREE_DEPLOY_CURRENT, this may take a while"
 
 # Copy the system directories to the real filesystems /
 cp -paxl ${OSTREE_DEPLOY_CURRENT}/{bin,etc,lib,sbin,usr,var} /sysroot
