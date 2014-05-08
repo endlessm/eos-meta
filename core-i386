@@ -109,10 +109,10 @@ xkb-data-i18n
 xserver-xorg
 xserver-xorg-input-evdev
 xserver-xorg-input-synaptics
-xserver-xorg-video-ati
 xserver-xorg-video-intel
 xserver-xorg-video-modesetting
 xserver-xorg-video-nouveau
+xserver-xorg-video-radeon
 xserver-xorg-video-vesa
 xserver-xorg-video-vmware
 xterm
