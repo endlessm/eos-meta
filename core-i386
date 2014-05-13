@@ -54,6 +54,7 @@ libfolks-telepathy25
 libglib2.0-data
 libgrilo-0.2-1
 libgrilo-0.2-bin
+libhal1-flash
 liblockfile-bin
 libnss-altfiles
 libnss-myhostname
