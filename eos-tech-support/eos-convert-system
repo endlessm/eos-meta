@@ -46,6 +46,11 @@ cp -paxl ${OSTREE_DEPLOY_CURRENT}/{bin,etc,lib,sbin,usr,var} /sysroot
 echo "Overlaying deployed /var FROM ${OSTREE_DEPLOY}"
 cp -paxl ${OSTREE_DEPLOY}/var /sysroot
 
+# Break any unwanted hard links. We assume that only empty files with
+# multiple links are unwanted and were created by ostree. Otherwise,
+# assume that the hard links are desired and were created by a package.
+find /sysroot -xdev -type f -size 0 -links +1 -exec eos-break-links '{}' '+'
+
 # homedirs are /sysroot/home/<user> for some odd reason so point /sysroot/home 
 # to the real /home.
 # Note that making /syroot a symlink to / fails as dracut will 

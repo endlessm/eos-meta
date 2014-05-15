@@ -1,0 +1,69 @@
+#!/bin/bash -e
+
+ARGS=$(getopt -o dzh -l "dry-run,zero,help" -n "$0" -- "$@")
+eval set -- "$ARGS"
+
+usage() {
+    cat <<EOF
+usage: $0 [OPTION]... FILE...
+Break a file's hardlink with a copy.
+
+  -d, --dry-run		just show what files would be affected
+  -z, --zero		clear the file in addition to breaking the link
+  -h, --help		display this help and exit
+EOF
+}
+
+DRY_RUN=false
+ZERO=false
+while true; do
+    case "$1" in
+        -d|--dry-run)
+            DRY_RUN=true
+            shift
+            ;;
+        -z|--zero)
+            ZERO=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+
+# If no files supplied, exit now
+if [ $# -eq 0 ]; then
+    echo "No files with hard links to break"
+    exit 0
+fi
+
+echo "Breaking hard links for the following files:"
+for file in "$@"; do
+    echo "$file"
+    if $DRY_RUN; then
+        continue
+    fi
+
+    # Pick a temporary file name that's not already in use.
+    tmp="${file}.${RANDOM}"
+    while [ -f "$tmp" ]; do
+        tmp="${file}.${RANDOM}"
+    done
+
+    # Make a temporary copy (retaining mode, etc.) and move it over the
+    # destination to retain the newly created inode.
+    cp -a "$file" "$tmp"
+    mv -f "$tmp" "$file"
+
+    # This is the case where you've got linked files from an earlier
+    # convert-system and need to empty the corrupted files.
+    if $ZERO; then
+        truncate -s 0 "$file"
+    fi
+done
