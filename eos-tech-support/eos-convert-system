@@ -52,7 +52,8 @@ cp -paxl ${OSTREE_DEPLOY}/var /sysroot
 # We look for files with greater than 2 links since we just hardlinked
 # everything to the ostree deployment, so by definition all files will
 # have at least 2 links.
-find /sysroot -xdev -type f -size 0 -links +2 -exec eos-break-links '{}' '+'
+find /sysroot/{bin,etc,lib,sbin,usr,var} -xdev -type f -size 0 -links +2 \
+  -exec eos-break-links '{}' '+'
 
 # homedirs are /sysroot/home/<user> for some odd reason so point /sysroot/home 
 # to the real /home.
