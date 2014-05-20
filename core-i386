@@ -13,6 +13,7 @@ dbus-x11
 debconf-i18n
 dosfstools
 dracut
+eos-app-manager
 eos-boot-helper
 eos-metrics-instrumentation
 eos-plymouth-theme
