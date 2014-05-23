@@ -1,1 +1,3 @@
 core eos-core
+apps eos-shell-apps
+dev eos-dev
