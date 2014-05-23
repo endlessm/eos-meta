@@ -1,3 +1,23 @@
+eos-meta (1.5.0) eos; urgency=low
+
+  * debian/control:
+    + Rename endless-core-meta source package to eos-meta.
+    + Rename endless-core package to eos-core.
+    + Add metapackages previously in eos-shell-apps.
+    + Rename eos-shell-apps to eos-apps.
+  * debian/10periodic,
+    debian/defaults.list,
+    debian/eos-apps.install,
+    debian/eos-apps.postinst,
+    debian/eos-tech-support.install:
+    New files to support metapackages from eos-shell-apps.
+  * apps-*, dev-*, metapackage-map:
+    Add germinate filelists for eos-apps and eos-dev.
+  * core-armhf, core-i386:
+    Adjust to eos-shell-apps -> eos-apps rename.
+
+ -- Dan Nicholson <nicholson@endlessm.com>  Fri, 23 May 2014 08:52:16 -0700
+
 endless-core-meta (0.44) eos; urgency=low
 
   * Autoadd - Added network-manager-vpnc-gnome to dependencies
