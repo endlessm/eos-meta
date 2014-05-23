@@ -22,115 +22,18 @@ Description: Target packages of the Endless distribution
 
 Package: eos-shell-apps
 Architecture: any
-Depends: eos-celebrities,
-         eos-cooking,
-         eos-english,
-         eos-exploration-center,
-         eos-file-manager,
-         eos-fitness,
-         eos-futbol,
-         eos-guatemala,
-         eos-keyring,
-         eos-media,
-         eos-mexico,
-         eos-khanacademy,
-         eos-language-pack-en,
-         eos-language-pack-es,
-         eos-language-pack-pt,
-         eos-photos,
-         eos-programming,
-         eos-resume,
-         eos-science,
-         eos-social,
-         eos-tech-support,
-         eos-translation,
-         eos-travel,
-         eos-typing,
-         eos-updater,
-         eos-wikipedia,
-         eos-wikipedia-brazil,
-         eos-wikipedia-health,
-         eos-youtube,
-         eos-weather,
-         aisleriot,
-         armagetronad,
-         audacity[i386],
-         billard-gl[i386],
-         blockout2[i386],
-         bovo,
-         cheese,
-         chromium-browser,
-         chromium-bsu[i386],
-         empathy,
-         eog,
-         evolution,
-         evolution-data-server,
-         file-roller,
-         four-in-a-row,
-         freeciv-client-gtk,
-         frostwire,
-         frozen-bubble,
-         gcompris,
-         gedit,
-         gimp(>=2.8),
-         gnome-calculator,
-         gnome-genius,
-         gnome-mines, 
-         gnome-sudoku,
-         gnome-sushi,
-         gnome-tetravex,
-         gnote,
-         goldendict,
-         iagno,
-         icedtea-plugin,
-         inkscape,
-         kalzium[i386],
-         kapman,
-         katomic,
-         kblackbox,
-         kblocks,
-         kbounce,
-         kbruch,
-         kdiamond,
-         kgeography,
-         kgoldrunner,
-         khangman,
-         kigo,
-         killbots,
-         kjumpingcube,
-         klickety,
-         klines,
-         kmines,
-         knetwalk,
-         kobodeluxe[i386],
-         ksquares,
-         kstars[i386],
-         ksudoku[i386],
-         ktron,
-         ktuberling,
-         kubrick[i386],
-         kwordquiz,
-         lbreakout2,
-         libreoffice,
-         numptyphysics,
-         openarena[i386],
-         palapeli,
-         pingus,
-         quadrapassel,
-         rhythmbox (>= 2.99.1),
-         shotwell,
-         stellarium[i386],
-         sudoku,
-         supertux[i386],
-         supertuxkart[i386],
-         teeworlds[i386],
-         totem,
-         tuxmath,
-         tuxpaint,
-         tuxtype,
-         unoconv
+Depends: ${misc:Depends}, ${germinate:Depends}
+Recommends: ${germinate:Recommends}
 Description: EndlessOS Applications
  This is a collection of applications for the EndlessOS operating system.
+
+Package: eos-dev
+Architecture: all
+Depends: ${misc:Depends}, ${germinate:Depends}
+Recommends: ${germinate:Recommends}
+Description: EndlessOS Development Tools
+ This is a collection of development tools that make development and debugging
+ of EndlessOS easier and more efficient.
 
 Package: eos-language-pack-en
 Architecture: all
@@ -139,7 +42,8 @@ Depends: gcompris-sound-en,
          libreoffice-help-en-us,
          hunspell-en-us
 Description: EndlessOS English Language Pack
- This is a collection of English  language packs for the EndlessOS operating system.
+ This is a collection of English  language packs for the EndlessOS operating
+ system.
 
 Package: eos-language-pack-es
 Architecture: all
@@ -150,7 +54,8 @@ Depends: gcompris-sound-es,
          myspell-es,
          wspanish
 Description: EndlessOS Spanish Language Pack
- This is a collection of Spanish language packs for the EndlessOS operating system.
+ This is a collection of Spanish language packs for the EndlessOS operating
+ system.
 
 Package: eos-language-pack-pt
 Architecture: all
@@ -165,7 +70,8 @@ Depends: gcompris-sound-pt,
          myspell-pt,
          myspell-pt-br
 Description: EndlessOS Portuguese Language Pack
- This is a collection of Portuguese language packs for the EndlessOS operating system.
+ This is a collection of Portuguese language packs for the EndlessOS operating
+ system.
 
 Package: eos-tech-support
 Architecture: all
@@ -173,85 +79,7 @@ Depends: bash-completion,
          lshw,
          traceroute,
 Description: EndlessOS Technical Support Tools
- This is a collection technical support tools that are installed by default with the EndlessOS operating system.  They are not required as part of the normal user experience but are relatively small and helpful for advanced troubleshooting.
-
-Package: eos-dev
-Architecture: all
-Depends: apt-file                       ,
-         apt-utils                      ,
-         autoconf                       ,
-         automake                       ,
-         bash-completion                ,
-         bison                          ,
-         bonnie++                       ,
-         build-essential                ,
-         byobu                          ,
-         ccache                         ,
-         dconf-editor                   ,
-         debian-keyring                 ,
-         debian-archive-keyring         ,
-         debootstrap                    ,
-         devhelp                        ,
-         devscripts                     ,
-         diffutils                      ,
-         elinks                         ,
-         emacs                          ,
-         exuberant-ctags                ,
-         flex                           ,
-         fluxbox                        ,
-         gdb                            ,
-         gdebi                          ,
-         germinate                      ,
-         git                            ,
-         gitk                           ,
-         gnome-api-docs                 ,
-         gnome-common                   ,
-         gnome-devel-docs               ,
-         gparted                        ,
-         gperf                          ,
-         gtk-doc-tools                  ,
-         htop                           ,
-         iftop                          ,
-         iotop                          ,
-         language-pack-es               ,
-         language-pack-pt               ,
-         lftp                           ,
-         libjson-glib-doc               ,
-         locate                         ,
-         lsof                           ,
-         ltrace                         ,
-         make                           ,
-         moreutils                      ,
-         nethogs                        ,
-         nmap                           ,
-         openssh-server                 ,
-         osc                            ,
-         p7zip-full                     ,
-         patchutils                     ,
-         pbuilder                       ,
-         pep8                           ,
-         putty                          ,
-         pyflakes                       ,
-         python-pip                     ,
-         quilt                          ,
-         screen                         ,
-         sl                             ,
-         strace                         ,
-         sysstat                        ,
-         tcpdump                        ,
-         tig                            ,
-         tmux                           ,
-         ubuntu-keyring                 ,
-         util-linux                     ,
-         valgrind                       ,
-         vim                            ,
-         x11-utils                      ,
-         x11-xserver-utils              ,
-         yelp-tools                     ,
-         zenity                         ,
-         zsh
-Recommends: eos-dev-config              ,
-            synergy
-Description: EndlessOS Development Tools
- This is a collection of development tools that make development and debugging
- of EndlessOS easier and more efficient.
+ This is a collection technical support tools that are installed by default
+ with the EndlessOS operating system.  They are not required as part of the
+ normal user experience but are relatively small and helpful for advanced
+ troubleshooting.

@@ -5,6 +5,8 @@
 *.deb
 *.changes
 eos-core
+eos-shell-apps
+eos-dev
 files
 eos-shell-apps/
 eos-dev/
