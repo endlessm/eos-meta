@@ -1,7 +1,7 @@
 *.log
 debian/*substvars
 debian/eos-core
-debian/eos-shell-apps
+debian/eos-apps
 debian/eos-dev
 *.swp
 *~
