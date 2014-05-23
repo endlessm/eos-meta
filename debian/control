@@ -1,4 +1,4 @@
-Source: endless-core-meta
+Source: eos-core-meta
 Section: metapackages
 Priority: optional
 Maintainer: EndlessM Maintainers <maintainers@endlessm.com>
@@ -7,8 +7,11 @@ Standards-Version: 3.9.3
 Build-Depends: debhelper (>= 9), germinate (>= 1.18)
 Homepage: http://www.endlessm.com
 
-Package: endless-core
+Package: eos-core
 Architecture: any
+Replaces: endless-core
+Provides: endless-core
+Conflicts: endless-core
 Depends: ${misc:Depends}, ${germinate:Depends}
 Recommends: ${germinate:Recommends}
 Description: Target packages of the Endless distribution
