@@ -1,5 +1,5 @@
 *.log
 debian/*substvars
-debian/endless-core
+debian/eos-core
 *.swp
 *~
