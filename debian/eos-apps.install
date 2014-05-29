@@ -1,0 +1,5 @@
+debian/10periodic etc/apt/apt.conf.d
+debian/defaults.list usr/share/applications
+stellarium-wrapper/stellarium-wrapper usr/bin
+stellarium-wrapper/default-configs usr/share/stellarium
+skel etc
