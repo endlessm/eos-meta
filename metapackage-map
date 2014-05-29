@@ -1,1 +1,3 @@
-core endless-core
+core eos-core
+apps eos-apps
+dev eos-dev

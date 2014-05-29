@@ -1,4 +1,4 @@
-endless-core-meta
-=================
+eos-meta
+========
 
-Repository for keeping track of changes to the main meta-package for OBS
+Repository for keeping track of changes to the metapackages for EOS.

@@ -14,11 +14,11 @@ debconf-i18n
 dosfstools
 dracut
 eos-app-manager
+eos-apps
 eos-boot-helper
 eos-metrics-instrumentation
 eos-plymouth-theme
 eos-shell
-eos-shell-apps
 eos-theme
 epiphany-browser
 exfat-fuse
