@@ -35,7 +35,6 @@ eos-theme
 eos-updater
 epiphany-browser
 evolution
-evolution-data-server
 exfat-fuse
 file
 file-roller
@@ -82,8 +81,6 @@ libbluetooth3
 libcairomm-1.0-1
 libcanberra-gtk-module
 libcanberra-pulse
-libclutter-1.0-common
-libcogl-common
 libdvdcss2
 libfolks-eds25
 libfolks-telepathy25
@@ -93,7 +90,6 @@ libglew1.8
 libglib2.0-data
 libglibmm-2.4-1c2a
 libgrilo-0.2-1
-libgrilo-0.2-bin
 libgtkmm-2.4-1c2a
 libgtkmm-3.0-1
 libgtkspell3-3-0
@@ -112,7 +108,6 @@ libpangomm-1.4-1
 libpulse-mainloop-glib0
 libpulse0
 libreoffice
-librest-extras-0.7-0
 libsdl-gfx1.2-4
 libsdl-image1.2
 libsdl-mixer1.2
@@ -139,19 +134,16 @@ openprinting-ppds
 openssh-client
 ostree
 p7zip-full
-plymouth-themes-solar
 policykit-1
 printer-driver-all
 pulseaudio
 pulseaudio-module-bluetooth
 pulseaudio-module-x11
-pulseaudio-utils
 rhythmbox (>= 2.99.1)
 rtkit
 shotwell
 singularity-archive-keyring
 sudo
-syncevolution
 system-config-printer
 systemd-sysv
 telepathy-gabble
@@ -184,4 +176,3 @@ xserver-xorg-video-nouveau
 xserver-xorg-video-radeon
 xserver-xorg-video-vesa
 xserver-xorg-video-vmware
-xterm
