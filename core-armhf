@@ -124,6 +124,7 @@ lsb-base
 lsb-release
 lzma
 mawk
+mobile-broadband-provider-info
 module-init-tools
 net-tools
 netbase
