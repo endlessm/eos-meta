@@ -40,8 +40,7 @@ Description: EndlessOS Development Tools
 
 Package: eos-language-pack-en
 Architecture: all
-Depends: gcompris-sound-en,
-         hyphen-en-us,
+Depends: hyphen-en-us,
          libreoffice-help-en-us,
          hunspell-en-us
 Description: EndlessOS English Language Pack
@@ -50,8 +49,7 @@ Description: EndlessOS English Language Pack
 
 Package: eos-language-pack-es
 Architecture: all
-Depends: gcompris-sound-es,
-         kde-l10n-es,
+Depends: kde-l10n-es,
          libreoffice-help-es,
          libreoffice-l10n-es,
          myspell-es,
@@ -62,9 +60,7 @@ Description: EndlessOS Spanish Language Pack
 
 Package: eos-language-pack-pt
 Architecture: all
-Depends: gcompris-sound-pt,
-         gcompris-sound-ptbr,
-         kde-l10n-pt,
+Depends: kde-l10n-pt,
          kde-l10n-ptbr,
          libreoffice-help-pt,
          libreoffice-help-pt-br,
