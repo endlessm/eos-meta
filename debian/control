@@ -40,34 +40,24 @@ Description: EndlessOS Development Tools
 
 Package: eos-language-pack-en
 Architecture: all
-Depends: hyphen-en-us,
-         libreoffice-help-en-us,
-         hunspell-en-us
+Depends: ${misc:Depends}, ${germinate:Depends}
+Recommends: ${germinate:Recommends}
 Description: EndlessOS English Language Pack
  This is a collection of English  language packs for the EndlessOS operating
  system.
 
 Package: eos-language-pack-es
 Architecture: all
-Depends: kde-l10n-es,
-         libreoffice-help-es,
-         libreoffice-l10n-es,
-         myspell-es,
-         wspanish
+Depends: ${misc:Depends}, ${germinate:Depends}
+Recommends: ${germinate:Recommends}
 Description: EndlessOS Spanish Language Pack
  This is a collection of Spanish language packs for the EndlessOS operating
  system.
 
 Package: eos-language-pack-pt
 Architecture: all
-Depends: kde-l10n-pt,
-         kde-l10n-ptbr,
-         libreoffice-help-pt,
-         libreoffice-help-pt-br,
-         libreoffice-l10n-pt,
-         libreoffice-l10n-pt-br,
-         myspell-pt,
-         myspell-pt-br
+Depends: ${misc:Depends}, ${germinate:Depends}
+Recommends: ${germinate:Recommends}
 Description: EndlessOS Portuguese Language Pack
  This is a collection of Portuguese language packs for the EndlessOS operating
  system.
