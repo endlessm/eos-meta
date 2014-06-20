@@ -18,6 +18,7 @@ empathy
 eog
 eos-app-manager
 eos-boot-helper
+eos-encyclopedia
 eos-exploration-center
 eos-file-manager
 eos-keyring
@@ -33,7 +34,6 @@ eos-social
 eos-tech-support
 eos-theme
 eos-updater
-eos-wikipedia
 evolution
 exfat-fuse
 file
