@@ -30,7 +30,7 @@ const DiagnosticCollector = new Lang.Class({
 	fullDump += '\n';
 
 	fullDump += '=========================\n'
-	fullDump += '= EndlessOS Personality =\n'
+	fullDump += '= EndlessOS personality =\n'
 	fullDump += '=========================\n'
 	fullDump += '\n';
 	try {
@@ -95,9 +95,9 @@ const DiagnosticCollector = new Lang.Class({
 	fullDump += stdout;
 	fullDump += '\n';
 
-	fullDump += '=======================\n'
-	fullDump += '= Devices information =\n'
-	fullDump += '=======================\n'
+	fullDump += '======================\n'
+	fullDump += '= Device information =\n'
+	fullDump += '======================\n'
 	fullDump += '\n';
 	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('lspci');
 	fullDump += 'PCI\n\n';
@@ -123,7 +123,7 @@ const DiagnosticCollector = new Lang.Class({
 	fullDump += '\n';
 
 	fullDump += '================\n'
-	fullDump += '= Process List =\n'
+	fullDump += '= Process list =\n'
 	fullDump += '================\n'
 	fullDump += '\n';
 	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('ps aux');
@@ -131,7 +131,7 @@ const DiagnosticCollector = new Lang.Class({
 	fullDump += '\n';
 
 	fullDump += '==================\n';
-	fullDump += '= journal output =\n';
+	fullDump += '= Journal output =\n';
 	fullDump += '==================\n';
 	fullDump += '\n';
 	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('journalctl -b --no-pager');
