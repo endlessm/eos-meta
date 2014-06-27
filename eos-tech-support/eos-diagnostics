@@ -235,10 +235,11 @@ let filename;
 if (fileArg) {
     filename = fileArg;
 } else {
-    let date = GLib.DateTime.new_now_utc();
-    let basename = 'eos-diagnostic-' + date.format('%y%m%d-%H%M%S') + '.txt';
+    let date = GLib.DateTime.new_now_local();
+    let basename = 'eos-diagnostic-' + date.format('%y%m%d_%H%M%S_UTC%z') + '.txt';
     filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
 }
 
 let collector = new DiagnosticCollector();
 collector.dump(filename);
+log('Saved to ' + filename);
