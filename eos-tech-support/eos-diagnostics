@@ -4,6 +4,65 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 
+function collectApplicationsInfo() {
+    let iface =
+        '<node> \
+          <interface name="com.Endless.AppManager"> \
+            <method name="ListInstalled" > \
+              <annotation name="org.freedesktop.DBus.GLib.Async" value="" /> \
+              <arg type="a(sss)" direction="out" /> \
+            </method> \
+          </interface> \
+        </node>';
+
+    let proxyWrapper = Gio.DBusProxy.makeProxyWrapper(iface);
+    let proxy = new proxyWrapper(Gio.DBus.system, 'com.Endless.AppManager',
+				 '/com/Endless/AppManager');
+
+    let output = '';
+    let installedApps = proxy.ListInstalledSync()[0];
+    installedApps.forEach(function(app) {
+	let appId = app[0];
+	let appVersion = app[2];
+
+	output += appId;
+	output += ': ';
+	output += appVersion;
+	output += '\n';
+    });
+
+    return output;
+}
+
+function collectBoardInfo() {
+    let table = { 'Product name': '/sys/devices/virtual/dmi/id/product_name',
+		  'Product serial': '/sys/devices/virtual/dmi/id/product_uuid',
+		  'Product version': '/sys/devices/virtual/dmi/id/product_version',
+		  'Board vendor': '/sys/devices/virtual/dmi/id/board_vendor',
+		  'Board name': '/sys/devices/virtual/dmi/id/board_name',
+		  'Board version': '/sys/devices/virtual/dmi/id/board_version',
+		  'BIOS vendor': '/sys/devices/virtual/dmi/id/bios_vendor',
+		  'BIOS version': '/sys/devices/virtual/dmi/id/bios_version',
+		  'BIOS date': '/sys/devices/virtual/dmi/id/bios_date' };
+
+    let output = '';
+    let names = Object.keys(table);
+    names.forEach(function(name) {
+	let file = table[name];
+	output += name;
+	output += ': ';
+
+	try {
+	    let [res, contents] = GLib.file_get_contents(file);
+	    output += contents;
+	} catch (e) {
+	    output += 'not available';
+	}
+    });
+
+    return output;
+}
+
 const DiagnosticCollector = new Lang.Class({
     Name: 'DiagnosticCollector',
 
@@ -55,6 +114,13 @@ const DiagnosticCollector = new Lang.Class({
 	fullDump += '\n';
 	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('ostree admin status');
 	fullDump += stdout;
+	fullDump += '\n';
+
+	fullDump += '=====================\n'
+	fullDump += '= Board information =\n'
+	fullDump += '=====================\n'
+	fullDump += '\n';
+	fullDump += collectBoardInfo();
 	fullDump += '\n';
 
 	fullDump += '======================\n'
@@ -120,6 +186,28 @@ const DiagnosticCollector = new Lang.Class({
 	} catch (e) {
 	    fullDump += 'No temperature information available\n';
 	}
+	fullDump += '\n';
+
+	fullDump += '=====================\n'
+	fullDump += '= Flash information =\n'
+	fullDump += '=====================\n'
+	fullDump += '\n';
+	fullDump += 'Version: ';
+	let flashPath = Gio.file_new_for_path('/var/lib/eos-flashplugin-updater/libflashplayer.so');
+	if (flashPath.query_exists(null)) {
+	    let [res, version] = GLib.file_get_contents('/var/lib/eos-flashplugin-updater/VERSION.txt');
+	    fullDump += version;
+	    fullDump += '\n';
+	} else {
+	    fullDump += 'not installed\n';
+	}
+	fullDump += '\n';
+
+	fullDump += '==========================\n'
+	fullDump += '= Installed applications =\n'
+	fullDump += '==========================\n'
+	fullDump += '\n';
+	fullDump += collectApplicationsInfo();
 	fullDump += '\n';
 
 	fullDump += '================\n'
