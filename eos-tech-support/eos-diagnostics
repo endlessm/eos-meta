@@ -7,7 +7,7 @@ const Lang = imports.lang;
 function collectApplicationsInfo() {
     let iface =
         '<node> \
-          <interface name="com.Endless.AppManager"> \
+          <interface name="com.endlessm.AppManager"> \
             <method name="ListInstalled" > \
               <annotation name="org.freedesktop.DBus.GLib.Async" value="" /> \
               <arg type="a(sss)" direction="out" /> \
@@ -20,8 +20,8 @@ function collectApplicationsInfo() {
     let output = '';
 
     try {
-	proxy = new proxyWrapper(Gio.DBus.system, 'com.Endless.AppManager',
-				 '/com/Endless/AppManager');
+	proxy = new proxyWrapper(Gio.DBus.system, 'com.endlessm.AppManager',
+				 '/com/endlessm/AppManager');
     } catch (e) {
 	output += 'not available\n';
     }
