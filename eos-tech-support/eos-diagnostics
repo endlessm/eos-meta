@@ -16,20 +16,32 @@ function collectApplicationsInfo() {
         </node>';
 
     let proxyWrapper = Gio.DBusProxy.makeProxyWrapper(iface);
-    let proxy = new proxyWrapper(Gio.DBus.system, 'com.Endless.AppManager',
-				 '/com/Endless/AppManager');
-
+    let proxy = null;
     let output = '';
-    let installedApps = proxy.ListInstalledSync()[0];
-    installedApps.forEach(function(app) {
-	let appId = app[0];
-	let appVersion = app[2];
 
-	output += appId;
-	output += ': ';
-	output += appVersion;
-	output += '\n';
-    });
+    try {
+	proxy = new proxyWrapper(Gio.DBus.system, 'com.Endless.AppManager',
+				 '/com/Endless/AppManager');
+    } catch (e) {
+	output += 'not available\n';
+    }
+
+    if (proxy != null) {
+	try {
+	    let installedApps = proxy.ListInstalledSync()[0];
+	    installedApps.forEach(function(app) {
+		let appId = app[0];
+		let appVersion = app[2];
+
+		output += appId;
+		output += ': ';
+		output += appVersion;
+		output += '\n';
+	    });
+	} catch (e) {
+	    output += 'not available\n';
+	}
+    }
 
     return output;
 }
@@ -63,171 +75,195 @@ function collectBoardInfo() {
     return output;
 }
 
-const DiagnosticCollector = new Lang.Class({
-    Name: 'DiagnosticCollector',
-
-    dump: function(filename) {
-	let fullDump = '';
-
-	let dpkgDir = Gio.File.new_for_path('/var/lib/dpkg');
-	if (dpkgDir.query_exists(null)) {
-	    fullDump += '*************************************************************\n';
-	    fullDump += '*                        WARNING                            *\n';
-	    fullDump += '* eos-dev-fix or eos-convert-system was run on the system!! *\n';
-	    fullDump += '*************************************************************\n';
-	}
-
-	fullDump += '=====================\n'
-	fullDump += '= EndlessOS version =\n'
-	fullDump += '=====================\n'
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('uname -a');
-	fullDump += stdout;
-	fullDump += '\n';
-	let [res, osRelease] = GLib.file_get_contents('/etc/os-release');
-	fullDump += osRelease;
-	fullDump += '\n';
-
-	fullDump += '=========================\n'
-	fullDump += '= EndlessOS personality =\n'
-	fullDump += '=========================\n'
-	fullDump += '\n';
-	try {
-	    let [res, personality] = GLib.file_get_contents('/etc/EndlessOS/personality.conf');
-	    fullDump += personality;
-	} catch(e) {
-	    fullDump += 'No personality file\n';
-	}
-	fullDump += '\n';
-
-	fullDump += '==========\n'
-	fullDump += '= Uptime =\n'
-	fullDump += '==========\n'
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('uptime');
-	fullDump += stdout;
-	fullDump += '\n';
-
-	fullDump += '=================\n'
-	fullDump += '= OSTree status =\n'
-	fullDump += '=================\n'
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('ostree admin status');
-	fullDump += stdout;
-	fullDump += '\n';
-
-	fullDump += '=====================\n'
-	fullDump += '= Board information =\n'
-	fullDump += '=====================\n'
-	fullDump += '\n';
-	fullDump += collectBoardInfo();
-	fullDump += '\n';
-
-	fullDump += '======================\n'
-	fullDump += '= Memory information =\n'
-	fullDump += '======================\n'
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('free -mh');
-	fullDump += stdout;
-	fullDump += '\n';
-
-	fullDump += '====================\n'
-	fullDump += '= Disk information =\n'
-	fullDump += '====================\n'
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('mount');
-	fullDump += stdout;
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('df -h');
-	fullDump += stdout;
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('udisksctl dump');
-	fullDump += stdout;
-	fullDump += '\n';
-
-	fullDump += '=======================\n'
-	fullDump += '= Network information =\n'
-	fullDump += '=======================\n'
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('ifconfig -a');
-	fullDump += stdout;
-	fullDump += '\n';
-
-	fullDump += '=======================\n'
-	fullDump += '= Display information =\n'
-	fullDump += '=======================\n'
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('xrandr -q --verbose');
-	fullDump += stdout;
-	fullDump += '\n';
-
-	fullDump += '======================\n'
-	fullDump += '= Device information =\n'
-	fullDump += '======================\n'
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('lspci');
-	fullDump += 'PCI\n\n';
-	fullDump += stdout;
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('lsusb');
-	fullDump += 'USB\n\n';
-	fullDump += stdout;
-	fullDump += '\n';
-
-	fullDump += '===========================\n'
-	fullDump += '= Temperature information =\n'
-	fullDump += '===========================\n'
-	fullDump += '\n';
-	try {
-	    let [res, tempInput] = GLib.file_get_contents('/sys/class/thermal/thermal_zone0/temp');
-	    let temperature = parseInt(tempInput);
-	    let temperatureStr = (temperature / 1000).toString() + '°C';
-	    fullDump += ((temperature > 0) ? ('+') : ('-')) + temperatureStr + '\n';
-	} catch (e) {
-	    fullDump += 'No temperature information available\n';
-	}
-	fullDump += '\n';
-
-	fullDump += '=====================\n'
-	fullDump += '= Flash information =\n'
-	fullDump += '=====================\n'
-	fullDump += '\n';
-	fullDump += 'Version: ';
-	let flashPath = Gio.file_new_for_path('/var/lib/eos-flashplugin-updater/libflashplayer.so');
-	if (flashPath.query_exists(null)) {
-	    let [res, version] = GLib.file_get_contents('/var/lib/eos-flashplugin-updater/VERSION.txt');
-	    fullDump += version;
-	    fullDump += '\n';
-	} else {
-	    fullDump += 'not installed\n';
-	}
-	fullDump += '\n';
-
-	fullDump += '==========================\n'
-	fullDump += '= Installed applications =\n'
-	fullDump += '==========================\n'
-	fullDump += '\n';
-	fullDump += collectApplicationsInfo();
-	fullDump += '\n';
-
-	fullDump += '================\n'
-	fullDump += '= Process list =\n'
-	fullDump += '================\n'
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('ps aux');
-	fullDump += stdout;
-	fullDump += '\n';
-
-	fullDump += '==================\n';
-	fullDump += '= Journal output =\n';
-	fullDump += '==================\n';
-	fullDump += '\n';
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('journalctl -b --no-pager');
-	fullDump += stdout;
-
-	GLib.file_set_contents(filename, fullDump);
+function collectTemperatureInfo() {
+    try {
+	let [res, tempInput] = GLib.file_get_contents('/sys/class/thermal/thermal_zone0/temp');
+	let temperature = parseInt(tempInput);
+	let temperatureStr = (temperature / 1000).toString() + '°C';
+	return ((temperature > 0) ? ('+') : ('-')) + temperatureStr + '\n';
+    } catch (e) {
+	return 'No temperature information available\n';
     }
-});
+}
+
+function collectFlashInfo() {
+    let output = 'Version: ';
+
+    let flashPath = Gio.file_new_for_path('/var/lib/eos-flashplugin-updater/libflashplayer.so');
+    if (!flashPath.query_exists(null)) {
+	output += 'not installed\n';
+	return output;
+    }
+
+    try {
+	let [res, version] = GLib.file_get_contents('/var/lib/eos-flashplugin-updater/VERSION.txt');
+	output += version;
+	output += '\n';
+    } catch(e) {
+	output += 'not available\n';
+    }
+
+    return output;
+}
+
+function collectEosDevInfo() {
+    let output = '';
+    let dpkgDir = Gio.File.new_for_path('/var/lib/dpkg');
+    if (dpkgDir.query_exists(null)) {
+	output += '*************************************************************\n';
+	output += '*                        WARNING                            *\n';
+	output += '* eos-dev-fix or eos-convert-system was run on the system!! *\n';
+	output += '*************************************************************\n';
+	output += '\n';
+    }
+
+    return output;
+}
+
+function trySpawn(command) {
+    try {
+	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
+	return stdout;
+    } catch (e) {
+	return '';
+    }
+}
+
+function tryReadFile(filename, fallbackMessage) {
+    try {
+	let [res, contents] = GLib.file_get_contents(filename);
+	return contents;
+    } catch (e) {
+	return (fallbackMessage) ? fallbackMessage : '';
+    }
+}
+
+function dumpDiagnostics(filename) {
+    let fullDump = '';
+
+    fullDump += collectEosDevInfo();
+
+    fullDump += '=====================\n'
+    fullDump += '= EndlessOS version =\n'
+    fullDump += '=====================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('uname -a');
+    fullDump += '\n';
+    fullDump += tryReadFile('/etc/os-release');
+    fullDump += '\n';
+
+    fullDump += '=========================\n'
+    fullDump += '= EndlessOS personality =\n'
+    fullDump += '=========================\n'
+    fullDump += '\n';
+    fullDump += tryReadFile('/etc/EndlessOS/personality.conf', 'No personality file\n');
+    fullDump += '\n';
+
+    fullDump += '==========\n'
+    fullDump += '= Uptime =\n'
+    fullDump += '==========\n'
+    fullDump += '\n';
+    fullDump += trySpawn('uptime');
+    fullDump += '\n';
+
+    fullDump += '=================\n'
+    fullDump += '= OSTree status =\n'
+    fullDump += '=================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('ostree admin status');
+    fullDump += '\n';
+
+    fullDump += '=====================\n'
+    fullDump += '= Board information =\n'
+    fullDump += '=====================\n'
+    fullDump += '\n';
+    fullDump += collectBoardInfo();
+    fullDump += '\n';
+
+    fullDump += '======================\n'
+    fullDump += '= Memory information =\n'
+    fullDump += '======================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('free -mh');
+    fullDump += '\n';
+
+    fullDump += '====================\n'
+    fullDump += '= Disk information =\n'
+    fullDump += '====================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('mount');
+    fullDump += '\n';
+    fullDump += trySpawn('df -h');
+    fullDump += '\n';
+    fullDump += trySpawn('udisksctl dump');
+    fullDump += '\n';
+
+    fullDump += '=======================\n'
+    fullDump += '= Network information =\n'
+    fullDump += '=======================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('ifconfig -a');
+    fullDump += '\n';
+
+    fullDump += '=======================\n'
+    fullDump += '= Display information =\n'
+    fullDump += '=======================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('xrandr -q --verbose');
+    fullDump += '\n';
+
+    fullDump += '======================\n'
+    fullDump += '= Device information =\n'
+    fullDump += '======================\n'
+    fullDump += '\n';
+    fullDump += 'PCI\n\n';
+    fullDump += trySpawn('lspci');
+    fullDump += '\n';
+    fullDump += 'USB\n\n';
+    fullDump += trySpawn('lsusb');
+    fullDump += '\n';
+
+    fullDump += '===========================\n'
+    fullDump += '= Temperature information =\n'
+    fullDump += '===========================\n'
+    fullDump += '\n';
+    fullDump += collectTemperatureInfo();
+    fullDump += '\n';
+
+    fullDump += '=====================\n'
+    fullDump += '= Flash information =\n'
+    fullDump += '=====================\n'
+    fullDump += '\n';
+    fullDump += collectFlashInfo();
+    fullDump += '\n';
+
+    fullDump += '==========================\n'
+    fullDump += '= Installed applications =\n'
+    fullDump += '==========================\n'
+    fullDump += '\n';
+    fullDump += collectApplicationsInfo();
+    fullDump += '\n';
+
+    fullDump += '================\n'
+    fullDump += '= Process list =\n'
+    fullDump += '================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('ps aux');
+    fullDump += '\n';
+
+    fullDump += '==================\n';
+    fullDump += '= Journal output =\n';
+    fullDump += '==================\n';
+    fullDump += '\n';
+    fullDump += trySpawn('journalctl -b --no-pager');
+
+    try {
+	GLib.file_set_contents(filename, fullDump);
+	log('Saved to ' + filename);
+    } catch (e) {
+	log('Can\'t save diagnostic file to ' + filename + ': ' + e.message);
+    }
+}
 
 let fileArg = ARGV[0];
 let filename;
@@ -240,6 +276,4 @@ if (fileArg) {
     filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
 }
 
-let collector = new DiagnosticCollector();
-collector.dump(filename);
-log('Saved to ' + filename);
+dumpDiagnostics(filename);
