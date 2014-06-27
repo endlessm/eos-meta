@@ -131,6 +131,7 @@ module-init-tools
 net-tools
 netbase
 network-manager
+network-manager-gnome
 network-manager-vpnc-gnome
 ntp
 obexd-client
