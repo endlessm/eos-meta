@@ -70,6 +70,7 @@ gstreamer0.10-plugins-good
 gstreamer1.0-plugins-good
 gstreamer1.0-plugins-ugly
 gstreamer1.0-pulseaudio
+gvfs-bin
 icedtea-plugin
 iproute
 kde-games-core-declarative
