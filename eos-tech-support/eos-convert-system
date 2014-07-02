@@ -5,6 +5,9 @@ if [ ! -L /ostree ]; then
   exit 1
 fi
 
+# Set the metrics system to use the dev environment
+echo "Configuring Metrics System for Dev"
+exec eos-select-metrics-env 'dev'
 
 # Disable upgrade timer
 systemctl stop eos-updater.timer
