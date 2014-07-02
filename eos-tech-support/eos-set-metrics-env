@@ -1,0 +1,15 @@
+#!/bin/bash -e
+CONFIG_FILE=/etc/eos-metrics-permissions.conf
+
+if [ ! -f $CONFIG_FILE ]; then
+    echo "Configuration file at /etc/eos-metrics-permissions.conf not found." >&2
+    exit 1
+fi
+
+ENVIRONMENT=$1
+if [ "$ENVIRONMENT" == "dev" ] || [ "$ENVIRONMENT" == "test" ] || [ "$ENVIRONMENT" == "production" ]; then
+    sed -i "s/\(environment *= *\).*/\1$ENVIRONMENT/" $CONFIG_FILE
+else
+    echo "Invalid enviroment $ENVIRONMENT passed in as parameter." >$2
+    exit 2
+fi
