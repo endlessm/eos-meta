@@ -83,6 +83,12 @@ libalut0
 libasound2
 libatkmm-1.6-1
 libbluetooth3
+libboost-iostreams1.49.0
+libboost-program-options1.49.0
+libboost-python1.49.0
+libboost-regex1.49.0
+libboost-signals1.49.0
+libboost-system1.49.0
 libcairomm-1.0-1
 libcanberra-gtk-module
 libcanberra-pulse
