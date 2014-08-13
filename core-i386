@@ -24,6 +24,7 @@ eos-exploration-center
 eos-file-manager
 eos-flashplugin-updater
 eos-keyring
+eos-language-pack-ar
 eos-language-pack-en
 eos-language-pack-es
 eos-language-pack-pt
@@ -42,8 +43,10 @@ evolution
 exfat-fuse
 file
 file-roller
+fonts-arabeyes
 fonts-dustin
 fonts-gargi
+fonts-kacst
 fonts-knda
 fonts-liberation
 fonts-ocr-a
