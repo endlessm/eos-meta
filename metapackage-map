@@ -1,6 +1,7 @@
 core eos-core
 apps eos-apps
 dev eos-dev
+language-pack-ar eos-language-pack-ar
 language-pack-en eos-language-pack-en
 language-pack-es eos-language-pack-es
 language-pack-pt eos-language-pack-pt
