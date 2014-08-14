@@ -38,6 +38,14 @@ Description: EndlessOS Development Tools
  This is a collection of development tools that make development and debugging
  of EndlessOS easier and more efficient.
 
+Package: eos-language-pack-ar
+Architecture: all
+Depends: ${misc:Depends}, ${germinate:Depends}
+Recommends: ${germinate:Recommends}
+Description: EndlessOS Arabic Language Pack
+ This is a collection of Arabic language packs for the EndlessOS operating
+ system.
+
 Package: eos-language-pack-en
 Architecture: all
 Depends: ${misc:Depends}, ${germinate:Depends}
