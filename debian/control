@@ -62,6 +62,14 @@ Description: EndlessOS Spanish Language Pack
  This is a collection of Spanish language packs for the EndlessOS operating
  system.
 
+Package: eos-language-pack-fr
+Architecture: all
+Depends: ${misc:Depends}, ${germinate:Depends}
+Recommends: ${germinate:Recommends}
+Description: EndlessOS French Language Pack
+ This is a collection of French language packs for the EndlessOS operating
+ system.
+
 Package: eos-language-pack-pt
 Architecture: all
 Depends: ${misc:Depends}, ${germinate:Depends}
