@@ -347,5 +347,5 @@ x-scheme-handler/help=yelp.desktop
 x-scheme-handler/info=yelp.desktop
 x-scheme-handler/man=yelp.desktop
 x-scheme-handler/endlessm-app=eos-launch.desktop
-application/x-msi=com.endlessm.Gates.desktop
-application/x-ms-dos-executable=com.endlessm.Gates.desktop
+application/x-msi=com.endlessm.Gates.Windows.desktop
+application/x-ms-dos-executable=com.endlessm.Gates.Windows.desktop
