@@ -50,10 +50,12 @@ fonts-arphic-ukai
 fonts-arphic-uming
 fonts-crosextra-caladea
 fonts-crosextra-carlito
+fonts-dosis
 fonts-dustin
 fonts-farsiweb
 fonts-gargi
 fonts-indic
+fonts-lato
 fonts-kacst
 fonts-khmeros
 fonts-knda
@@ -62,6 +64,7 @@ fonts-nanum
 fonts-nanum-coding
 fonts-ocr-a
 fonts-paktype
+fonts-quattrocento
 fonts-sil-andika
 fonts-sil-padauk
 fonts-tlwg-waree
