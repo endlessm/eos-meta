@@ -21,6 +21,7 @@ eog
 eos-app-manager
 eos-boot-helper
 eos-encyclopedia
+eos-event-recorder-daemon
 eos-exploration-center
 eos-file-manager
 eos-flashplugin-updater
