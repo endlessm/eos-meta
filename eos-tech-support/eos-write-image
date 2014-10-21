@@ -57,6 +57,12 @@ if grep -qs $DEVICE /proc/mounts; then
     exit 1
 fi
 
+read -p "Are you sure you want to overwrite all data on $DEVICE? [y/N] "
+response=${REPLY,,} # to lower
+if [[ ! $response =~ ^(yes|y)$ ]]; then
+    exit 1
+fi
+
 if file --mime-type "$IMAGE" | grep -q gzip$; then
     # Image is gzipped
     # The following would calculate the original size
