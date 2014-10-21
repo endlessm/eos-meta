@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# Writes a raw image (possibly zipped)
+# to a device (e.g., USB drive or SD card)
+# using dd, with status monitoring via pv
+
+command -v dd >/dev/null || {
+   echo "dd is not installed... aborting!"
+   echo "Try 'sudo apt-get install coreutils'"
+   exit 1
+}
+
+command -v pv >/dev/null || {
+   echo "pv is not installed... aborting!"
+   echo "Try 'sudo apt-get install pv'"
+   exit 1
+}
+
+if [ $# -lt 2 ] ; then
+   echo "Missing command line arguments"
+   echo "Usage:"
+   echo "   $0 image device [block_size]"
+   echo "Where:"
+   echo "   image = raw or zipped image file (.img or .img.gz)"
+   echo "   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')"
+   echo "   block_size = block size in bytes (default = '1M')"
+   exit 1
+fi
+
+USERID=$(id -u)
+IMAGE="$1"
+DEVICE="$2"
+
+BLOCK_SIZE=1M
+if [ $# -ge 3 ] ; then
+  BLOCK_SIZE="$3"
+fi
+
+if [ "x$USERID" != "x0" ]; then
+  echo "Program requires superuser privileges"
+  exit 1
+fi
+
+if [ ! -f "$IMAGE" ]; then
+  echo "$IMAGE not found"
+  exit 1
+fi
+
+if [ ! -b $DEVICE ]; then
+  echo "$DEVICE not found"
+  exit 1
+fi
+
+if file --mime-type "$IMAGE" | grep -q gzip$; then
+  # Image is gzipped
+  # The following would calculate the original size
+  # of the unzipped file if less than 4G: 
+  # IMAGE_SIZE=$(zcat -l "$IMAGE" | awk 'NR==2 { print $2 }')
+  # But this doesn't help for large images,
+  # so we just show relative progress
+  zcat "$IMAGE" | pv | dd oflag=nonblock bs=$BLOCK_SIZE of=$DEVICE conv=sparse,fsync
+else
+  # Image is not gzipped
+  # We can show progress as percentage of total image size
+  IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
+  dd iflag=nonblock if="$IMAGE" bs=$BLOCK_SIZE | pv -s ${IMAGE_SIZE} | dd oflag=nonblock bs=$BLOCK_SIZE of=$DEVICE conv=sparse,fsync
+fi
