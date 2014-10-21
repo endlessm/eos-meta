@@ -51,6 +51,12 @@ if [ ! -b $DEVICE ]; then
     exit 1
 fi
 
+if grep -qs $DEVICE /proc/mounts; then
+    # Protect against overwriting the device currently in use
+    echo "$DEVICE is currently in use -- please unmount and try again"
+    exit 1
+fi
+
 if file --mime-type "$IMAGE" | grep -q gzip$; then
     # Image is gzipped
     # The following would calculate the original size
