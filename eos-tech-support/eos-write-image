@@ -36,7 +36,7 @@ if [ $# -ge 3 ] ; then
     BLOCK_SIZE="$3"
 fi
 
-if [ "x$USERID" != "x0" ]; then
+if [ "$USERID" != "0" ]; then
     echo "Program requires superuser privileges"
     exit 1
 fi
