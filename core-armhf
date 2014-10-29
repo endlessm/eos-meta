@@ -57,10 +57,10 @@ fonts-dustin
 fonts-farsiweb
 fonts-gargi
 fonts-indic
-fonts-lato
 fonts-kacst
 fonts-khmeros
 fonts-knda
+fonts-lato
 fonts-liberation
 fonts-nanum
 fonts-nanum-coding
@@ -107,6 +107,11 @@ less
 libalut0
 libasound2
 libatkmm-1.6-1
+libavcodec53
+libavdevice53
+libavfilter2
+libavformat53
+libavutil51
 libbluetooth3
 libboost-iostreams1.49.0
 libboost-program-options1.49.0
@@ -143,6 +148,7 @@ libpam-fprintd
 libpam-runtime
 libpam-systemd
 libpangomm-1.4-1
+libpostproc52
 libpulse-mainloop-glib0
 libpulse0
 libreoffice
@@ -153,6 +159,7 @@ libsdl-net1.2
 libsdl-pango1
 libsdl-ttf2.0-0
 libsdl1.2debian
+libswscale2
 libtelepathy-farstream3
 libumfpack5.4.0
 linux-firmware
