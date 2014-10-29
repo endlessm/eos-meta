@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Checks that the hard drive is reachable and has the expected partitions
+# and passes a basic health check
+# Does not include a test for bad blocks
 
 DEVICE=/dev/sda
 
@@ -14,6 +16,16 @@ if ! blkid | grep -qs $DEVICE; then
     echo "FAIL"
     echo "Device $DEVICE not detected"
     echo "Check hard drive cable"
+    exit 1
+fi
+
+# Check the overall health of the drive
+if ! smartctl -H $DEVICE | grep -s overall-health | grep -qs PASSED; then
+    echo "FAIL"
+    echo "Disk failed the overall health self-assessment test"
+    echo "It may be necessary to replace the disk drive"
+    echo "Extended details below..."
+    smartctl -x $DEVICE
     exit 1
 fi
 
