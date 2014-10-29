@@ -1,3 +1,5 @@
 bash-completion
 lshw
+pv
+smartmontools
 traceroute
