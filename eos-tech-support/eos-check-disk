@@ -29,7 +29,9 @@ if ! smartctl -H $DEVICE | grep -s overall-health | grep -qs PASSED; then
     exit 1
 fi
 
-LABELS="ostree-boot ostree eos-swap"
+# Note: don't check for the swap partition (eos-swap),
+# since it is not created on smaller drives
+LABELS="ostree-boot ostree"
 PARTITION=1
 for LABEL in $LABELS; do
     # Inlcude the quote symbol in the grep to match the exact label
