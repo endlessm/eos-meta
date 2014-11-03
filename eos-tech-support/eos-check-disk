@@ -12,7 +12,7 @@ if [ "$USERID" != "0" ]; then
     exit 1
 fi
 
-if ! blkid | grep -qs $DEVICE; then
+if [ ! -b $DEVICE ]; then
     echo "FAIL"
     echo "Device $DEVICE not detected"
     echo "Check hard drive cable"
