@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Lists all users (i.e., all home directories on /dev/sda2)
+
+DEVICE=/dev/sda2
+MOUNT=/mnt/sda2
+
+USERID=$(id -u)
+if [ "$USERID" != "0" ]; then
+    echo "Program requires superuser privileges"
+    exit 1
+fi
+
+mkdir -p $MOUNT
+mount $DEVICE $MOUNT
+
+# FIXME A more robust approach would be the following:
+# - read /usr/etc/login.defs and extract UID_MIN
+# - read /etc/passwd and get all users with uid >= UID_MIN
+ls $MOUNT/home
+
+umount $MOUNT
+rmdir $MOUNT

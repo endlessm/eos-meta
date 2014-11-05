@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Checks that the hard drive is reachable and has the expected partitions
+# Does not include a health test or test for bad blocks
+
+DEVICE=/dev/sda
+
+USERID=$(id -u)
+if [ "$USERID" != "0" ]; then
+    echo "Program requires superuser privileges"
+    exit 1
+fi
+
+if [ ! -b $DEVICE ]; then
+    echo "FAIL"
+    echo "Device $DEVICE not detected"
+    echo "Check hard drive cable"
+    exit 1
+fi
+
+# Note: don't check for the swap partition (eos-swap),
+# since it is not created on smaller drives
+LABELS="ostree-boot ostree"
+PARTITION=1
+for LABEL in $LABELS; do
+    # Inlcude the quote symbol in the grep to match the exact label
+    if ! blkid | grep -s $DEVICE$PARTITION | grep -qs \"$LABEL\"; then
+        echo "FAIL"
+        echo "Missing partition $DEVICE$PARTITION with label $LABEL"
+        echo "It may be necessary to reflash the device"
+        exit 1
+    fi
+    let PARTITION++
+done
+
+echo "PASS"
