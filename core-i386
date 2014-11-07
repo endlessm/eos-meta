@@ -93,6 +93,7 @@ gnome-system-monitor
 gnome-terminal
 gnupg
 grilo-plugins-0.2
+grub2
 gstreamer0.10-plugins-good
 gstreamer0.10-pulseaudio
 gstreamer1.0-plugins-good
@@ -125,10 +126,12 @@ libcairomm-1.0-1
 libcanberra-gtk-module
 libcanberra-pulse
 libdvdcss2
+libegl1-mesa-drivers
 libfolks-eds25
 libfolks-telepathy25
 libgc1c3
 libgfortran3
+libgles2-mesa
 libglew1.8
 libglib2.0-data
 libglibmm-2.4-1c2a
@@ -166,6 +169,7 @@ libswscale2
 libtelepathy-farstream3
 libumfpack5.4.0
 linux-firmware
+linux-image-generic
 locales
 lsb-base
 lsb-release
