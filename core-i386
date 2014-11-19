@@ -95,6 +95,8 @@ gnome-terminal
 gnupg
 grilo-plugins-0.2
 grub2
+gstreamer0.10-alsa
+gstreamer0.10-plugins-base
 gstreamer0.10-plugins-good
 gstreamer0.10-pulseaudio
 gstreamer1.0-plugins-good
