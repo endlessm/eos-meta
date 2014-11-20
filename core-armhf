@@ -13,6 +13,7 @@ chromium-browser
 console-setup-mini
 cups
 dbus-x11
+dctrl-tools
 debconf-i18n
 dosfstools
 dracut
