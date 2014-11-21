@@ -1,0 +1,64 @@
+#!/bin/bash -e
+
+# Resizes a device (such as an external USB)
+# that contains a bootable Endless image
+# so that the root partition fills the available space
+#
+# This is necessary, for instance, with an external USB drive
+# that has been prepared and flashed using eos-usb-image
+# and eos-write-image, since the automatic resize on first boot
+# does not work properly on the resulting USB device
+
+if [ $# -lt 1 ] ; then
+    echo "Missing command line arguments"
+    echo "Usage:"
+    echo "   $0 device"
+    echo "Where:"
+    echo "   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')"
+    exit
+fi
+
+DEVICE="$1"
+
+USERID=$(id -u)
+if [ "$USERID" != "0" ]; then
+    echo "Program requires superuser privileges"
+    exit 1
+fi
+
+if grep -qs $DEVICE /proc/mounts; then
+    # Protect against overwriting the device currently in use
+    echo "$DEVICE is currently in use -- please unmount and try again"
+    exit 1
+fi
+
+# Check for our magic "this is Endless" marker
+MARKER=$(sfdisk --force --print-id $DEVICE 4)
+if [ "$MARKER" != "dd" ]; then
+    echo "Device does not contain the Endless marker on partition 4"
+    exit 1
+fi
+
+# Resize the second partition (root) to fill the available space
+# and remove the special fourth partition that is used as a flag
+# to indicate that the device needs to be resized
+OFFSET=`fdisk -l $DEVICE | grep "$DEVICE"2 | awk '{print $2}'`
+fdisk $DEVICE <<EOF
+d
+2
+d
+4
+n
+p
+2
+$OFFSET
+
+p
+w
+EOF
+
+# Check the file system (required precursor to resizing)
+e2fsck -f "$DEVICE"2
+
+# Resize the file system
+resize2fs "$DEVICE"2
