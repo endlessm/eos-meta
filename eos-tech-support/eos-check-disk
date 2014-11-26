@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # Checks that the hard drive is reachable and has the expected partitions
-# Does not include a health test or test for bad blocks
+# Does not include a test for bad blocks
 
-DEVICE=/dev/sda
+DEVICEID=sda
+DEVICE=/dev/${DEVICEID}
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
@@ -15,6 +16,20 @@ if [ ! -b $DEVICE ]; then
     echo "FAIL"
     echo "Device $DEVICE not detected"
     echo "Check hard drive cable"
+    exit 1
+fi
+
+# Check the overall health of the drive
+DRIVEPATH=$(gdbus call --system --dest org.freedesktop.UDisks2 --object-path /org/freedesktop/UDisks2/block_devices/${DEVICEID} --method org.freedesktop.DBus.Properties.Get 'org.freedesktop.UDisks2.Block' 'Drive' | cut -d "'" -f 2)
+SMARTFAILING=$(gdbus call --system --dest org.freedesktop.UDisks2 --object-path ${DRIVEPATH} --method org.freedesktop.DBus.Properties.Get 'org.freedesktop.UDisks2.Drive.Ata' 'SmartFailing' | cut -d "<" -f 2 | cut -d ">" -f 1)
+SMARTSELFTEST=$(gdbus call --system --dest org.freedesktop.UDisks2 --object-path ${DRIVEPATH} --method org.freedesktop.DBus.Properties.Get 'org.freedesktop.UDisks2.Drive.Ata' 'SmartSelftestStatus' | cut -d "'" -f 2)
+
+if [ $SMARTFAILING != "false" -o $SMARTSELFTEST != "success" ]; then
+    echo "FAIL"
+    echo "Disk failed the overall health self-assessment test"
+    echo "It may be necessary to replace the disk drive"
+    echo "SMART Failing: $SMARTFAILING"
+    echo "SMART Self Test result: $SMARTSELFTEST"
     exit 1
 fi
 
