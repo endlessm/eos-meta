@@ -7,7 +7,7 @@
 
 found=
 for DEVICEID in sd{a..z} ; do
-    type=`udevadm info /dev/${DEVICEID} | grep ID_BUS | cut -f2 -d=`
+    type=`udevadm info /dev/${DEVICEID} 2> /dev/null | grep ID_BUS | cut -f2 -d=`
     if [ "$type" == "ata" ] ; then
         found=1
         break;
