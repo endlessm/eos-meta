@@ -46,7 +46,7 @@ sed -i "s#/sysroot/home#/home#g" /etc/passwd* /etc/adduser.conf /etc/default/use
 echo "Hardlinking files from $OSTREE_DEPLOY_CURRENT, this may take a while"
 
 # Copy the system directories to the real filesystems /
-cp -paxl ${OSTREE_DEPLOY_CURRENT}/{bin,etc,lib,sbin,usr,var} /sysroot
+cp -paxl ${OSTREE_DEPLOY_CURRENT}/{bin,etc,lib,sbin,usr,opt,var} /sysroot
 
 
 # Overlay the /var as deployed on the systems /var
@@ -59,7 +59,7 @@ cp -paxl ${OSTREE_DEPLOY}/var /sysroot
 # We look for files with greater than 2 links since we just hardlinked
 # everything to the ostree deployment, so by definition all files will
 # have at least 2 links.
-find /sysroot/{bin,etc,lib,sbin,usr,var} -xdev -type f -size 0 -links +2 \
+find /sysroot/{bin,etc,lib,sbin,usr,opt,var} -xdev -type f -size 0 -links +2 \
   -exec eos-break-links '{}' '+'
 
 # homedirs are /sysroot/home/<user> for some odd reason so point /sysroot/home 
