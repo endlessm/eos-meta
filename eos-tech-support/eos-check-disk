@@ -3,8 +3,23 @@
 # Checks that the hard drive is reachable and has the expected partitions
 # Does not include a test for bad blocks
 
-DEVICEID=sda
-DEVICE=/dev/${DEVICEID}
+# Search for the internal disk
+
+found=
+for DEVICEID in sd{a..z} ; do
+    type=`udevadm info /dev/${DEVICEID} | grep ID_BUS | cut -f2 -d=`
+    if [ "$type" == "ata" ] ; then
+        found=1
+        break;
+    fi
+done
+
+if [ -z ${found} ]; then
+    echo "FAIL"
+    echo "Hard drive not detected"
+    echo "Check hard drive cable"
+    exit 1
+fi
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
@@ -12,12 +27,7 @@ if [ "$USERID" != "0" ]; then
     exit 1
 fi
 
-if [ ! -b $DEVICE ]; then
-    echo "FAIL"
-    echo "Device $DEVICE not detected"
-    echo "Check hard drive cable"
-    exit 1
-fi
+DEVICE=/dev/${DEVICEID}
 
 # Check the overall health of the drive
 DRIVEPATH=$(gdbus call --system --dest org.freedesktop.UDisks2 --object-path /org/freedesktop/UDisks2/block_devices/${DEVICEID} --method org.freedesktop.DBus.Properties.Get 'org.freedesktop.UDisks2.Block' 'Drive' | cut -d "'" -f 2)
