@@ -1,9 +1,8 @@
 dri2-utils
 eos-core
 libdri2-1
-libegl1-mali400
-libgles2-mali400
+libegl1-mali400-exynos4
+libgles2-mali400-exynos4
 linux-image-3.17-trunk-armmp
-mali400-corelibs
 u-boot-exynos4-odroid
 xserver-xorg-video-armsoc
