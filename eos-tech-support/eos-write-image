@@ -4,6 +4,17 @@
 # to a device (e.g., USB drive or SD card)
 # using dd, with status monitoring via pv
 
+usage() {
+    cat <<EOF
+Usage:
+   $0 image device [block_size]
+Where:
+   image = raw or zipped image file (.img or .img.gz)
+   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')
+   block_size = block size in bytes (default = '1M')
+EOF
+}
+
 command -v dd >/dev/null || {
     echo "dd is not installed... aborting!"
     echo "Try 'sudo apt-get install coreutils'"
@@ -17,13 +28,8 @@ command -v pv >/dev/null || {
 }
 
 if [ $# -lt 2 ] ; then
-    echo "Missing command line arguments"
-    echo "Usage:"
-    echo "   $0 image device [block_size]"
-    echo "Where:"
-    echo "   image = raw or zipped image file (.img or .img.gz)"
-    echo "   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')"
-    echo "   block_size = block size in bytes (default = '1M')"
+    echo "Missing command line arguments" >&2
+    usage >&2
     exit 1
 fi
 
