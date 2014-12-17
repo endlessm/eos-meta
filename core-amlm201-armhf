@@ -3,6 +3,6 @@ eos-core
 libdri2-1
 libegl1-mali400-meson8
 libgles2-mali400-meson8
-linux-image-3.10-trunk-armmp
-u-boot-meson8-m201
+linux-image-3.10-trunk-meson8b
+u-boot-meson-m201
 xserver-xorg-video-armsoc
