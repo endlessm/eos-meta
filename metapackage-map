@@ -1,4 +1,5 @@
 core eos-core
+core-i386 eos-core-i386
 core-odroidu2 eos-core-odroidu2
 core-sqwerty eos-core-sqwerty
 core-amlm201 eos-core-amlm201
