@@ -20,6 +20,17 @@ Description: Target packages of the Endless distribution
  It is also used to help ensure proper upgrades, so it is recommended that
  it not be removed.
 
+Package: eos-core-i386
+Architecture: i386
+Depends: ${misc:Depends}, ${germinate:Depends}
+Description: Target packages of the Endless distribution for i386
+ This package depends on all packages required for the Endless OS core images
+ .
+ It is also used to help ensure proper upgrades, so it is recommended that
+ it not be removed.
+ .
+ This set provides the platform specific package list for i386.
+
 Package: eos-core-odroidu2
 Architecture: armhf
 Depends: ${misc:Depends}, ${germinate:Depends}
