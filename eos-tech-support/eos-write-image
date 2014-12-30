@@ -4,6 +4,9 @@
 # to a device (e.g., USB drive or SD card)
 # using dd, with status monitoring via pv
 
+ARGS=$(getopt -o h -l "help" -n "$0" -- "$@")
+eval set -- "$ARGS"
+
 usage() {
     cat <<EOF
 Usage:
@@ -14,6 +17,19 @@ Where:
    block_size = block size in bytes (default = '1M')
 EOF
 }
+
+while true; do
+    case "$1" in
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
 
 command -v dd >/dev/null || {
     echo "dd is not installed... aborting!"
