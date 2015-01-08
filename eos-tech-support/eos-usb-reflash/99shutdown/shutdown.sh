@@ -6,9 +6,44 @@
 #
 # Copyright 2011, Red Hat, Inc.
 # Harald Hoyer <harald@redhat.com>
-ACTION="$1"
+exec > /dev/kmsg
+exec 2>&1
 
-[ -w /dev/console ] && exec </dev/console >>/dev/console 2>>/dev/console
+dmesg -E
+dmesg -n info
+
+printf "Beginning reflashing process.\n"
+printf "Searching for USB disk...\n"
+sleep 2
+
+BLKS=$(lsblk -l -o Name)
+for LAST_BLK in $BLKS; do true; done
+USB_PATH="/dev/${LAST_BLK}"
+
+printf "Found USB at ${USB_PATH}\n"
+printf "Mounting USB at /mnt...\n"
+
+if [ ! -d /mnt ]; then
+    mkdir /mnt
+fi
+
+if mount ${USB_PATH} /mnt ; then
+    for file in /mnt/*.gz ; do
+        printf "Flashing ${file} located at USB's '/' directory. This will take a few minutes...\n"
+        dmesg -n alert
+        if ! gzip -cd $file | dd oflag=nonblock bs=1M of=/dev/sda conv=sparse,fsync ; then
+            dmesg -n info
+            printf "Flashing failed. Machine must now be flashed from backup USB."
+            sleep 100
+        fi
+        break
+    done
+else
+    dmesg -n info
+    printf 'Unable to mount USB...aborting.\n'
+    exit 1
+fi
+umount /mnt
 
 export TERM=linux
 export PATH=/usr/sbin:/usr/bin:/sbin:/bin
