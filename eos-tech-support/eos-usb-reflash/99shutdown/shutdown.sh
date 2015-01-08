@@ -55,22 +55,6 @@ for i in sys proc run dev; do
     mount --move /oldroot/$i /oldsys/$i
 done
 
-# if "kexec" was installed after creating the initramfs, we try to copy it from the real root
-# libz normally is pulled in via kmod/modprobe and udevadm
-if [ "$ACTION" = "kexec" ] && ! command -v kexec >/dev/null 2>&1; then
-    for p in /usr/sbin /usr/bin /sbin /bin; do
-        cp -a /oldroot/${p}/kexec $p >/dev/null 2>&1 && break
-    done
-    hash kexec
-fi
-
-trap "emergency_shell --shutdown shutdown Signal caught!" 0
-getarg 'rd.break=pre-shutdown' && emergency_shell --shutdown pre-shutdown "Break before pre-shutdown"
-
-source_hook pre-shutdown
-
-warn "Killing all remaining processes"
-
 killall_proc_mountpoint /oldroot
 
 umount_a() {
@@ -114,40 +98,9 @@ if strstr "$(cat /proc/mounts)" "/oldroot"; then
     done
 fi
 
-_check_shutdown() {
-    local __f
-    local __s=1
-    for __f in $hookdir/shutdown/*.sh; do
-        [ -e "$__f" ] || continue
-        ( . "$__f" $1 )
-        if [ $? -eq 0 ]; then
-            rm -f -- $__f
-            __s=0
-        fi
-    done
-    return $__s
-}
+dmesg -n info
+printf "Flashing is complete!\n"
+printf 'Powering off. Remove the USB before restarting the computer.'
+sleep 5
+poweroff -f
 
-while _check_shutdown; do
-:
-done
-_check_shutdown final
-
-getarg 'rd.break=shutdown' && emergency_shell --shutdown shutdown "Break before shutdown"
-
-case "$ACTION" in
-    reboot|poweroff|halt)
-        $ACTION -f -d -n
-        warn "$ACTION failed!"
-        ;;
-    kexec)
-        kexec -e
-        warn "$ACTION failed!"
-        ;;
-    *)
-        warn "Shutdown called with argument '$ACTION'. Rebooting!"
-        reboot -f -d -n
-        ;;
-esac
-
-emergency_shell --shutdown shutdown
