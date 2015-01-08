@@ -56,6 +56,8 @@ for i in sys proc run dev; do
 done
 
 killall_proc_mountpoint /oldroot
+# Plymouthd is not killed by killall_proc_mountpoint
+pkill -f plymouthd
 
 umount_a() {
     local _did_umount="n"
