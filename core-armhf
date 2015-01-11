@@ -126,6 +126,8 @@ libboost-system1.49.0
 libcairomm-1.0-1
 libcanberra-gtk-module
 libcanberra-pulse
+libcaribou-gtk-module
+libcaribou-gtk3-module
 libdvdcss2
 libfolks-eds25
 libfolks-telepathy25
