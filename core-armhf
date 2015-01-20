@@ -201,7 +201,7 @@ rtkit
 shotwell
 singularity-archive-keyring
 sudo
-system-config-printer
+system-config-printer-gnome
 systemd-sysv
 telepathy-gabble
 telepathy-mission-control-5
