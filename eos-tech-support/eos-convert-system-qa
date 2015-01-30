@@ -1,0 +1,80 @@
+#!/bin/bash -e
+
+STAGING_SERVER="http://staging.appupdates.endlessm.com"
+OSTREE_REPO_CONFIG="/ostree/repo/config"
+
+function usage {
+    cat <<EOF
+Invalid option: $1
+
+Valid options:
+    -m, --metrics     Configure Metrics System for Dev.
+    -a, --apps        Configure App Server for Staging.
+    -o, --ostree      Configure OSTree for Staging.
+EOF
+}
+
+METRICS=true
+APPS=true
+OSTREE=true
+if [ $# -gt 0 ]; then
+    METRICS=false
+    APPS=false
+    OSTREE=false
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -m|--metrics)
+                METRICS=true
+                shift
+                ;;
+            -a|--apps)
+                APPS=true
+                shift
+                ;;
+            -o|--ostree)
+                OSTREE=true
+                shift
+                ;;
+            *)
+                usage $1
+                exit 1
+                ;;
+        esac
+    done
+fi
+
+# Check that script was run with superuser priviliges.
+if [[ $EUID != 0 ]]; then
+    echo "$0 requires superuser privileges."
+    exit 1
+fi
+
+# Check if master image.
+if ostree admin status | grep -q "master"; then
+    read -p "Detected master image. Are you sure you wish to continue? [Y/n] " response
+    case $response in
+        [yY]* | '') ;;
+        *) exit 1 ;;
+    esac
+fi
+
+# Set metrics env to dev.
+if $METRICS; then
+    echo "Configuring Metrics System for Dev."
+    eos-select-metrics-env dev
+fi
+
+# Change app server to staging.
+if $APPS; then
+    echo "Configuring App Server for Staging."
+    eos-select-app-server $STAGING_SERVER
+fi
+
+# Change OSTree server and check it.
+if $OSTREE; then
+    echo "Configuring OSTree for Staging."
+    sed -i 's/com\/ostree/com\/staging\/dev/g' $OSTREE_REPO_CONFIG
+    echo "Killing ostree-daemon."
+    killall ostree-daemon &>/dev/null
+    echo "All done!"
+fi
