@@ -36,6 +36,7 @@ eos-language-pack-pt
 eos-license-service
 eos-media
 eos-metrics-instrumentation
+eos-pepflashplugin-updater
 eos-plymouth-theme
 eos-sdk-webhelper
 eos-shell
