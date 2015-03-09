@@ -23,7 +23,7 @@ if [ "$USERID" != "0" ]; then
 fi
 
 # Mount two partitions using a loopback device
-LOOP_DEV=$(losetup -s -f $IMAGE)
+LOOP_DEV=$(losetup --show -f $IMAGE)
 kpartx -a $LOOP_DEV
 BOOT_MOUNT=/mnt/image_p1
 ROOT_MOUNT=/mnt/image_p2
