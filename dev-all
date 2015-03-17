@@ -49,7 +49,6 @@ openssh-server
 osc
 p7zip-full
 patchutils
-pbuilder
 pep8
 putty
 pyflakes
