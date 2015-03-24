@@ -181,6 +181,8 @@ libsdl1.2debian
 libswscale2
 libtelepathy-farstream3
 libumfpack5.4.0
+libwpd-0.9-9
+libwpg-0.2-2
 linux-firmware
 linux-image-generic
 locales
