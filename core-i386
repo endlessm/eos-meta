@@ -104,9 +104,11 @@ gstreamer0.10-alsa
 gstreamer0.10-plugins-base
 gstreamer0.10-plugins-good
 gstreamer0.10-pulseaudio
+gstreamer0.10-tools
 gstreamer1.0-plugins-good
 gstreamer1.0-plugins-ugly
 gstreamer1.0-pulseaudio
+gstreamer1.0-tools
 gvfs-bin
 icedtea-plugin
 iproute
