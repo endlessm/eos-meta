@@ -75,6 +75,54 @@ function collectBoardInfo() {
     return output;
 }
 
+function collectPrintersInfo() {
+    let output = '';
+    let ppds_dir_path = '/etc/cups/ppd';
+
+    output += 'CUPS status:\n------------\n';
+    try {
+        let argv = ['/usr/bin/lpstat', '-t'];
+        let envp = ['LANG=C'];
+        let [res, stdout, stderr, exitStatus] = GLib.spawn_sync(null, argv, envp,
+                                                                GLib.SpawnFlags.DEFAULT,
+                                                                null, null);
+        output += stdout;
+    } catch (e) {
+        output += 'error ocurred querying CUPS status: ' + e + '\n';
+    }
+
+    let ppds_dir = Gio.file_new_for_path(ppds_dir_path);
+    if (!ppds_dir.query_exists(null)) {
+        output += ppds_dir_path + ' not found';
+        return output;
+    }
+
+    try {
+        let installed_ppds = ppds_dir.enumerate_children('standard::name',
+                                                         Gio.FileQueryInfoFlags.NONE,
+                                                         null)
+        let ppd_info = null;
+        while ((ppd_info = installed_ppds.next_file(null))) {
+            let ppd_path = GLib.build_filenamev([ppds_dir_path, ppd_info.get_name()]);
+            output += '\nContents for ' + ppd_path + ':\n-------------';
+            for (let i = 0; i < ppd_path.length; i++)
+                output += '-';
+            output += '-\n';
+
+            try {
+                let [res, contents] = GLib.file_get_contents(ppd_path);
+                output += contents;
+            } catch (e) {
+                output += 'not available';
+            }
+        }
+    } catch (e) {
+        output += 'Unable to find installed PPD files: ' + e + '\n';
+    }
+
+    return output;
+}
+
 function collectTemperatureInfo() {
     try {
 	let [res, tempInput] = GLib.file_get_contents('/sys/class/thermal/thermal_zone0/temp');
@@ -221,6 +269,13 @@ function dumpDiagnostics(filename) {
     fullDump += '\n';
     fullDump += 'USB\n\n';
     fullDump += trySpawn('lsusb');
+    fullDump += '\n';
+
+    fullDump += '========================\n'
+    fullDump += '= Printers information =\n'
+    fullDump += '========================\n'
+    fullDump += '\n';
+    fullDump += collectPrintersInfo();
     fullDump += '\n';
 
     fullDump += '===========================\n'
