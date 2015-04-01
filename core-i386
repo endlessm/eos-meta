@@ -247,6 +247,7 @@ xserver-xorg-input-synaptics
 xserver-xorg-video-intel
 xserver-xorg-video-modesetting
 xserver-xorg-video-nouveau
+xserver-xorg-video-qxl
 xserver-xorg-video-radeon
 xserver-xorg-video-vesa
 xserver-xorg-video-vmware
