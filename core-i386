@@ -10,6 +10,7 @@ bzip2
 ca-certificates
 cheese
 chromium-browser
+chromium-codecs-ffmpeg
 console-setup-mini
 cups
 dbus-x11
