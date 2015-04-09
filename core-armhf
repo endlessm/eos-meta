@@ -195,6 +195,7 @@ ntp
 obexd-client
 openprinting-ppds
 openssh-client
+openssh-server
 ostree
 p7zip-full
 policykit-1
