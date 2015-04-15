@@ -310,7 +310,7 @@ function dumpDiagnostics(filename) {
     fullDump += '= Journal output =\n';
     fullDump += '==================\n';
     fullDump += '\n';
-    fullDump += trySpawn('journalctl -b --no-pager');
+    fullDump += trySpawn('journalctl --no-pager');
 
     try {
 	GLib.file_set_contents(filename, fullDump);
