@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
 STAGING_SERVER="http://staging.appupdates.endlessm.com"
-OSTREE_REPO_CONFIG="/ostree/repo/config"
 
 function usage {
     cat <<EOF
@@ -72,8 +71,25 @@ fi
 
 # Change OSTree server and check it.
 if $OSTREE; then
+    # Get the current refspec.
+    refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
+    branch=${refspec#*:}
+    arch=${branch#*/}
+
+    # Get the OS major.minor version,
+    version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
+
+    # Construct the new branch.
+    new_branch="eos${version}/${arch}"
+
+    # Get the current URL and convert to staging.
+    url=$(ostree config get 'remote "eos".url')
+    new_url=$(echo $url | sed 's,/ostree/,/staging/dev/,')
+
     echo "Configuring OSTree for Staging."
-    sed -i 's/com\/ostree/com\/staging\/dev/g' $OSTREE_REPO_CONFIG
+    ostree admin set-origin eos "$new_url" "$new_branch" \
+        --set=branches="${new_branch};"
+
     echo "Killing ostree-daemon."
     killall ostree-daemon &>/dev/null
     echo "All done!"
