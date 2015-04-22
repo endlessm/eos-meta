@@ -4,7 +4,7 @@
 # to a device (e.g., USB drive or SD card)
 # using dd, with status monitoring via pv
 
-ARGS=$(getopt -o h -l "help" -n "$0" -- "$@")
+ARGS=$(getopt -o fh -l "force,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -15,11 +15,19 @@ Where:
    image = raw or zipped image file (.img or .img.gz)
    device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')
    block_size = block size in bytes (default = '1M')
+Options:
+   -f,--force	don't ask to proceed with writing
+   -h,--help	show this message
 EOF
 }
 
+FORCE=false
 while true; do
     case "$1" in
+        -f|--force)
+            FORCE=true
+            shift
+            ;;
         -h|--help)
             usage
             exit 0
@@ -79,10 +87,12 @@ if grep -qs $DEVICE /proc/mounts; then
     exit 1
 fi
 
-read -p "Are you sure you want to overwrite all data on $DEVICE? [y/N] "
-response=${REPLY,,} # to lower
-if [[ ! $response =~ ^(yes|y)$ ]]; then
-    exit 1
+if ! $FORCE; then
+    read -p "Are you sure you want to overwrite all data on $DEVICE? [y/N] "
+    response=${REPLY,,} # to lower
+    if [[ ! $response =~ ^(yes|y)$ ]]; then
+        exit 1
+    fi
 fi
 
 if file --mime-type "$IMAGE" | grep -q gzip$; then
