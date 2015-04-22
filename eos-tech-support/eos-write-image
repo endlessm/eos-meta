@@ -1,8 +1,55 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Writes a raw image (possibly zipped)
 # to a device (e.g., USB drive or SD card)
 # using dd, with status monitoring via pv
+
+ARGS=$(getopt -o fh -l "force,sparse,debug,help" -n "$0" -- "$@")
+eval set -- "$ARGS"
+
+usage() {
+    cat <<EOF
+Usage:
+   $0 image device [block_size]
+Where:
+   image = raw or zipped image file (.img or .img.gz)
+   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')
+   block_size = block size in bytes (default = '1M')
+Options:
+   -f,--force	don't ask to proceed with writing
+   --sparse	use dd sparse conversion option
+   --debug	turn on debugging messages
+   -h,--help	show this message
+EOF
+}
+
+FORCE=false
+DD_IN_OPTS=(iflag=nonblock)
+DD_OUT_OPTS=(oflag=nonblock conv=fsync)
+while true; do
+    case "$1" in
+        -f|--force)
+            FORCE=true
+            shift
+            ;;
+        --sparse)
+            DD_OUT_OPTS+=(conv=sparse)
+            shift
+            ;;
+        --debug)
+            set -x
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
 
 command -v dd >/dev/null || {
     echo "dd is not installed... aborting!"
@@ -17,13 +64,8 @@ command -v pv >/dev/null || {
 }
 
 if [ $# -lt 2 ] ; then
-    echo "Missing command line arguments"
-    echo "Usage:"
-    echo "   $0 image device [block_size]"
-    echo "Where:"
-    echo "   image = raw or zipped image file (.img or .img.gz)"
-    echo "   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')"
-    echo "   block_size = block size in bytes (default = '1M')"
+    echo "Missing command line arguments" >&2
+    usage >&2
     exit 1
 fi
 
@@ -35,6 +77,8 @@ BLOCK_SIZE=1M
 if [ $# -ge 3 ] ; then
     BLOCK_SIZE="$3"
 fi
+DD_IN_OPTS+=(bs="$BLOCK_SIZE")
+DD_OUT_OPTS+=(bs="$BLOCK_SIZE")
 
 if [ "$USERID" != "0" ]; then
     echo "Program requires superuser privileges"
@@ -47,7 +91,7 @@ if [ ! -f "$IMAGE" ]; then
 fi
 
 if [ ! -b $DEVICE ]; then
-    echo "$DEVICE not found"
+    echo "$DEVICE not found or is not a block device"
     exit 1
 fi
 
@@ -57,10 +101,12 @@ if grep -qs $DEVICE /proc/mounts; then
     exit 1
 fi
 
-read -p "Are you sure you want to overwrite all data on $DEVICE? [y/N] "
-response=${REPLY,,} # to lower
-if [[ ! $response =~ ^(yes|y)$ ]]; then
-    exit 1
+if ! $FORCE; then
+    read -p "Are you sure you want to overwrite all data on $DEVICE? [y/N] "
+    response=${REPLY,,} # to lower
+    if [[ ! $response =~ ^(yes|y)$ ]]; then
+        exit 1
+    fi
 fi
 
 if file --mime-type "$IMAGE" | grep -q gzip$; then
@@ -70,10 +116,11 @@ if file --mime-type "$IMAGE" | grep -q gzip$; then
     # IMAGE_SIZE=$(zcat -l "$IMAGE" | awk 'NR==2 { print $2 }')
     # But this doesn't help for large images,
     # so we just show relative progress
-    zcat "$IMAGE" | pv | dd oflag=nonblock bs=$BLOCK_SIZE of=$DEVICE conv=sparse,fsync
+    zcat "$IMAGE" | pv | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
 else
     # Image is not gzipped
     # We can show progress as percentage of total image size
     IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
-    dd iflag=nonblock if="$IMAGE" bs=$BLOCK_SIZE | pv -s ${IMAGE_SIZE} | dd oflag=nonblock bs=$BLOCK_SIZE of=$DEVICE conv=sparse,fsync
+    dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE} \
+        | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
 fi
