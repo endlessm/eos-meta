@@ -22,6 +22,8 @@ EOF
 }
 
 FORCE=false
+DD_IN_OPTS=(iflag=nonblock)
+DD_OUT_OPTS=(oflag=nonblock conv=sparse,fsync)
 while true; do
     case "$1" in
         -f|--force)
@@ -65,6 +67,8 @@ BLOCK_SIZE=1M
 if [ $# -ge 3 ] ; then
     BLOCK_SIZE="$3"
 fi
+DD_IN_OPTS+=(bs="$BLOCK_SIZE")
+DD_OUT_OPTS+=(bs="$BLOCK_SIZE")
 
 if [ "$USERID" != "0" ]; then
     echo "Program requires superuser privileges"
@@ -102,10 +106,11 @@ if file --mime-type "$IMAGE" | grep -q gzip$; then
     # IMAGE_SIZE=$(zcat -l "$IMAGE" | awk 'NR==2 { print $2 }')
     # But this doesn't help for large images,
     # so we just show relative progress
-    zcat "$IMAGE" | pv | dd oflag=nonblock bs=$BLOCK_SIZE of=$DEVICE conv=sparse,fsync
+    zcat "$IMAGE" | pv | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
 else
     # Image is not gzipped
     # We can show progress as percentage of total image size
     IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
-    dd iflag=nonblock if="$IMAGE" bs=$BLOCK_SIZE | pv -s ${IMAGE_SIZE} | dd oflag=nonblock bs=$BLOCK_SIZE of=$DEVICE conv=sparse,fsync
+    dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE} \
+        | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
 fi
