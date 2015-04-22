@@ -91,7 +91,7 @@ if [ ! -f "$IMAGE" ]; then
 fi
 
 if [ ! -b $DEVICE ]; then
-    echo "$DEVICE not found"
+    echo "$DEVICE not found or is not a block device"
     exit 1
 fi
 
