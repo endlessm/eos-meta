@@ -4,7 +4,7 @@
 # to a device (e.g., USB drive or SD card)
 # using dd, with status monitoring via pv
 
-ARGS=$(getopt -o fh -l "force,help" -n "$0" -- "$@")
+ARGS=$(getopt -o fh -l "force,sparse,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -17,17 +17,22 @@ Where:
    block_size = block size in bytes (default = '1M')
 Options:
    -f,--force	don't ask to proceed with writing
+   --sparse	use dd sparse conversion option
    -h,--help	show this message
 EOF
 }
 
 FORCE=false
 DD_IN_OPTS=(iflag=nonblock)
-DD_OUT_OPTS=(oflag=nonblock conv=sparse,fsync)
+DD_OUT_OPTS=(oflag=nonblock conv=fsync)
 while true; do
     case "$1" in
         -f|--force)
             FORCE=true
+            shift
+            ;;
+        --sparse)
+            DD_OUT_OPTS+=(conv=sparse)
             shift
             ;;
         -h|--help)
