@@ -3,6 +3,7 @@ alsa-utils
 apt
 apt-transport-https
 apt-utils
+attr
 avahi-daemon
 bluez
 btrfs-tools
