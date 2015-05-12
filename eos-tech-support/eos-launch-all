@@ -1,0 +1,37 @@
+#!/bin/bash
+
+passed_apps=()
+failed_apps=()
+
+script=`basename $0`
+
+CORE_APPS=/usr/share/applications/eos-app-*.desktop
+BUNDLE_APPS=/endless/share/applications/*.desktop
+
+for desktop in $CORE_APPS $BUNDLE_APPS
+do
+    echo $desktop
+    app=`basename $desktop | sed 's/\(.*\)\..*/\1/'`
+    gtk-launch $app
+    zenity --question --title=$script --text="Did $app launch successfully?" --ok-label="Yes" --cancel-label="No"
+    if [ $? == "0" ]; then
+	passed_apps+=($app)
+    else
+	failed_apps+=($app)
+    fi
+done
+
+echo
+echo "Passed apps:"
+for app in "${passed_apps[@]}"
+do
+    echo $app
+done
+echo
+
+echo "Failed apps:"
+for app in "${failed_apps[@]}"
+do
+    echo $app
+done
+echo
