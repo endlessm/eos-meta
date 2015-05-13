@@ -20,7 +20,6 @@ empathy
 eog
 eos-app-manager
 eos-boot-helper
-eos-encyclopedia
 eos-event-recorder-daemon
 eos-exploration-center
 eos-factory-test
@@ -29,6 +28,7 @@ eos-flashplugin-updater
 eos-gates
 eos-google-talkplugin-updater
 eos-keyring
+eos-knowledge-0
 eos-language-pack-ar
 eos-language-pack-en
 eos-language-pack-es
