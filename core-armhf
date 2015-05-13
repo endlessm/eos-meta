@@ -25,7 +25,6 @@ eos-exploration-center
 eos-factory-test
 eos-file-manager
 eos-keyring
-eos-knowledge-0
 eos-language-pack-ar
 eos-language-pack-en
 eos-language-pack-es
@@ -134,6 +133,7 @@ libcanberra-gtk-module
 libcanberra-pulse
 libcaribou-gtk-module
 libcaribou-gtk3-module
+libeosknowledge-0-0
 libfolks-eds25
 libfolks-telepathy25
 libgc1c3
