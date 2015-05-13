@@ -28,6 +28,7 @@ eos-flashplugin-updater
 eos-gates
 eos-google-talkplugin-updater
 eos-keyring
+eos-knowledge-0
 eos-language-pack-ar
 eos-language-pack-en
 eos-language-pack-es
@@ -139,7 +140,6 @@ libcanberra-pulse
 libcaribou-gtk-module
 libcaribou-gtk3-module
 libegl1-mesa-drivers
-libeosknowledge-0-0
 libfolks-eds25
 libfolks-telepathy25
 libgc1c3
