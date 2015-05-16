@@ -86,7 +86,6 @@ freeglut3
 gedit
 geoclue-2.0
 gettext-base
-gnome-accessibility-themes
 gnome-calculator
 gnome-clocks
 gnome-control-center
@@ -97,6 +96,7 @@ gnome-session
 gnome-sushi
 gnome-system-monitor
 gnome-terminal
+gnome-themes-standard
 gnupg
 grilo-plugins-0.2
 grub2
