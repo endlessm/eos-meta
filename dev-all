@@ -17,6 +17,7 @@ devscripts
 diffutils
 elinks
 emacs
+eos-node-modules-dev
 exuberant-ctags
 flex
 fluxbox
