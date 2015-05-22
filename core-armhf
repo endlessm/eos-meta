@@ -200,7 +200,6 @@ python-gst-1.0
 rhythmbox (>= 2.99.1)
 rtkit
 shotwell
-singularity-archive-keyring
 sudo
 system-config-printer-gnome
 systemd-sysv
