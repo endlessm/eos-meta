@@ -116,6 +116,12 @@ less
 libalut0
 libasound2
 libatkmm-1.6-1
+libavcodec56
+libavdevice55
+libavfilter5
+libavformat56
+libavresample2
+libavutil54
 libbluetooth3
 libboost-filesystem1.49.0
 libboost-iostreams1.49.0
@@ -166,6 +172,7 @@ libsdl-net1.2
 libsdl-pango1
 libsdl-ttf2.0-0
 libsdl1.2debian
+libswscale3
 libtelepathy-farstream3
 libumfpack5.4.0
 libwpd-0.10-10
