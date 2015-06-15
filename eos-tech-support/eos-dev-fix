@@ -29,13 +29,13 @@ OSTREE_DEPLOY_CURRENT=$(cat /proc/self/mountinfo | \
   egrep '([^ ]* ){4}/ ' | cut -d ' ' -f 4)
 
 # Disable upgrade timer
-systemctl stop eos-updater.timer
-systemctl disable eos-updater.timer
+systemctl stop eos-autoupdater.timer
+systemctl disable eos-autoupdater.timer
 
 # Unsure if these are necessary after stopping the timer, but better to be
 # sure.
-systemctl stop eos-updater.service
-systemctl kill eos-updater.service
+systemctl stop eos-autoupdater.service
+systemctl kill eos-autoupdater.service
 
 echo  "\nAutomatic upgrades have been stopped," \
       "your system can no longer be upgraded using ostree beyond this point!"

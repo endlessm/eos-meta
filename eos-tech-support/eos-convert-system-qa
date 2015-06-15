@@ -90,7 +90,7 @@ if $OSTREE; then
     ostree admin set-origin eos "$new_url" "$new_branch" \
         --set=branches="${new_branch};"
 
-    echo "Killing ostree-daemon."
-    killall ostree-daemon &>/dev/null
+    echo "Killing eos-updater."
+    killall eos-updater &>/dev/null
     echo "All done!"
 fi
