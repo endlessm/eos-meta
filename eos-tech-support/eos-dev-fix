@@ -21,12 +21,22 @@ else
   exit 1
 fi
 
-# 4th element in mountinfo is the "root" within a mounted filesystem, 5th is
-# where it's mounted. Hence dig out where our root is coming from, so we're
-# always using the _current_ root filesystem instead of the last updated
-# version
-OSTREE_DEPLOY_CURRENT=$(cat /proc/self/mountinfo | \
-  egrep '([^ ]* ){4}/ ' | cut -d ' ' -f 4)
+# Check that we're booted into the "current" deployment. Dig out the
+# booted deployment directory from the mountinfo. The 4th element in
+# mountinfo is the "root" within a mounted filesystem, 5th is where it's
+# mounted.
+OSTREE_DEPLOY_BOOTED=$(awk '{if ($5 == "/") print $4}' /proc/self/mountinfo)
+if [ -z "${OSTREE_DEPLOY_BOOTED}" ]; then
+  echo "Not booted in an ostree system - exiting" >&2
+  exit 1
+fi
+OSTREE_DEPLOY_CURRENT=$(ostree admin --print-current-dir)
+if [ $(readlink -f ${OSTREE_DEPLOY_BOOTED}) != \
+     $(readlink -f ${OSTREE_DEPLOY_CURRENT}) ] ; then
+  echo -e "\nA new system upgrade has been already deployed," \
+    "please reboot first and then run ${0} again afterwards" >&2
+  exit 1
+fi
 
 # Disable upgrade timer
 systemctl stop eos-autoupdater.timer
@@ -39,14 +49,6 @@ systemctl kill eos-autoupdater.service
 
 echo  "\nAutomatic upgrades have been stopped," \
       "your system can no longer be upgraded using ostree beyond this point!"
-
-if [ $(readlink -f ${OSTREE_DEPLOY_CURRENT}) != \
-     $(readlink -f ${OSTREE_DEPLOY}/current) ] ; then
-  echo "\nA new system upgrade has been already deployed," \
-       " please reboot first and then re-run ${0} again afterwards"
-  exit 1
-fi
-
 
 echo "Copying files from $OSTREE_DEPLOY_CURRENT"
 

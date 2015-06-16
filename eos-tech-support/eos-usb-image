@@ -25,9 +25,8 @@ fi
 # Mount two partitions using a loopback device
 LOOP_DEV=$(losetup --show -f $IMAGE)
 kpartx -a $LOOP_DEV
-BOOT_MOUNT=/mnt/image_p1
 ROOT_MOUNT=/mnt/image_p2
-mkdir -p $BOOT_MOUNT
+BOOT_MOUNT=$ROOT_MOUNT/boot
 mkdir -p $ROOT_MOUNT
 BOOT_DEV=/dev/mapper/$(basename $LOOP_DEV)p1
 ROOT_DEV=/dev/mapper/$(basename $LOOP_DEV)p2
@@ -40,22 +39,22 @@ tune2fs -U random $ROOT_DEV
 BOOT_UUID=$(blkid -s UUID -o value $BOOT_DEV)
 ROOT_UUID=$(blkid -s UUID -o value $ROOT_DEV)
 
-mount $BOOT_DEV $BOOT_MOUNT
 mount $ROOT_DEV $ROOT_MOUNT
+mount $BOOT_DEV $BOOT_MOUNT
+DEPLOY=$(ostree admin --sysroot=$ROOT_MOUNT --print-current-dir)
 
 # Change to boot based on UUID rather than label
 sed -i "/^options/s/ root=[^$ ]*/ root=UUID=$ROOT_UUID/" "$BOOT_MOUNT"/loader/entries/ostree-*.conf
-sed -i "s/^LABEL=ostree-boot/UUID=$BOOT_UUID/" "$ROOT_MOUNT"/ostree/deploy/eos/current/etc/fstab
-sed -i "s/^LABEL=ostree/UUID=$ROOT_UUID/" "$ROOT_MOUNT"/ostree/deploy/eos/current/etc/fstab
+sed -i "s/^LABEL=ostree-boot/UUID=$BOOT_UUID/" "$DEPLOY"/etc/fstab
+sed -i "s/^LABEL=ostree/UUID=$ROOT_UUID/" "$DEPLOY"/etc/fstab
 
 # Remove the swap partition, since we don't want this on a USB drive anyhow
-sed -i "/^LABEL=eos-swap/d" "$ROOT_MOUNT"/ostree/deploy/eos/current/etc/fstab
+sed -i "/^LABEL=eos-swap/d" "$DEPLOY"/etc/fstab
 
 # Reinstall grub into the boot sector
 # Our special partition 4 creates havoc for grub-install,
 # so we temporarily remove it and then revert it afterwards
 sfdisk --change-id $IMAGE 4 0
-DEPLOY="$ROOT_MOUNT"/ostree/deploy/eos/current
 grub-install --boot-directory=$BOOT_MOUNT \
              --modules="ext2 part_msdos part_gpt" \
              --directory="$DEPLOY"/usr/lib/grub/i386-pc \
@@ -65,7 +64,6 @@ sfdisk --change-id $IMAGE 4 dd
 # Unmount the partitions and cleanup the loopback device
 umount $BOOT_MOUNT
 umount $ROOT_MOUNT
-rmdir $BOOT_MOUNT
 rmdir $ROOT_MOUNT
 kpartx -d $LOOP_DEV
 losetup -d $LOOP_DEV
