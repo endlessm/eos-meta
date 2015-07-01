@@ -75,8 +75,8 @@ Description: EndlessOS Applications
 
 Package: eos-dev
 Architecture: all
-Depends: ${misc:Depends}, ${germinate:Depends}
-Recommends: ${germinate:Recommends}
+Depends: ${misc:Depends}, ${eos:Depends}
+Recommends: ${eos:Recommends}
 Description: EndlessOS Development Tools
  This is a collection of development tools that make development and debugging
  of EndlessOS easier and more efficient.
