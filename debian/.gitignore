@@ -1,0 +1,16 @@
+*~
+*.log
+*.substvars
+*.swp
+*.deb
+*.changes
+eos-core
+eos-apps
+eos-dev
+files
+eos-shell-apps/
+eos-dev/
+eos-language-pack-en/
+eos-language-pack-es/
+eos-language-pack-pt/
+eos-tech-support/
