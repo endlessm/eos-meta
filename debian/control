@@ -12,8 +12,7 @@ Architecture: any
 Replaces: endless-core
 Provides: endless-core
 Conflicts: endless-core
-Depends: ${misc:Depends}, ${germinate:Depends}
-Recommends: ${germinate:Recommends}
+Depends: ${misc:Depends}, ${eos:Depends}
 Description: Target packages of the Endless distribution
  This package depends on all packages required for the Endless OS core images
  .
