@@ -83,40 +83,35 @@ Description: EndlessOS Development Tools
 
 Package: eos-language-pack-ar
 Architecture: all
-Depends: ${misc:Depends}, ${germinate:Depends}
-Recommends: ${germinate:Recommends}
+Depends: ${misc:Depends}, ${eos:Depends}
 Description: EndlessOS Arabic Language Pack
  This is a collection of Arabic language packs for the EndlessOS operating
  system.
 
 Package: eos-language-pack-en
 Architecture: all
-Depends: ${misc:Depends}, ${germinate:Depends}
-Recommends: ${germinate:Recommends}
+Depends: ${misc:Depends}, ${eos:Depends}
 Description: EndlessOS English Language Pack
  This is a collection of English  language packs for the EndlessOS operating
  system.
 
 Package: eos-language-pack-es
 Architecture: all
-Depends: ${misc:Depends}, ${germinate:Depends}
-Recommends: ${germinate:Recommends}
+Depends: ${misc:Depends}, ${eos:Depends}
 Description: EndlessOS Spanish Language Pack
  This is a collection of Spanish language packs for the EndlessOS operating
  system.
 
 Package: eos-language-pack-fr
 Architecture: all
-Depends: ${misc:Depends}, ${germinate:Depends}
-Recommends: ${germinate:Recommends}
+Depends: ${misc:Depends}, ${eos:Depends}
 Description: EndlessOS French Language Pack
  This is a collection of French language packs for the EndlessOS operating
  system.
 
 Package: eos-language-pack-pt
 Architecture: all
-Depends: ${misc:Depends}, ${germinate:Depends}
-Recommends: ${germinate:Recommends}
+Depends: ${misc:Depends}, ${eos:Depends}
 Description: EndlessOS Portuguese Language Pack
  This is a collection of Portuguese language packs for the EndlessOS operating
  system.
