@@ -261,6 +261,8 @@ xkb-data-i18n
 xserver-xorg
 xserver-xorg-input-evdev
 xserver-xorg-input-synaptics
+# Generic ARM X driver
+xserver-xorg-video-armsoc [armhf]
 # Some of these are really specific to x86, but just keep them off of arm for now
 xserver-xorg-video-intel [!armhf]
 xserver-xorg-video-nouveau [!armhf]
