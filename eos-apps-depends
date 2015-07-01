@@ -1,11 +1,12 @@
+# Apps packages for testing. Some don't build or run on arm.
 aisleriot
 armagetronad
-atanks
-audacity
-billard-gl
-blockout2
+atanks [!armhf]
+audacity [!armhf]
+billard-gl [!armhf]
+blockout2 [!armhf]
 bovo
-chromium-bsu
+chromium-bsu [!armhf]
 eos-encyclopedia-en
 eos-encyclopedia-es
 eos-encyclopedia-pt
@@ -18,7 +19,7 @@ eos-translation
 eos-typing
 eos-weather
 eos-youvideos
-extremetuxracer
+extremetuxracer [!armhf]
 four-in-a-row
 freeciv-client-gtk
 frostwire
@@ -33,7 +34,7 @@ gnote
 goldendict
 iagno
 inkscape
-kalzium
+kalzium [!armhf]
 kapman
 katomic
 kblackbox
@@ -52,38 +53,38 @@ klines
 kmines
 knavalbattle
 knetwalk
-kobodeluxe
+kobodeluxe [!armhf]
 ksquares
-kstars
-ksudoku
+kstars [!armhf]
+ksudoku [!armhf]
 ktron
 ktuberling
-kubrick
+kubrick [!armhf]
 kwordquiz
 lbreakout2
 marble
-marsshooter
-megaglest
+marsshooter [!armhf]
+megaglest [!armhf]
 minetest
 numptyphysics
-openarena
+openarena [!armhf]
 palapeli
 pingus
 quadrapassel
 ri-li
 slingshot
-stellarium
+stellarium [!armhf]
 sudoku
-supertux
-supertuxkart
-teeworlds
-torcs
+supertux [!armhf]
+supertuxkart [!armhf]
+teeworlds [!armhf]
+torcs [!armhf]
 tuxfootball
 tuxmath
 tuxpaint
 tuxpuck
 tuxtype
 warmux
-warzone2100
+warzone2100 [!armhf]
 wesnoth-1.11
-xmoto
+xmoto [!armhf]
