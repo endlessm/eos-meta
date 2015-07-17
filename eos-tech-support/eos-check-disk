@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Checks that the hard drive is reachable and has the expected partitions
 # Does not include a test for bad blocks

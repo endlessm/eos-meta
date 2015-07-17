@@ -1,8 +1,6 @@
-#!/bin/sh
+#!/bin/bash -e
 
-mount -o remount,rw /usr
-
-if [ $? -ne 0 ]; then
+if ! mount -o remount,rw /usr; then
   echo "Failed to remount /usr readwrite - exiting"
   exit 1
 fi
@@ -47,8 +45,8 @@ systemctl disable eos-autoupdater.timer
 systemctl stop eos-autoupdater.service
 systemctl kill eos-autoupdater.service
 
-echo  "\nAutomatic upgrades have been stopped," \
-      "your system can no longer be upgraded using ostree beyond this point!"
+echo -e "\nAutomatic upgrades have been stopped," \
+  "your system can no longer be upgraded using ostree beyond this point!"
 
 echo "Copying files from $OSTREE_DEPLOY_CURRENT"
 
@@ -61,4 +59,3 @@ if [ ! -d /var/lib/dpkg ]; then
 else
   echo "dpkg database already found - exiting"
 fi
-

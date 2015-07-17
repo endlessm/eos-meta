@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 if [ ! -L /ostree ]; then
   echo "Not running on an ostree system"
