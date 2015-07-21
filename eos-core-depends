@@ -110,6 +110,7 @@ gnupg
 grilo-plugins-0.2
 # Could just be i386 amd64, but theoretically supports other arches
 grub2 [!armhf]
+grub-efi-amd64-image [!armhf]
 gstreamer0.10-alsa
 gstreamer0.10-plugins-base
 gstreamer0.10-plugins-good
