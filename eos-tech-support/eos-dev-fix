@@ -43,7 +43,6 @@ systemctl disable eos-autoupdater.timer
 # Unsure if these are necessary after stopping the timer, but better to be
 # sure.
 systemctl stop eos-autoupdater.service
-systemctl kill eos-autoupdater.service
 
 echo -e "\nAutomatic upgrades have been stopped," \
   "your system can no longer be upgraded using ostree beyond this point!"
