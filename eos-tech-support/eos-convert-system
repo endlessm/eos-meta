@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 if [ ! -L /ostree ]; then
   echo "Not running on an ostree system"
@@ -16,7 +16,6 @@ systemctl disable eos-autoupdater.timer
 # Unsure if these are necessary after stopping the timer, but better to be
 # sure.
 systemctl stop eos-autoupdater.service
-systemctl kill eos-autoupdater.service
 
 # 4th element in mountinfo is the "root" within a mounted filesystem, 5th is
 # where it's mounted. Hence dig out where our root is coming from, so we're

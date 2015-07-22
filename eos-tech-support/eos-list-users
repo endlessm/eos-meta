@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Lists all users (i.e., all home directories on /dev/sda2)
 
@@ -11,6 +11,13 @@ if [ "$USERID" != "0" ]; then
     exit 1
 fi
 
+cleanup() {
+    set +e
+    umount $MOUNT
+    rmdir $MOUNT
+}
+trap cleanup EXIT
+
 mkdir -p $MOUNT
 mount $DEVICE $MOUNT
 
@@ -18,6 +25,3 @@ mount $DEVICE $MOUNT
 # - read /usr/etc/login.defs and extract UID_MIN
 # - read /etc/passwd and get all users with uid >= UID_MIN
 ls $MOUNT/home
-
-umount $MOUNT
-rmdir $MOUNT

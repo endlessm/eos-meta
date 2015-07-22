@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Prepares an Endless image that can be booted from external USB
 # (on a device that already has Endless on the internal drive)
@@ -21,6 +21,22 @@ if [ "$USERID" != "0" ]; then
     echo "Program requires superuser privileges"
     exit 1
 fi
+
+# Unmount the partitions and cleanup the loopback device
+cleanup() {
+    set +e
+
+    [ -n "$BOOT_MOUNT" ] && umount $BOOT_MOUNT
+    if [ -n "$ROOT_MOUNT" ]; then
+        umount $ROOT_MOUNT
+        rmdir $ROOT_MOUNT
+    fi
+    if [ -n "$LOOP_DEV" ]; then
+        kpartx -d $LOOP_DEV
+        losetup -d $LOOP_DEV
+    fi
+}
+trap cleanup EXIT
 
 # Mount two partitions using a loopback device
 LOOP_DEV=$(losetup --show -f $IMAGE)
@@ -60,10 +76,3 @@ grub-install --boot-directory=$BOOT_MOUNT \
              --directory="$DEPLOY"/usr/lib/grub/i386-pc \
              $IMAGE
 sfdisk --change-id $IMAGE 4 dd
-
-# Unmount the partitions and cleanup the loopback device
-umount $BOOT_MOUNT
-umount $ROOT_MOUNT
-rmdir $ROOT_MOUNT
-kpartx -d $LOOP_DEV
-losetup -d $LOOP_DEV
