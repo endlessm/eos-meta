@@ -95,6 +95,8 @@ gedit
 geoclue-2.0
 gettext-base
 gir1.2-ostree-1.0
+# For compatibility with 2.3 bundles:
+gir1.2-webkit2-3.0
 gnome-calculator
 gnome-clocks
 gnome-control-center
