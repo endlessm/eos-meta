@@ -185,6 +185,8 @@ libpam-fprintd
 libpam-runtime
 libpam-systemd
 libpangomm-1.4-1
+# Older inkscape bundles depend on a specific version of poppler
+libpoppler37
 libpulse-mainloop-glib0
 libpulse0
 libreoffice
