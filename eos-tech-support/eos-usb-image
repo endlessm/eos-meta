@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 # Prepares an Endless image that can be booted from external USB
-# (on a device that already has Endless on the internal drive)
+# (even if the device already has Endless on the internal drive)
 # The image must be unzipped before running this,
 # and the image is modified in place
 
@@ -26,7 +26,6 @@ fi
 cleanup() {
     set +e
 
-    [ -n "$BOOT_MOUNT" ] && umount $BOOT_MOUNT
     if [ -n "$ROOT_MOUNT" ]; then
         umount $ROOT_MOUNT
         rmdir $ROOT_MOUNT
@@ -38,41 +37,29 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Mount two partitions using a loopback device
+# Mount the root partition using a loopback device
 LOOP_DEV=$(losetup --show -f $IMAGE)
 kpartx -a $LOOP_DEV
-ROOT_MOUNT=/mnt/image_p2
-BOOT_MOUNT=$ROOT_MOUNT/boot
+ROOT_MOUNT=/mnt/image_root
 mkdir -p $ROOT_MOUNT
-BOOT_DEV=/dev/mapper/$(basename $LOOP_DEV)p1
-ROOT_DEV=/dev/mapper/$(basename $LOOP_DEV)p2
 
-# Change the UUID for both the boot and root partitions
+# Find the root device on the loopback via the "ostree" label
+ROOT_DEV=$(blkid -t LABEL=ostree /dev/mapper/$(basename $LOOP_DEV)p* -o device)
+
+# Change the UUID for the root partition
 # (because the image builder generates all images
 # with the same UUID)
-tune2fs -U random $BOOT_DEV
 tune2fs -U random $ROOT_DEV
-BOOT_UUID=$(blkid -s UUID -o value $BOOT_DEV)
 ROOT_UUID=$(blkid -s UUID -o value $ROOT_DEV)
 
 mount $ROOT_DEV $ROOT_MOUNT
-mount $BOOT_DEV $BOOT_MOUNT
 DEPLOY=$(ostree admin --sysroot=$ROOT_MOUNT --print-current-dir)
 
 # Change to boot based on UUID rather than label
-sed -i "/^options/s/ root=[^$ ]*/ root=UUID=$ROOT_UUID/" "$BOOT_MOUNT"/loader/entries/ostree-*.conf
-sed -i "s/^LABEL=ostree-boot/UUID=$BOOT_UUID/" "$DEPLOY"/etc/fstab
-sed -i "s/^LABEL=ostree/UUID=$ROOT_UUID/" "$DEPLOY"/etc/fstab
-
-# Remove the swap partition, since we don't want this on a USB drive anyhow
-sed -i "/^LABEL=eos-swap/d" "$DEPLOY"/etc/fstab
+sed -i "/^options/s/ root=[^$ ]*/ root=UUID=$ROOT_UUID/" "$ROOT_MOUNT"/boot/loader/entries/ostree-*.conf
 
 # Reinstall grub into the boot sector
-# Our special partition 4 creates havoc for grub-install,
-# so we temporarily remove it and then revert it afterwards
-sfdisk --change-id $IMAGE 4 0
-grub-install --boot-directory=$BOOT_MOUNT \
+grub-install --boot-directory=$ROOT_MOUNT/boot \
              --modules="ext2 part_msdos part_gpt" \
              --directory="$DEPLOY"/usr/lib/grub/i386-pc \
              $IMAGE
-sfdisk --change-id $IMAGE 4 dd

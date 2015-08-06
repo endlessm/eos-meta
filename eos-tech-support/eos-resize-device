@@ -32,33 +32,47 @@ if grep -qs $DEVICE /proc/mounts; then
     exit 1
 fi
 
+# Find the root partition on the device via the "ostree" label
+ROOT_PART=$(blkid -t LABEL=ostree $DEVICE* -o device)
+PARTNO="${ROOT_PART: -1}"
+
 # Check for our magic "this is Endless" marker
-MARKER=$(sfdisk --force --print-id $DEVICE 4)
-if [ "$MARKER" != "dd" ]; then
-    echo "Device does not contain the Endless marker on partition 4"
+MARKER=$(sfdisk --force --part-attrs $DEVICE $PARTNO)
+if [ "$MARKER" != "GUID:55" ]; then
+    echo "Device does not contain the Endless marker on partition $PARTNO"
     exit 1
 fi
 
-# Resize the second partition (root) to fill the available space
-# and remove the special fourth partition that is used as a flag
-# to indicate that the device needs to be resized
-OFFSET=`fdisk -l $DEVICE | grep "$DEVICE"2 | awk '{print $2}'`
-fdisk $DEVICE <<EOF
-d
-2
-d
-4
-n
-p
-2
-$OFFSET
+# Get the current partition table
+PARTS=$(sfdisk -d $DEVICE)
 
-p
-w
-EOF
+# Remove the last-lba line so that we fill the disk
+PARTS=$(echo "$PARTS" | sed -e '/^last-lba:/d')
+
+# Remove the size argument so that sfdisk rewrites using maximum size
+PARTS=$(echo "$PARTS" | sed -e '/GUID:55/s/, size=[^,]*//')
+
+# Remove the marker to prevent the script from running again
+PARTS=$(echo "$PARTS" | sed -e 's/, attrs="GUID:55"//')
+
+echo "$PARTS"
+
+# Replace the partition table with our modified version
+echo "$PARTS" | sfdisk --force --no-reread $DEVICE
+
+# At this point udev should have seen that sfdisk closed the block device
+# which was opened for writing, so it will be reprobing.
+# Add udevadm settle here to avoid races.
+udevadm settle
 
 # Check the file system (required precursor to resizing)
-e2fsck -f "$DEVICE"2
+e2fsck -f $ROOT_PART
 
-# Resize the file system
-resize2fs "$DEVICE"2
+# At this point udev should have seen that e2fsck closed the block device
+# which was opened for writing, so it will be reprobing.
+# Add udevadm settle here to avoid races.
+udevadm settle
+
+# Resize the file system (should happen on boot, but let's ensure it now
+# in case the user wants to add an image file to the device before booting)
+resize2fs $ROOT_PART
