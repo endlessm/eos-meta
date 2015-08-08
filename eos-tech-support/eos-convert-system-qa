@@ -87,8 +87,16 @@ if $OSTREE; then
     new_url=$(echo $url | sed 's,/ostree/,/staging/dev/,')
 
     echo "Configuring OSTree for Staging."
+    # HACK! HACK! HACK! ostree admin set-origin is horribly broken as of
+    # ostree 2015.7. We have to delete the remote(!) first, and then move
+    # the remote config into the main config file.
+    # Upstream bug at https://bugzilla.gnome.org/show_bug.cgi?id=753373
+    ostree remote delete eos
     ostree admin set-origin eos "$new_url" "$new_branch" \
         --set=branches="${new_branch};"
+    printf "\n" >> /ostree/repo/config
+    cat /etc/ostree/remotes.d/eos.conf >> /ostree/repo/config
+    rm /etc/ostree/remotes.d/eos.conf
 
     echo "Killing eos-updater."
     killall eos-updater &>/dev/null
