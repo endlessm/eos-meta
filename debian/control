@@ -52,7 +52,7 @@ Description: Target packages of the Endless distribution for sqwerty
  .
  This set provides the platform specific package list for armhf-sqwerty.
 
-Package: eos-core-amlm201
+Package: eos-core-ec100
 Architecture: armhf
 Depends: ${misc:Depends}, ${eos:Depends}
 Description: Target packages of the Endless distribution for odroidu2
@@ -61,7 +61,7 @@ Description: Target packages of the Endless distribution for odroidu2
  It is also used to help ensure proper upgrades, so it is recommended that
  it not be removed.
  .
- This set provides the platform specific package list for armhf-amlm201.
+ This set provides the platform specific package list for armhf-ec100
 
 
 Package: eos-apps
