@@ -23,6 +23,7 @@ eos-acknowledgements
 eos-app-manager
 eos-boot-helper
 eos-codecs-manager
+eos-composite-mode
 eos-event-recorder-daemon
 eos-exploration-center
 eos-factory-test
