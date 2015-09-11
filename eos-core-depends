@@ -26,7 +26,7 @@ eos-codecs-manager
 eos-composite-mode
 eos-event-recorder-daemon
 eos-exploration-center
-eos-factory-test
+eos-factory-tools
 eos-file-manager
 # Updater currently only built for i386, but could be amd64, too
 eos-flashplugin-updater [i386]
