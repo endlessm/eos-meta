@@ -21,11 +21,7 @@ echo "*** Changes do not affect daemons!! ***"
 echo
 
 echo "Creating coredump dir in $CORE_DIR (if needed)..."
-mkdir -p $CORE_DIR
-
-echo "Setting/fixing directory permissions..."
-chown root:root "${CORE_DIR}"
-chmod 1777 "${CORE_DIR}"
+mkdir -p -m 1777 $CORE_DIR
 
 echo "Changing kernel core settings..."
 sysctl kernel.core_pattern="${CORE_DIR}/${KERNEL_CORE_PATTERN}" 1> /dev/null
