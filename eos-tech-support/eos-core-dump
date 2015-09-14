@@ -3,7 +3,7 @@
 # This program is used to enable core dumps on the system
 
 CORE_DIR="/var/coredumps"
-KERNEL_CORE_PATTERN='core.%t.%E.%p'
+KERNEL_CORE_PATTERN='core.%t.%u.%E.%p'
 
 # TODO: Implement switches for permanent changes
 if [ $# != 0 ]; then
@@ -11,7 +11,7 @@ if [ $# != 0 ]; then
   exit 1
 fi
 
-if [ ! $EUID == 0 ]; then
+if [ $EUID != 0 ]; then
   echo "Must be run with sudo privileges! Exiting!"
   exit 1
 fi
@@ -35,13 +35,11 @@ sysctl fs.suid_dumpable=1 > /dev/null
 
 echo
 echo "Changing all process ulimits..."
-processes=$(ps aux | sed 1d | awk '{print $2}')
+processes=$(ps -A -o pid=)
 for process in ${processes}; do
   echo -n "."
   # It's possible that the process died between us checking and setting values
-  set +e
-    prlimit --core=unlimited:unlimited --pid $process 2> /dev/null
-  set -e
+  prlimit --core=unlimited:unlimited --pid $process 2> /dev/null || true
 done
 echo
 
