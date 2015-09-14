@@ -1,0 +1,42 @@
+#!/bin/bash -e
+#
+# This program is used to enable core dumps on the system
+
+CORE_DIR="/var/coredumps"
+KERNEL_CORE_PATTERN='core.%t.%u.%E.%p'
+
+# TODO: Implement switches for permanent changes
+if [ $# != 0 ]; then
+  echo "Usage: $0"
+  exit 1
+fi
+
+if [ $EUID != 0 ]; then
+  echo "Must be run with sudo privileges! Exiting!"
+  exit 1
+fi
+
+echo "*** Changes do not persist across reboots!! ***"
+echo "*** Changes do not affect daemons!! ***"
+echo
+
+echo "Creating coredump dir in $CORE_DIR (if needed)..."
+mkdir -p -m 1777 $CORE_DIR
+
+echo "Changing kernel core settings..."
+sysctl kernel.core_pattern="${CORE_DIR}/${KERNEL_CORE_PATTERN}" 1> /dev/null
+sysctl kernel.core_pipe_limit=4 > /dev/null
+sysctl kernel.core_uses_pid=1 > /dev/null
+sysctl fs.suid_dumpable=1 > /dev/null
+
+echo
+echo "Changing all process ulimits..."
+processes=$(ps -A -o pid=)
+for process in ${processes}; do
+  echo -n "."
+  # It's possible that the process died between us checking and setting values
+  prlimit --core=unlimited:unlimited --pid $process 2> /dev/null || true
+done
+echo
+
+echo "Done!"
