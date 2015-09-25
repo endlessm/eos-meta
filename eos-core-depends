@@ -234,6 +234,7 @@ pulseaudio-module-x11
 python-gst-1.0
 rhythmbox (>= 2.99.1)
 rtkit
+simple-scan
 shotwell
 sudo
 system-config-printer-gnome
