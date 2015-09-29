@@ -10,12 +10,14 @@ Valid options:
     -m, --metrics     Configure Metrics System for Dev.
     -a, --apps        Configure App Server for Staging.
     -o, --ostree      Configure OSTree for Staging.
+    -j, --journal     Configure systemd journal to be persistent.
 EOF
 }
 
 METRICS=true
 APPS=true
 OSTREE=true
+JOURNAL=false
 if [ $# -gt 0 ]; then
     METRICS=false
     APPS=false
@@ -32,6 +34,10 @@ if [ $# -gt 0 ]; then
                 ;;
             -o|--ostree)
                 OSTREE=true
+                shift
+                ;;
+            -j|--journal)
+                JOURNAL=true
                 shift
                 ;;
             *)
@@ -55,6 +61,12 @@ if ostree admin status | grep -q "master"; then
         [yY]* | '') ;;
         *) exit 1 ;;
     esac
+fi
+
+# Configure persistent systemd journal
+if $JOURNAL; then
+    echo "Configuring systemd journal to be persistent."
+    mkdir /var/log/journal
 fi
 
 # Set metrics env to dev.
