@@ -45,7 +45,7 @@ sed -i "s#/sysroot/home#/home#g" /etc/passwd* /etc/adduser.conf /etc/default/use
 echo "Hardlinking files from $OSTREE_DEPLOY_CURRENT, this may take a while"
 
 # Copy the system directories to the real filesystems /
-cp -paxl ${OSTREE_DEPLOY_CURRENT}/{bin,etc,lib,sbin,usr,opt,var} /sysroot
+cp -paxl ${OSTREE_DEPLOY_CURRENT}/{bin,etc,lib,sbin,usr,opt,var,endless} /sysroot
 
 
 # Overlay the /var as deployed on the systems /var
