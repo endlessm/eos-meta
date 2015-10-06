@@ -113,7 +113,7 @@ function collectPrintersInfo() {
                 let [res, contents] = GLib.file_get_contents(ppd_path);
                 output += contents;
             } catch (e) {
-                output += 'not available';
+                output += 'not available\n';
             }
         }
     } catch (e) {
