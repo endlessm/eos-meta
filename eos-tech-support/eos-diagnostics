@@ -250,6 +250,13 @@ function dumpDiagnostics(filename) {
     fullDump += collectFlashInfo();
     fullDump += '\n';
 
+    fullDump += '===========================\n'
+    fullDump += '= App manager information =\n'
+    fullDump += '===========================\n'
+    fullDump += '\n';
+    fullDump += tryReadFile('/etc/eos-app-manager/eos-app-manager.ini', 'No app manager info file\n');
+    fullDump += '\n';
+
     fullDump += '==========================\n'
     fullDump += '= Installed applications =\n'
     fullDump += '==========================\n'
