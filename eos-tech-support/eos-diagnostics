@@ -312,11 +312,15 @@ function dumpDiagnostics(filename) {
     fullDump += '\n';
     fullDump += trySpawn('journalctl --no-pager');
 
-    try {
-	GLib.file_set_contents(filename, fullDump);
-	log('Saved to ' + filename);
-    } catch (e) {
-	log('Can\'t save diagnostic file to ' + filename + ': ' + e.message);
+    if (filename == 'stdout') {
+        print(fullDump);
+    } else {
+        try {
+            GLib.file_set_contents(filename, fullDump);
+            log('Saved to ' + filename);
+        } catch (e) {
+            log('Can\'t save diagnostic file to ' + filename + ': ' + e.message);
+        }
     }
 }
 
