@@ -4,48 +4,6 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 
-function collectApplicationsInfo() {
-    let iface =
-        '<node> \
-          <interface name="com.endlessm.AppManager"> \
-            <method name="ListInstalled" > \
-              <annotation name="org.freedesktop.DBus.GLib.Async" value="" /> \
-              <arg type="a(sss)" direction="out" /> \
-            </method> \
-          </interface> \
-        </node>';
-
-    let proxyWrapper = Gio.DBusProxy.makeProxyWrapper(iface);
-    let proxy = null;
-    let output = '';
-
-    try {
-	proxy = new proxyWrapper(Gio.DBus.system, 'com.endlessm.AppManager',
-				 '/com/endlessm/AppManager');
-    } catch (e) {
-	output += 'not available\n';
-    }
-
-    if (proxy != null) {
-	try {
-	    let installedApps = proxy.ListInstalledSync()[0];
-	    installedApps.forEach(function(app) {
-		let appId = app[0];
-		let appVersion = app[2];
-
-		output += appId;
-		output += ': ';
-		output += appVersion;
-		output += '\n';
-	    });
-	} catch (e) {
-	    output += 'not available\n';
-	}
-    }
-
-    return output;
-}
-
 function collectBoardInfo() {
     let table = { 'Product name': '/sys/devices/virtual/dmi/id/product_name',
 		  'Product serial': '/sys/devices/virtual/dmi/id/product_uuid',
@@ -296,7 +254,7 @@ function dumpDiagnostics(filename) {
     fullDump += '= Installed applications =\n'
     fullDump += '==========================\n'
     fullDump += '\n';
-    fullDump += collectApplicationsInfo();
+    fullDump += trySpawn('eamctl list-apps --verbose');
     fullDump += '\n';
 
     fullDump += '================\n'
