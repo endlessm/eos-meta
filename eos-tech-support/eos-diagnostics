@@ -4,48 +4,6 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 
-function collectApplicationsInfo() {
-    let iface =
-        '<node> \
-          <interface name="com.endlessm.AppManager"> \
-            <method name="ListInstalled" > \
-              <annotation name="org.freedesktop.DBus.GLib.Async" value="" /> \
-              <arg type="a(sss)" direction="out" /> \
-            </method> \
-          </interface> \
-        </node>';
-
-    let proxyWrapper = Gio.DBusProxy.makeProxyWrapper(iface);
-    let proxy = null;
-    let output = '';
-
-    try {
-	proxy = new proxyWrapper(Gio.DBus.system, 'com.endlessm.AppManager',
-				 '/com/endlessm/AppManager');
-    } catch (e) {
-	output += 'not available\n';
-    }
-
-    if (proxy != null) {
-	try {
-	    let installedApps = proxy.ListInstalledSync()[0];
-	    installedApps.forEach(function(app) {
-		let appId = app[0];
-		let appVersion = app[2];
-
-		output += appId;
-		output += ': ';
-		output += appVersion;
-		output += '\n';
-	    });
-	} catch (e) {
-	    output += 'not available\n';
-	}
-    }
-
-    return output;
-}
-
 function collectBoardInfo() {
     let table = { 'Product name': '/sys/devices/virtual/dmi/id/product_name',
 		  'Product serial': '/sys/devices/virtual/dmi/id/product_uuid',
@@ -113,7 +71,7 @@ function collectPrintersInfo() {
                 let [res, contents] = GLib.file_get_contents(ppd_path);
                 output += contents;
             } catch (e) {
-                output += 'not available';
+                output += 'not available\n';
             }
         }
     } catch (e) {
@@ -292,11 +250,18 @@ function dumpDiagnostics(filename) {
     fullDump += collectFlashInfo();
     fullDump += '\n';
 
+    fullDump += '===========================\n'
+    fullDump += '= App manager information =\n'
+    fullDump += '===========================\n'
+    fullDump += '\n';
+    fullDump += tryReadFile('/etc/eos-app-manager/eos-app-manager.ini', 'No app manager info file\n');
+    fullDump += '\n';
+
     fullDump += '==========================\n'
     fullDump += '= Installed applications =\n'
     fullDump += '==========================\n'
     fullDump += '\n';
-    fullDump += collectApplicationsInfo();
+    fullDump += trySpawn('eamctl list-apps --verbose');
     fullDump += '\n';
 
     fullDump += '================\n'
@@ -312,11 +277,15 @@ function dumpDiagnostics(filename) {
     fullDump += '\n';
     fullDump += trySpawn('journalctl --no-pager');
 
-    try {
-	GLib.file_set_contents(filename, fullDump);
-	log('Saved to ' + filename);
-    } catch (e) {
-	log('Can\'t save diagnostic file to ' + filename + ': ' + e.message);
+    if (filename == 'stdout') {
+        print(fullDump);
+    } else {
+        try {
+            GLib.file_set_contents(filename, fullDump);
+            log('Saved to ' + filename);
+        } catch (e) {
+            log('Can\'t save diagnostic file to ' + filename + ': ' + e.message);
+        }
     }
 }
 
