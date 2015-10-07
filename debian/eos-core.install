@@ -1,3 +1,2 @@
 debian/10periodic etc/apt/apt.conf.d
 debian/defaults.list usr/share/applications
-skel etc
