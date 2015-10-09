@@ -22,6 +22,8 @@ eog
 eos-acknowledgements
 eos-app-manager
 eos-boot-helper
+# Updater currently only built for i386, but could be amd64, too
+eos-chrome-plugin-updater [i386]
 eos-codecs-manager
 eos-event-recorder-daemon
 eos-exploration-center
@@ -43,8 +45,6 @@ eos-language-pack-pt
 eos-license-service
 eos-media
 eos-metrics-instrumentation
-# Updater currently only built for i386, but could be amd64, too
-eos-pepflashplugin-updater [i386]
 eos-plymouth-theme
 eos-sdk-webhelper
 eos-shell
