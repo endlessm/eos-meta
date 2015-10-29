@@ -5,7 +5,6 @@
 *.deb
 *.changes
 files
-eos-acknowledgements/
 eos-core/
 eos-core-*/
 eos-apps/
