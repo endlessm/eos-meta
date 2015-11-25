@@ -19,6 +19,20 @@ Description: Target packages of the Endless distribution
  It is also used to help ensure proper upgrades, so it is recommended that
  it not be removed.
 
+Package: eos-platform
+Architecture: any
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless platform runtime
+ This metapackage depends on all packages required for the Endless
+ platform runtime.
+
+Package: eos-sdk
+Architecture: any
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless SDK runtime
+ This metapackage depends on all packages required for the Endless SDK
+ runtime.
+
 Package: eos-core-i386
 Architecture: i386
 Depends: ${misc:Depends}, ${eos:Depends}
