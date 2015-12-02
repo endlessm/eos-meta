@@ -32,8 +32,7 @@ eos-factory-tools
 eos-file-manager
 # Updater currently only built for i386, but could be amd64, too
 eos-flashplugin-updater [i386]
-# Frontend to wine, which is x86 only
-eos-gates [i386 amd64]
+eos-gates
 # Updater currently only built for i386, but could be amd64, too
 eos-google-talkplugin-updater [i386]
 eos-keyring
