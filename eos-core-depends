@@ -17,7 +17,6 @@ dbus-x11
 debconf-i18n
 dosfstools
 dracut
-empathy
 eog
 eos-acknowledgements
 eos-app-manager
@@ -157,7 +156,6 @@ libcaribou-gtk3-module
 # Mali used on arm
 libegl1-mesa-drivers [!armhf]
 libfolks-eds25
-libfolks-telepathy25
 libgc1c3
 libgfortran3
 # Mali used on arm
@@ -197,7 +195,6 @@ libsdl-pango1
 libsdl-ttf2.0-0
 libsdl1.2debian
 libswscale3
-libtelepathy-farstream3
 libumfpack5.4.0
 libwpd-0.10-10
 libwpd-0.9-9
@@ -239,8 +236,6 @@ shotwell
 sudo
 system-config-printer-gnome
 systemd-sysv
-telepathy-gabble
-telepathy-mission-control-5
 totem
 tracker
 ttf-ancient-fonts
