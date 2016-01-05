@@ -57,6 +57,7 @@ eos-updater
 evince
 evolution
 exfat-fuse
+fake-hwclock
 file
 file-roller
 fonts-arabeyes
