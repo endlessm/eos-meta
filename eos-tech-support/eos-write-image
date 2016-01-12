@@ -109,6 +109,9 @@ if ! $FORCE; then
     fi
 fi
 
+# Try to format / discard all the sectors on the device
+blkdiscard "$DEVICE" >/dev/null
+
 if file --mime-type "$IMAGE" | grep -q gzip$; then
     # Image is gzipped
     # The following would calculate the original size
