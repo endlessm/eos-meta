@@ -22,8 +22,7 @@ eog
 eos-acknowledgements
 eos-app-manager
 eos-boot-helper
-# Updater currently only built for i386, but could be amd64, too
-eos-chrome-plugin-updater [i386]
+eos-chrome-plugin-updater
 eos-codecs-manager
 eos-composite-mode
 eos-event-recorder-daemon
