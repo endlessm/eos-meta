@@ -19,14 +19,14 @@ Description: Target packages of the Endless distribution
  It is also used to help ensure proper upgrades, so it is recommended that
  it not be removed.
 
-Package: eos-platform
+Package: eos-platform-runtime
 Architecture: any
 Depends: ${misc:Depends}, ${eos:Depends}
 Description: Target packages of the Endless platform runtime
  This metapackage depends on all packages required for the Endless
  platform runtime.
 
-Package: eos-sdk
+Package: eos-sdk-runtime
 Architecture: any
 Depends: ${misc:Depends}, ${eos:Depends}
 Description: Target packages of the Endless SDK runtime
