@@ -148,6 +148,13 @@ Description: EndlessOS Brazilian Portuguese Language Pack
  This is a collection of Brazilian Portuguese language packs for the EndlessOS
  operating system.
 
+Package: eos-language-pack-zh_CN
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Mainland Chinese Language Pack
+ This is a collection of Mainland Chinese language packs for the EndlessOS
+ operating system.
+
 Package: eos-tech-support
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
