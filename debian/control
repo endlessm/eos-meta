@@ -134,6 +134,13 @@ Description: EndlessOS French Language Pack
  This is a collection of French language packs for the EndlessOS operating
  system.
 
+Package: eos-language-pack-id
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Indonesian Language Pack
+ This is a collection of Indonesian (Bahasa Indonesia) language packs
+ for the EndlessOS operating system.
+
 Package: eos-language-pack-pt
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
