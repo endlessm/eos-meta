@@ -133,7 +133,8 @@ ibus-chewing
 ibus-hangul
 ibus-input-pad
 ibus-libpinyin
-ibus-libthai
+# OSTree build is failing, so for now let's exclude:
+# ibus-libthai
 ibus-libzhuyin
 ibus-m17n
 ibus-table-wubi
