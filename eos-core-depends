@@ -127,7 +127,8 @@ gstreamer1.0-pulseaudio
 gstreamer1.0-tools
 gvfs-bin
 ibus-anthy
-ibus-cangjie
+# OBS build is failing tests on the 2.5 branch, so for now let's exclude:
+# ibus-cangjie
 ibus-chewing
 ibus-hangul
 ibus-input-pad
