@@ -271,6 +271,13 @@ function dumpDiagnostics(filename) {
     fullDump += trySpawn('ps aux');
     fullDump += '\n';
 
+    fullDump += '===============\n'
+    fullDump += '= Boot timing =\n'
+    fullDump += '===============\n'
+    fullDump += '\n';
+    fullDump += trySpawn('systemd-analyze');
+    fullDump += '\n';
+
     fullDump += '==================\n';
     fullDump += '= Journal output =\n';
     fullDump += '==================\n';
