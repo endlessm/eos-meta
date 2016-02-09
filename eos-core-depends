@@ -242,6 +242,7 @@ printer-driver-all
 pulseaudio
 pulseaudio-module-bluetooth
 pulseaudio-module-x11
+python-dbus
 python-gst-1.0
 rhythmbox (>= 2.99.1)
 rtkit
