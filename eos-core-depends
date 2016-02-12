@@ -177,6 +177,7 @@ libgles2-mesa [!armhf]
 libglew1.8
 libglib2.0-data
 libglibmm-2.4-1c2a
+libglu1-mesa [!armhf]
 libgrilo-0.2-1
 libgtkmm-2.4-1c2a
 libgtkmm-3.0-1
