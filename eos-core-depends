@@ -244,7 +244,11 @@ pulseaudio
 pulseaudio-module-bluetooth
 pulseaudio-module-x11
 python-dbus
+# Needed by pitivi and gnome-sudoku
+python-gi-cairo
 python-gst-1.0
+# Needed by pitivi and labyrinth
+python-xdg
 rhythmbox (>= 2.99.1)
 rtkit
 simple-scan
