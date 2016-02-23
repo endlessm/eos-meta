@@ -110,7 +110,7 @@ if ! $FORCE; then
 fi
 
 # Try to format / discard all the sectors on the device
-blkdiscard "$DEVICE" >/dev/null
+blkdiscard "$DEVICE" &>/dev/null || true
 
 if file --mime-type "$IMAGE" | grep -q gzip$; then
     # Image is gzipped
