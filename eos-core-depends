@@ -217,7 +217,7 @@ libwpg-0.2-2
 libwpg-0.3-3
 linux-firmware
 # Platform specific kernels for arm
-linux-image-generic-64 [!armhf]
+linux-image-generic-64 [!armhf] | linux-image-generic [!armhf]
 locales
 lsb-base
 lsb-release
