@@ -22,6 +22,7 @@ eos-acknowledgements
 eos-app-manager
 eos-boot-helper
 eos-chrome-plugin-updater
+eos-chrome-plugin-updater-s3
 eos-codecs-manager
 eos-composite-mode
 eos-event-recorder-daemon
