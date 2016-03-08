@@ -26,7 +26,17 @@ function collectBoardInfo() {
 	    let [res, contents] = GLib.file_get_contents(file);
 	    output += contents;
 	} catch (e) {
-	    output += 'not available\n';
+	    if (name == 'Product name') {
+	        try {
+		    file = '/proc/device-tree/compatible';
+		    let [res, contents] = GLib.file_get_contents(file);
+		    output += contents + '\n';
+		} catch (e) {
+		    output += 'not available\n';
+		}
+	    } else {
+	        output += 'not available\n';
+	    }
 	}
     });
 
