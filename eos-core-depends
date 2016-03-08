@@ -165,6 +165,7 @@ libboost-system1.49.0
 libboost-thread1.49.0
 libcairomm-1.0-1
 libcanberra-gtk-module
+libcanberra-gtk3-0
 libcanberra-pulse
 libcaribou-gtk-module
 libcaribou-gtk3-module
