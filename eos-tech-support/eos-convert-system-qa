@@ -70,8 +70,8 @@ if $JOURNAL; then
 fi
 
 # Enable systemd coredumps storage
-echo "Enabling systemd coredumps storage"
-sed -i -e '/Storage/s/^#//g' -e '/Storage/s/=none/=external/g' /etc/systemd/coredump.conf
+echo "Enabling systemd coredumps processing and storage"
+echo "kernel.core_pattern=|/lib/systemd/systemd-coredump %p %u %g %s %t %e" > /etc/sysctl.d/50-coredump.conf
 
 # Set metrics env to dev.
 if $METRICS; then
