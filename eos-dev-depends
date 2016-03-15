@@ -6,7 +6,6 @@ bash-completion
 bison
 bonnie++
 build-essential
-byobu
 ccache
 dconf-editor
 debian-keyring
