@@ -88,16 +88,6 @@ Description: Target packages of the Endless distribution for odroidu2
  .
  This set provides the platform specific package list for armhf-ec100
 
-
-Package: eos-apps
-Architecture: any
-Replaces: eos-shell-apps
-Provides: eos-shell-apps
-Conflicts: eos-shell-apps
-Depends: ${misc:Depends}, ${eos:Depends}
-Description: EndlessOS Applications
- This is a collection of applications for the EndlessOS operating system.
-
 Package: eos-dev
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
