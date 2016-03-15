@@ -71,9 +71,6 @@ ln -s /home /sysroot/sysroot/
 # Make the systemd journal persistent
 mkdir /var/log/journal
 
-# Enable coredumps storage
-sed -i -e '/Storage/s/^#//g' -e '/Storage/s/=none/=external/g' /etc/systemd/coredump.conf
-
 if [ -L /boot/uEnv.txt ] ; then 
   # Running on ARM
   echo "Please install flash-kernel after reboot for correct kernel upgrades" 
