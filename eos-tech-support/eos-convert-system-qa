@@ -102,6 +102,12 @@ if $OSTREE; then
     url=$(ostree config get 'remote "eos".url')
     new_url=$(echo $url | sed 's,/ostree/,/staging/dev/,')
 
+    # Make sure the autoupdater doesn't start the updater after it's
+    # killed below.
+    echo "Stopping running eos-autoupdater."
+    systemctl stop eos-autoupdater.timer
+    systemctl stop eos-autoupdater.service
+
     echo "Killing eos-updater."
     killall eos-updater &>/dev/null
 
