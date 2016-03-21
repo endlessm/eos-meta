@@ -102,6 +102,9 @@ if $OSTREE; then
     url=$(ostree config get 'remote "eos".url')
     new_url=$(echo $url | sed 's,/ostree/,/staging/dev/,')
 
+    echo "Killing eos-updater."
+    killall eos-updater &>/dev/null
+
     echo "Configuring OSTree for Staging."
     # HACK! HACK! HACK! ostree admin set-origin is horribly broken as of
     # ostree 2015.7. We have to delete the remote(!) first, and then move
@@ -114,7 +117,5 @@ if $OSTREE; then
     cat /etc/ostree/remotes.d/eos.conf >> /ostree/repo/config
     rm /etc/ostree/remotes.d/eos.conf
 
-    echo "Killing eos-updater."
-    killall eos-updater &>/dev/null
     echo "All done!"
 fi
