@@ -54,6 +54,7 @@ libcaribou-gtk3-module
 # Mali used on arm
 libegl1-mesa-drivers [!armhf]
 libfolks-eds25
+libfribidi0
 libgc1c3
 libgfortran3
 # Mali used on arm
