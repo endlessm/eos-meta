@@ -168,9 +168,16 @@ libcanberra-gtk3-0
 libcanberra-pulse
 libcaribou-gtk-module
 libcaribou-gtk3-module
+libclutter-1.0-0
+libclutter-gtk-1.0-0
+libcogl20
+libcogl-pango20
+libcogl-path20
 # Mali used on arm
 libegl1-mesa-drivers [!armhf]
+libevdev2
 libfolks-eds25
+libfribidi0
 libgc1c3
 libgfortran3
 # Mali used on arm
@@ -185,6 +192,7 @@ libgtkmm-3.0-1
 libgtkspell3-3-0
 # Adobe flash is x86 only
 libhal1-flash [i386 amd64]
+libinput10
 libkdeedu-data
 libkdegames6abi1
 libkdegamesprivate1abi1
@@ -196,6 +204,7 @@ liblua5.1-0
 liblua5.2-0
 libnss-altfiles
 libnss-myhostname
+libmtdev1
 libpam-fprintd
 libpam-runtime
 libpam-systemd
