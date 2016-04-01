@@ -7,8 +7,8 @@
 files
 eos-core/
 eos-core-*/
-eos-platform/
-eos-sdk/
+eos-platform-runtime/
+eos-sdk-runtime/
 eos-apps/
 eos-dev/
 eos-language-pack-*/

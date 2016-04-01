@@ -6,7 +6,7 @@ build-essential
 diffutils
 eos-knowledge-db-build
 eos-node-modules-dev
-eos-platform
+eos-platform-runtime
 eos-sdk-0-bin
 eos-sdk-0-dev
 fakeroot
