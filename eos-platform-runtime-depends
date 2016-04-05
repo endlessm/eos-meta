@@ -61,7 +61,7 @@ libegl1-mesa-drivers [!armhf]
 libevdev2
 libfolks-eds25
 libfribidi0
-libgc1c3
+libgc1c2
 libgfortran3
 # Mali used on arm
 libgles2-mesa [!armhf]
