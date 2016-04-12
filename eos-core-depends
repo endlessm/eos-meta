@@ -300,6 +300,7 @@ xserver-xorg-input-synaptics
 # Generic ARM X driver
 xserver-xorg-video-armsoc [armhf]
 # Some of these are really specific to x86, but just keep them off of arm for now
+xserver-xorg-video-amdgpu [!armhf]
 xserver-xorg-video-intel [!armhf]
 xserver-xorg-video-nouveau [!armhf]
 xserver-xorg-video-qxl [!armhf]
