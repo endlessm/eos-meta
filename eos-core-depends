@@ -140,6 +140,8 @@ ibus-table-wubi
 ibus-tegaki
 ibus-unikey
 icedtea-plugin
+# Needed to support some Epson scanners
+imagescan
 iproute
 kde-games-core-declarative
 kde-runtime
