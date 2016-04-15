@@ -87,7 +87,6 @@ fonts-roboto
 fonts-sil-andika
 fonts-sil-padauk
 fonts-tlwg-waree
-fonts-ubuntu-font-family-console
 fonts-unfonts-core
 fonts-uralic
 fonts-vlgothic
@@ -275,7 +274,6 @@ ttf-ancient-fonts
 ttf-femkeklaver
 ttf-freefont
 ttf-sil-gentium-basic
-ttf-ubuntu-font-family
 ttf-wqy-microhei
 ttf-wqy-zenhei
 # ARM boot loader
