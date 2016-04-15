@@ -1,0 +1,5 @@
+# Metapackage for the installer tool
+
+# Common dependencies shared between metapackages
+include base-depends
+include os-depends
