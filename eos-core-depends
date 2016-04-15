@@ -213,7 +213,7 @@ libpangomm-1.4-1
 libpulse-mainloop-glib0
 libpulse0
 libreoffice
-libsdl-gfx1.2-4
+libsdl-gfx1.2-5
 libsdl-image1.2
 libsdl-mixer1.2
 libsdl-net1.2
@@ -223,8 +223,6 @@ libsdl1.2debian
 libswscale3
 libumfpack5.4.0
 libwpd-0.10-10
-libwpd-0.9-9
-libwpg-0.2-2
 libwpg-0.3-3
 linux-firmware
 # Platform specific kernels for arm
