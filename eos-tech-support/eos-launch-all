@@ -5,7 +5,7 @@ failed_apps=()
 
 script=`basename $0`
 
-CORE_APPS=/usr/share/applications/eos-app-*.desktop
+CORE_APPS=`grep -Rl X-Endless-Merged /usr/share/applications | sort`
 BUNDLE_APPS=/endless/share/applications/*.desktop
 
 for desktop in $CORE_APPS $BUNDLE_APPS
