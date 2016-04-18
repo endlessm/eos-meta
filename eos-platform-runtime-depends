@@ -102,7 +102,7 @@ libsdl-pango1
 libsdl-ttf2.0-0
 libsdl1.2debian
 libswscale3
-libumfpack5.4.0
+libumfpack5.6.2
 libwpd-0.10-10
 libwpd-0.9-9
 libwpg-0.2-2
