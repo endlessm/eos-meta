@@ -65,7 +65,7 @@ libgc1c2
 libgfortran3
 # Mali used on arm
 libgles2-mesa [!armhf]
-libglew1.8
+libglew1.10
 libglib2.0-data
 libglibmm-2.4-1c2a
 libglu1-mesa [!armhf]
