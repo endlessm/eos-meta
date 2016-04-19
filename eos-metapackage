@@ -54,6 +54,9 @@ sub get_depends {
 		# Skip comments
 		next if /^#/;
 
+		# Skip blank lines
+		next if /^$/;
+
 		if (/^include\s/) {
 			# Read in included file
 			my $include = (split())[1];
