@@ -45,8 +45,8 @@ sub get_depends {
 	my $name=shift;
 	my @deps;
 
-	open DEPENDS, "$name" or die "Can't open $name: $!";
-	while (<DEPENDS>) {
+	open(my $depends, "<", $name) or die "Can't open $name: $!";
+	while (<$depends>) {
 		chomp;
 		s/^\s*//; s/\s*$//;
 
@@ -55,7 +55,7 @@ sub get_depends {
 
 		push @deps, $_;
 	}
-	close DEPENDS;
+	close($depends);
 
 	return @deps;
 }
