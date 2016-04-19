@@ -1,0 +1,146 @@
+# Dependencies shared between OS metapackages
+chromium-browser
+cups
+dbus-x11
+dosfstools
+dracut
+eos-boot-helper
+eos-composite-mode
+eos-factory-tools
+eos-license-service
+eos-plymouth-theme
+eos-shell
+eos-social
+eos-speedwagon
+eos-tech-support
+eos-theme
+eos-tutorial
+eos-updater
+evince
+exfat-fuse
+fake-hwclock
+file-roller
+fonts-arabeyes
+fonts-arphic-ukai
+fonts-arphic-uming
+fonts-cabinsketch
+fonts-crosextra-caladea
+fonts-crosextra-carlito
+fonts-dejavu
+fonts-dosis
+fonts-droid
+fonts-dustin
+fonts-farsiweb
+fonts-gargi
+fonts-indic
+fonts-kacst
+fonts-khmeros
+fonts-knda
+fonts-lato
+fonts-nanum
+fonts-nanum-coding
+fonts-ocr-a
+fonts-paktype
+fonts-quattrocento
+fonts-roboto
+fonts-sil-andika
+fonts-sil-padauk
+fonts-thai-tlwg
+fonts-tlwg-waree
+fonts-unfonts-core
+fonts-uralic
+fonts-vlgothic
+foomatic-db-compressed-ppds
+fprintd
+gedit
+gir1.2-ostree-1.0
+gnome-calculator
+gnome-clocks
+gnome-control-center
+gnome-initial-setup
+gnome-orca
+gnome-screenshot
+gnome-session
+gnome-sushi
+gnome-system-monitor
+gnome-terminal
+grilo-plugins-0.2
+# Could just be i386 amd64, but theoretically supports other arches
+grub2 [!armhf]
+grub-efi-amd64-image [!armhf]
+gvfs-bin
+ibus-anthy
+ibus-cangjie
+ibus-chewing
+ibus-hangul
+ibus-input-pad
+ibus-libpinyin
+ibus-libthai
+ibus-libzhuyin
+ibus-m17n
+ibus-table-wubi
+ibus-tegaki
+ibus-unikey
+linux-firmware
+# Platform specific kernels for arm
+linux-image-generic-64 [!armhf] | linux-image-generic [!armhf]
+lsb-base
+lsb-release
+mobile-broadband-provider-info
+module-init-tools
+nautilus
+network-manager
+network-manager-gnome
+network-manager-vpnc-gnome
+ntp
+obexd-client
+openprinting-ppds
+openssh-server
+ostree
+p7zip-full
+parted
+policykit-1
+printer-driver-all
+pulseaudio
+pulseaudio-module-bluetooth
+pulseaudio-module-x11
+python-dbus
+rtkit
+shotwell
+simple-scan
+sudo
+system-config-printer-gnome
+systemd-coredump
+systemd-sysv
+totem
+tracker
+ttf-ancient-fonts
+ttf-femkeklaver
+ttf-sil-gentium-basic
+ttf-wqy-microhei
+ttf-wqy-zenhei
+# ARM boot loader
+u-boot-tools [armhf]
+udev
+usb-modeswitch
+vim-tiny
+vinagre
+vino
+wpasupplicant
+xauth
+xdg-user-dirs
+xdg-user-dirs-gtk
+xkb-data-i18n
+xserver-xorg
+xserver-xorg-input-evdev
+xserver-xorg-input-synaptics
+# Some of these are really specific to x86, but just keep them off of arm for now
+xserver-xorg-video-amdgpu [!armhf]
+# Generic ARM X driver
+xserver-xorg-video-armsoc [armhf]
+xserver-xorg-video-intel [!armhf]
+xserver-xorg-video-nouveau [!armhf]
+xserver-xorg-video-qxl [!armhf]
+xserver-xorg-video-radeon [!armhf]
+xserver-xorg-video-vesa [!armhf]
+xserver-xorg-video-vmware [!armhf]

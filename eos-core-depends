@@ -1,8 +1,9 @@
 # Metapackage for the core OS
 
-# Base dependencies shared between core and runtime
+# Common dependencies shared between metapackages
 include app-depends
 include base-depends
+include os-depends
 
 alsa-utils
 apt
@@ -11,23 +12,15 @@ apt-utils
 brasero
 btrfs-tools
 cheese
-chromium-browser
-cups
-dbus-x11
 debconf-i18n
-dosfstools
-dracut
 eog
 eos-acknowledgements
 eos-app-manager
-eos-boot-helper
 eos-chrome-plugin-updater
 eos-chrome-plugin-updater-s3
 eos-codecs-manager
-eos-composite-mode
 eos-event-recorder-daemon
 eos-exploration-center
-eos-factory-tools
 # Updater currently only built for i386, but could be amd64, too
 eos-flashplugin-updater [i386]
 eos-gates
@@ -43,87 +36,13 @@ eos-language-pack-pt-br
 eos-language-pack-th
 eos-language-pack-vi
 eos-language-pack-zh-cn
-eos-license-service
 eos-media
 eos-metrics-instrumentation
-eos-plymouth-theme
-eos-shell
-eos-social
-eos-speedwagon
-eos-tech-support
-eos-theme
-eos-tutorial
-eos-updater
-evince
 evolution
-exfat-fuse
-fake-hwclock
-file-roller
-fonts-arabeyes
-fonts-arphic-ukai
-fonts-arphic-uming
-fonts-cabinsketch
-fonts-crosextra-caladea
-fonts-crosextra-carlito
-fonts-dejavu
-fonts-dosis
-fonts-droid
-fonts-dustin
-fonts-farsiweb
-fonts-gargi
-fonts-indic
-fonts-kacst
-fonts-khmeros
-fonts-knda
-fonts-lato
-fonts-nanum
-fonts-nanum-coding
-fonts-ocr-a
-fonts-paktype
-fonts-quattrocento
-fonts-roboto
-fonts-sil-andika
-fonts-sil-padauk
-fonts-thai-tlwg
-fonts-tlwg-waree
-fonts-unfonts-core
-fonts-uralic
-fonts-vlgothic
-foomatic-db-compressed-ppds
-fprintd
 gdb
-gedit
-gir1.2-ostree-1.0
 # For compatibility with 2.3 bundles:
 gir1.2-webkit2-3.0
-gnome-calculator
-gnome-clocks
-gnome-control-center
-gnome-initial-setup
-gnome-orca
-gnome-screenshot
-gnome-session
-gnome-sushi
-gnome-system-monitor
-gnome-terminal
-grilo-plugins-0.2
-# Could just be i386 amd64, but theoretically supports other arches
-grub2 [!armhf]
-grub-efi-amd64-image [!armhf]
 gstreamer0.10-tools
-gvfs-bin
-ibus-anthy
-ibus-cangjie
-ibus-chewing
-ibus-hangul
-ibus-input-pad
-ibus-libpinyin
-ibus-libthai
-ibus-libzhuyin
-ibus-m17n
-ibus-table-wubi
-ibus-tegaki
-ibus-unikey
 icedtea-plugin
 # Needed to support some Epson scanners
 imagescan
@@ -131,74 +50,11 @@ kde-games-core-declarative
 kdeedu-kvtml-data
 libreoffice
 libsdl-gfx1.2-5
-linux-firmware
-# Platform specific kernels for arm
-linux-image-generic-64 [!armhf] | linux-image-generic [!armhf]
-lsb-base
-lsb-release
-mobile-broadband-provider-info
-module-init-tools
-nautilus
-network-manager
-network-manager-gnome
-network-manager-vpnc-gnome
-ntp
-obexd-client
-openprinting-ppds
-openssh-server
-ostree
-p7zip-full
-parted
-policykit-1
-printer-driver-all
-pulseaudio
-pulseaudio-module-bluetooth
-pulseaudio-module-x11
-python-dbus
 # Needed by pitivi and gnome-sudoku
 python-gi-cairo
 # Needed by pitivi and labyrinth
 python-xdg
 rhythmbox (>= 2.99.1)
-rtkit
-shotwell
-simple-scan
-sudo
-system-config-printer-gnome
-systemd-coredump
-systemd-sysv
-totem
-tracker
-ttf-ancient-fonts
-ttf-femkeklaver
-ttf-sil-gentium-basic
-ttf-wqy-microhei
-ttf-wqy-zenhei
-# ARM boot loader
-u-boot-tools [armhf]
-udev
 unoconv
 unrar
-usb-modeswitch
-vim-tiny
-vinagre
-vino
 whiptail
-wpasupplicant
-xauth
-xdg-user-dirs
-xdg-user-dirs-gtk
-xkb-data-i18n
-xserver-xorg
-xserver-xorg-input-evdev
-xserver-xorg-input-synaptics
-# Some of these are really specific to x86, but just keep them off of arm for now
-xserver-xorg-video-amdgpu [!armhf]
-# Generic ARM X driver
-xserver-xorg-video-armsoc [armhf]
-xserver-xorg-video-intel [!armhf]
-xserver-xorg-video-nouveau [!armhf]
-xserver-xorg-video-qxl [!armhf]
-xserver-xorg-video-radeon [!armhf]
-xserver-xorg-video-vesa [!armhf]
-xserver-xorg-video-vmware [!armhf]
