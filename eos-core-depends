@@ -1,41 +1,31 @@
 # Metapackage for the core OS
-adduser
+
+# Common dependencies shared between metapackages
+include app-depends
+include base-depends
+include os-depends
+
 alsa-utils
 apt
 apt-transport-https
 apt-utils
-attr
-avahi-daemon
-bluez
 brasero
 btrfs-tools
-bzip2
-ca-certificates
 cheese
-chromium-browser
-cups
-dbus-x11
 debconf-i18n
-dosfstools
-dracut
 eog
 eos-acknowledgements
 eos-app-manager
-eos-boot-helper
 eos-chrome-plugin-updater
 eos-chrome-plugin-updater-s3
 eos-codecs-manager
-eos-composite-mode
 eos-event-recorder-daemon
 eos-exploration-center
-eos-factory-tools
 # Updater currently only built for i386, but could be amd64, too
 eos-flashplugin-updater [i386]
 eos-gates
 # Updater currently only built for i386, but could be amd64, too
 eos-google-talkplugin-updater [i386]
-eos-keyring
-eos-knowledge-0
 eos-language-pack-ar
 eos-language-pack-bn
 eos-language-pack-en
@@ -46,268 +36,25 @@ eos-language-pack-pt-br
 eos-language-pack-th
 eos-language-pack-vi
 eos-language-pack-zh-cn
-eos-license-service
 eos-media
 eos-metrics-instrumentation
-eos-plymouth-theme
-eos-sdk-webhelper
-eos-shell
-eos-social
-eos-speedwagon
-eos-tech-support
-eos-theme
-eos-tutorial
-eos-updater
-evince
 evolution
-exfat-fuse
-fake-hwclock
-file
-file-roller
-fonts-arabeyes
-fonts-arphic-ukai
-fonts-arphic-uming
-fonts-cabinsketch
-fonts-crosextra-caladea
-fonts-crosextra-carlito
-fonts-dejavu
-fonts-dosis
-fonts-droid
-fonts-dustin
-fonts-farsiweb
-fonts-gargi
-fonts-indic
-fonts-kacst
-fonts-khmeros
-fonts-knda
-fonts-lato
-fonts-liberation
-fonts-nanum
-fonts-nanum-coding
-fonts-ocr-a
-fonts-paktype
-fonts-quattrocento
-fonts-roboto
-fonts-sil-andika
-fonts-sil-padauk
-fonts-thai-tlwg
-fonts-tlwg-waree
-fonts-unfonts-core
-fonts-uralic
-fonts-vlgothic
-foomatic-db-compressed-ppds
-fprintd
-freeglut3
 gdb
-gedit
-geoclue-2.0
-gettext-base
-gir1.2-ostree-1.0
 # For compatibility with 2.3 bundles:
 gir1.2-webkit2-3.0
-gnome-calculator
-gnome-clocks
-gnome-control-center
-gnome-initial-setup
-gnome-orca
-gnome-screenshot
-gnome-session
-gnome-sushi
-gnome-system-monitor
-gnome-terminal
-gnome-themes-standard
-gnupg
-grilo-plugins-0.2
-# Could just be i386 amd64, but theoretically supports other arches
-grub2 [!armhf]
-grub-efi-amd64-image [!armhf]
-gstreamer0.10-alsa
-gstreamer0.10-plugins-base
-gstreamer0.10-plugins-good
-gstreamer0.10-pulseaudio
 gstreamer0.10-tools
-gstreamer1.0-libav
-gstreamer1.0-plugins-good
-gstreamer1.0-pulseaudio
-gstreamer1.0-tools
-gvfs-bin
-ibus-anthy
-ibus-cangjie
-ibus-chewing
-ibus-hangul
-ibus-input-pad
-ibus-libpinyin
-ibus-libthai
-ibus-libzhuyin
-ibus-m17n
-ibus-table-wubi
-ibus-tegaki
-ibus-unikey
 icedtea-plugin
 # Needed to support some Epson scanners
 imagescan
-iproute
 kde-games-core-declarative
-kde-runtime
 kdeedu-kvtml-data
-khelpcenter4
-less
-libalut0
-libasound2
-libatkmm-1.6-1
-libavcodec56
-libavdevice55
-libavfilter5
-libavformat56
-libavresample2
-libavutil54
-libbluetooth3
-libboost-filesystem1.55.0
-libboost-iostreams1.55.0
-libboost-program-options1.55.0
-libboost-python1.55.0
-libboost-regex1.55.0
-libboost-signals1.55.0
-libboost-system1.55.0
-libboost-thread1.55.0
-libcairomm-1.0-1
-libcanberra-gtk-module
-libcanberra-gtk3-0
-libcanberra-pulse
-libcaribou-gtk-module
-libcaribou-gtk3-module
-libclutter-1.0-0
-libclutter-gtk-1.0-0
-libcogl20
-libcogl-pango20
-libcogl-path20
-# Mali used on arm
-libegl1-mesa-drivers [!armhf]
-libevdev2
-libfolks-eds25
-libfribidi0
-libgc1c2
-libgfortran3
-# Mali used on arm
-libgles2-mesa [!armhf]
-libglew1.10
-libglib2.0-data
-libglibmm-2.4-1c2a
-libglu1-mesa [!armhf]
-libgrilo-0.2-1
-libgtkmm-2.4-1c2a
-libgtkmm-3.0-1
-libgtkspell3-3-0
-# Adobe flash is x86 only
-libhal1-flash [i386 amd64]
-libinput10
-libkdeedu-data
-libkdegames6abi1
-libkdegamesprivate1abi1
-libkeduvocdocument4
-libkprintutils4
-libkunitconversion4
-liblockfile-bin
-liblua5.1-0
-liblua5.2-0
-libnss-altfiles
-libnss-myhostname
-libmtdev1
-libpam-fprintd
-libpam-runtime
-libpam-systemd
-libpangomm-1.4-1
-libpulse-mainloop-glib0
-libpulse0
 libreoffice
 libsdl-gfx1.2-5
-libsdl-image1.2
-libsdl-mixer1.2
-libsdl-net1.2
-libsdl-pango1
-libsdl-ttf2.0-0
-libsdl1.2debian
-libswscale3
-libumfpack5.6.2
-libwpd-0.10-10
-libwpg-0.3-3
-linux-firmware
-# Platform specific kernels for arm
-linux-image-generic-64 [!armhf] | linux-image-generic [!armhf]
-locales
-lsb-base
-lsb-release
-lzma
-mawk
-mobile-broadband-provider-info
-module-init-tools
-nautilus
-net-tools
-netbase
-network-manager
-network-manager-gnome
-network-manager-vpnc-gnome
-ntp
-obexd-client
-openprinting-ppds
-openssh-client
-openssh-server
-ostree
-p7zip-full
-parted
-policykit-1
-printer-driver-all
-pulseaudio
-pulseaudio-module-bluetooth
-pulseaudio-module-x11
-python-dbus
 # Needed by pitivi and gnome-sudoku
 python-gi-cairo
-python-gst-1.0
 # Needed by pitivi and labyrinth
 python-xdg
 rhythmbox (>= 2.99.1)
-rtkit
-simple-scan
-shotwell
-sudo
-system-config-printer-gnome
-systemd-coredump
-systemd-sysv
-totem
-tracker
-ttf-ancient-fonts
-ttf-femkeklaver
-ttf-freefont
-ttf-sil-gentium-basic
-ttf-wqy-microhei
-ttf-wqy-zenhei
-# ARM boot loader
-u-boot-tools [armhf]
-udev
 unoconv
 unrar
-usb-modeswitch
-vim-tiny
-vinagre
-vino
 whiptail
-wpasupplicant
-xauth
-xdg-user-dirs
-xdg-user-dirs-gtk
-xdg-utils
-xkb-data-i18n
-xserver-xorg
-xserver-xorg-input-evdev
-xserver-xorg-input-synaptics
-# Generic ARM X driver
-xserver-xorg-video-armsoc [armhf]
-# Some of these are really specific to x86, but just keep them off of arm for now
-xserver-xorg-video-amdgpu [!armhf]
-xserver-xorg-video-intel [!armhf]
-xserver-xorg-video-nouveau [!armhf]
-xserver-xorg-video-qxl [!armhf]
-xserver-xorg-video-radeon [!armhf]
-xserver-xorg-video-vesa [!armhf]
-xserver-xorg-video-vmware [!armhf]

@@ -44,17 +44,6 @@ Description: Target packages of the Endless distribution for i386
  .
  This set provides the platform specific package list for i386.
 
-Package: eos-core-armhf
-Architecture: armhf
-Depends: ${misc:Depends}, ${eos:Depends}
-Description: Target packages of the Endless distribution for armhf products
- This package depends on all packages required for the Endless OS core images
- .
- It is also used to help ensure proper upgrades, so it is recommended that
- it not be removed.
- .
- This set provides the platform specific package list for armhf products.
-
 Package: eos-core-odroidu2
 Architecture: armhf
 Depends: ${misc:Depends}, ${eos:Depends}
@@ -87,6 +76,31 @@ Description: Target packages of the Endless distribution for odroidu2
  it not be removed.
  .
  This set provides the platform specific package list for armhf-ec100
+
+Package: eos-installer-meta
+Architecture: any
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless installer
+ This metapackage depends on all packages required for the Endless
+ installer tool.
+
+Package: eos-installer-meta-i386
+Architecture: i386
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless installer
+ This metapackage depends on all packages required for the Endless
+ installer tool.
+ .
+ This set provides the platform specific package list for i386.
+
+Package: eos-installer-meta-ec100
+Architecture: armhf
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless installer
+ This metapackage depends on all packages required for the Endless
+ installer tool.
+ .
+ This set provides the platform specific package list for armhf-ec100.
 
 Package: eos-dev
 Architecture: all
