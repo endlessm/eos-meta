@@ -272,6 +272,7 @@ simple-scan
 shotwell
 sudo
 system-config-printer-gnome
+systemd-coredump
 systemd-sysv
 totem
 tracker
