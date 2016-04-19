@@ -103,6 +103,13 @@ Description: EndlessOS Arabic Language Pack
  This is a collection of Arabic language packs for the EndlessOS operating
  system.
 
+Package: eos-language-pack-bn
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Bengali Language Pack
+ This is a collection of Bengali language packs for the EndlessOS operating
+ system.
+
 Package: eos-language-pack-en
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
@@ -144,6 +151,20 @@ Depends: ${misc:Depends}, ${eos:Depends}
 Description: EndlessOS Brazilian Portuguese Language Pack
  This is a collection of Brazilian Portuguese language packs for the EndlessOS
  operating system.
+
+Package: eos-language-pack-th
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Thai Language Pack
+ This is a collection of Thai language packs for the EndlessOS operating
+ system.
+
+Package: eos-language-pack-vi
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Vietnamese Language Pack
+ This is a collection of Vietnamese language packs for the EndlessOS operating
+ system.
 
 Package: eos-language-pack-zh-cn
 Architecture: all

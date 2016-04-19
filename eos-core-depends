@@ -37,11 +37,14 @@ eos-google-talkplugin-updater [i386]
 eos-keyring
 eos-knowledge-0
 eos-language-pack-ar
+eos-language-pack-bn
 eos-language-pack-en
 eos-language-pack-es
 eos-language-pack-fr
 eos-language-pack-id
 eos-language-pack-pt-br
+eos-language-pack-th
+eos-language-pack-vi
 eos-language-pack-zh-cn
 eos-license-service
 eos-media
@@ -67,6 +70,7 @@ fonts-arphic-uming
 fonts-cabinsketch
 fonts-crosextra-caladea
 fonts-crosextra-carlito
+fonts-dejavu
 fonts-dosis
 fonts-droid
 fonts-dustin
@@ -86,6 +90,7 @@ fonts-quattrocento
 fonts-roboto
 fonts-sil-andika
 fonts-sil-padauk
+fonts-thai-tlwg
 fonts-tlwg-waree
 fonts-unfonts-core
 fonts-uralic
