@@ -103,6 +103,13 @@ Description: EndlessOS Arabic Language Pack
  This is a collection of Arabic language packs for the EndlessOS operating
  system.
 
+Package: eos-language-pack-bn
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Bengali Language Pack
+ This is a collection of Bengali language packs for the EndlessOS operating
+ system.
+
 Package: eos-language-pack-en
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
