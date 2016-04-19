@@ -1,16 +1,15 @@
 # Metapackage for the core OS
-adduser
+
+# Base dependencies shared between core and runtime
+include app-depends
+include base-depends
+
 alsa-utils
 apt
 apt-transport-https
 apt-utils
-attr
-avahi-daemon
-bluez
 brasero
 btrfs-tools
-bzip2
-ca-certificates
 cheese
 chromium-browser
 cups
@@ -34,8 +33,6 @@ eos-flashplugin-updater [i386]
 eos-gates
 # Updater currently only built for i386, but could be amd64, too
 eos-google-talkplugin-updater [i386]
-eos-keyring
-eos-knowledge-0
 eos-language-pack-ar
 eos-language-pack-bn
 eos-language-pack-en
@@ -50,7 +47,6 @@ eos-license-service
 eos-media
 eos-metrics-instrumentation
 eos-plymouth-theme
-eos-sdk-webhelper
 eos-shell
 eos-social
 eos-speedwagon
@@ -62,7 +58,6 @@ evince
 evolution
 exfat-fuse
 fake-hwclock
-file
 file-roller
 fonts-arabeyes
 fonts-arphic-ukai
@@ -81,7 +76,6 @@ fonts-kacst
 fonts-khmeros
 fonts-knda
 fonts-lato
-fonts-liberation
 fonts-nanum
 fonts-nanum-coding
 fonts-ocr-a
@@ -97,11 +91,8 @@ fonts-uralic
 fonts-vlgothic
 foomatic-db-compressed-ppds
 fprintd
-freeglut3
 gdb
 gedit
-geoclue-2.0
-gettext-base
 gir1.2-ostree-1.0
 # For compatibility with 2.3 bundles:
 gir1.2-webkit2-3.0
@@ -115,21 +106,11 @@ gnome-session
 gnome-sushi
 gnome-system-monitor
 gnome-terminal
-gnome-themes-standard
-gnupg
 grilo-plugins-0.2
 # Could just be i386 amd64, but theoretically supports other arches
 grub2 [!armhf]
 grub-efi-amd64-image [!armhf]
-gstreamer0.10-alsa
-gstreamer0.10-plugins-base
-gstreamer0.10-plugins-good
-gstreamer0.10-pulseaudio
 gstreamer0.10-tools
-gstreamer1.0-libav
-gstreamer1.0-plugins-good
-gstreamer1.0-pulseaudio
-gstreamer1.0-tools
 gvfs-bin
 ibus-anthy
 ibus-cangjie
@@ -146,111 +127,24 @@ ibus-unikey
 icedtea-plugin
 # Needed to support some Epson scanners
 imagescan
-iproute
 kde-games-core-declarative
-kde-runtime
 kdeedu-kvtml-data
-khelpcenter4
-less
-libalut0
-libasound2
-libatkmm-1.6-1
-libavcodec56
-libavdevice55
-libavfilter5
-libavformat56
-libavresample2
-libavutil54
-libbluetooth3
-libboost-filesystem1.55.0
-libboost-iostreams1.55.0
-libboost-program-options1.55.0
-libboost-python1.55.0
-libboost-regex1.55.0
-libboost-signals1.55.0
-libboost-system1.55.0
-libboost-thread1.55.0
-libcairomm-1.0-1
-libcanberra-gtk-module
-libcanberra-gtk3-0
-libcanberra-pulse
-libcaribou-gtk-module
-libcaribou-gtk3-module
-libclutter-1.0-0
-libclutter-gtk-1.0-0
-libcogl20
-libcogl-pango20
-libcogl-path20
-# Mali used on arm
-libegl1-mesa-drivers [!armhf]
-libevdev2
-libfolks-eds25
-libfribidi0
-libgc1c2
-libgfortran3
-# Mali used on arm
-libgles2-mesa [!armhf]
-libglew1.10
-libglib2.0-data
-libglibmm-2.4-1c2a
-libglu1-mesa [!armhf]
-libgrilo-0.2-1
-libgtkmm-2.4-1c2a
-libgtkmm-3.0-1
-libgtkspell3-3-0
-# Adobe flash is x86 only
-libhal1-flash [i386 amd64]
-libinput10
-libkdeedu-data
-libkdegames6abi1
-libkdegamesprivate1abi1
-libkeduvocdocument4
-libkprintutils4
-libkunitconversion4
-liblockfile-bin
-liblua5.1-0
-liblua5.2-0
-libnss-altfiles
-libnss-myhostname
-libmtdev1
-libpam-fprintd
-libpam-runtime
-libpam-systemd
-libpangomm-1.4-1
-libpulse-mainloop-glib0
-libpulse0
 libreoffice
 libsdl-gfx1.2-5
-libsdl-image1.2
-libsdl-mixer1.2
-libsdl-net1.2
-libsdl-pango1
-libsdl-ttf2.0-0
-libsdl1.2debian
-libswscale3
-libumfpack5.6.2
-libwpd-0.10-10
-libwpg-0.3-3
 linux-firmware
 # Platform specific kernels for arm
 linux-image-generic-64 [!armhf] | linux-image-generic [!armhf]
-locales
 lsb-base
 lsb-release
-lzma
-mawk
 mobile-broadband-provider-info
 module-init-tools
 nautilus
-net-tools
-netbase
 network-manager
 network-manager-gnome
 network-manager-vpnc-gnome
 ntp
 obexd-client
 openprinting-ppds
-openssh-client
 openssh-server
 ostree
 p7zip-full
@@ -263,13 +157,12 @@ pulseaudio-module-x11
 python-dbus
 # Needed by pitivi and gnome-sudoku
 python-gi-cairo
-python-gst-1.0
 # Needed by pitivi and labyrinth
 python-xdg
 rhythmbox (>= 2.99.1)
 rtkit
-simple-scan
 shotwell
+simple-scan
 sudo
 system-config-printer-gnome
 systemd-coredump
@@ -278,7 +171,6 @@ totem
 tracker
 ttf-ancient-fonts
 ttf-femkeklaver
-ttf-freefont
 ttf-sil-gentium-basic
 ttf-wqy-microhei
 ttf-wqy-zenhei
@@ -296,15 +188,14 @@ wpasupplicant
 xauth
 xdg-user-dirs
 xdg-user-dirs-gtk
-xdg-utils
 xkb-data-i18n
 xserver-xorg
 xserver-xorg-input-evdev
 xserver-xorg-input-synaptics
-# Generic ARM X driver
-xserver-xorg-video-armsoc [armhf]
 # Some of these are really specific to x86, but just keep them off of arm for now
 xserver-xorg-video-amdgpu [!armhf]
+# Generic ARM X driver
+xserver-xorg-video-armsoc [armhf]
 xserver-xorg-video-intel [!armhf]
 xserver-xorg-video-nouveau [!armhf]
 xserver-xorg-video-qxl [!armhf]
