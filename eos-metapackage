@@ -27,7 +27,8 @@ variables to be substitued in the package's control file. Both files are
 optional, so eos-metapackage can be called for all packages.
 
 The format of the dependency files is one package per line. Lines
-beginning with "#" are skipped.
+beginning with "#" are skipped. Lines beginning with "include" will read
+in the referenced file.
 
 =head1 EXAMPLES
 
@@ -53,7 +54,14 @@ sub get_depends {
 		# Skip comments
 		next if /^#/;
 
-		push @deps, $_;
+		if (/^include\s/) {
+			# Read in included file
+			my $include = (split())[1];
+			push @deps, (get_depends("$include"));
+		} else {
+			# Add to the deps list
+			push @deps, $_;
+		}
 	}
 	close($depends);
 
