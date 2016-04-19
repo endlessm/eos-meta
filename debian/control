@@ -152,6 +152,13 @@ Description: EndlessOS Thai Language Pack
  This is a collection of Thai language packs for the EndlessOS operating
  system.
 
+Package: eos-language-pack-vi
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Vietnamese Language Pack
+ This is a collection of Vietnamese language packs for the EndlessOS operating
+ system.
+
 Package: eos-language-pack-zh-cn
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
