@@ -41,13 +41,11 @@ eos-metapackage must be called before C<dh_installdeb>.
 
 init();
 
-sub subst_depends {
-	my $package=shift;
-	my $type=shift;
-	my $var=shift;
+sub get_depends {
+	my $name=shift;
 	my @deps;
 
-	open DEPENDS, "$package-$type" or return;
+	open DEPENDS, "$name" or die "Can't open $name: $!";
 	while (<DEPENDS>) {
 		chomp;
 		s/^\s*//; s/\s*$//;
@@ -58,6 +56,19 @@ sub subst_depends {
 		push @deps, $_;
 	}
 	close DEPENDS;
+
+	return @deps;
+}
+
+sub subst_depends {
+	my $package=shift;
+	my $type=shift;
+	my $var=shift;
+	my $depfile="$package-$type";
+	my @deps;
+
+	# Allow the toplevel file to be missing (e.g., -recommends)
+	@deps = get_depends("$depfile") if -e "$depfile";
 	addsubstvar($package, $var, join(', ', @deps));
 }
 
