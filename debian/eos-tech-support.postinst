@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# On upgrades of converted systems, try to merge the passwd and group
+# files in /lib back to /etc. If we're on ostree system (ostree= in
+# /proc/cmdline), then this will be skipped.
+if [ -n "$2" ] && \
+   [ -f /lib/passwd -o -f /lib/group ] &&
+   ! grep -qE '(^|\s)ostree=' /proc/cmdline 2>/dev/null; then
+    eos-convert-passwd
+fi
+
+#DEBHELPER#
