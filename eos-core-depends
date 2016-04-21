@@ -41,7 +41,6 @@ eos-metrics-instrumentation
 evolution
 gdb
 # For compatibility with 2.3 bundles:
-gir1.2-webkit2-3.0
 gstreamer0.10-tools
 icedtea-plugin
 # Needed to support some Epson scanners
