@@ -44,6 +44,17 @@ Description: Target packages of the Endless distribution for i386
  .
  This set provides the platform specific package list for i386.
 
+Package: eos-core-amd64
+Architecture: amd64
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless distribution for amd64
+ This package depends on all packages required for the Endless OS core images
+ .
+ It is also used to help ensure proper upgrades, so it is recommended that
+ it not be removed.
+ .
+ This set provides the platform specific package list for amd64.
+
 Package: eos-core-odroidu2
 Architecture: armhf
 Depends: ${misc:Depends}, ${eos:Depends}
@@ -92,6 +103,15 @@ Description: Target packages of the Endless installer
  installer tool.
  .
  This set provides the platform specific package list for i386.
+
+Package: eos-installer-meta-amd64
+Architecture: amd64
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless installer
+ This metapackage depends on all packages required for the Endless
+ installer tool.
+ .
+ This set provides the platform specific package list for amd64.
 
 Package: eos-installer-meta-ec100
 Architecture: armhf
