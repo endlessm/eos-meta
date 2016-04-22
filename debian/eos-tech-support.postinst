@@ -1,0 +1,4 @@
+#DEBHELPER#
+
+# Disable the /boot bind mount on dist-upgrade
+systemctl disable boot.mount
