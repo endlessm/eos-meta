@@ -4,6 +4,7 @@
 *.swp
 *.deb
 *.changes
+*-stamp
 files
 eos-core/
 eos-core-*/
@@ -13,3 +14,4 @@ eos-apps/
 eos-dev/
 eos-language-pack-*/
 eos-tech-support/
+eos-installer-meta*/
