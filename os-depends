@@ -82,8 +82,11 @@ ibus-table-wubi
 ibus-tegaki
 ibus-unikey
 linux-firmware
-# Platform specific kernels for arm
-linux-image-generic-64 [!armhf] | linux-image-generic [!armhf]
+# Kernel package. All arm installs use platform specific kernels, so
+# those appear in the platform specific -depends files. The -64 variant
+# is a 64 bit kernel that we install on i386. For all other
+# architectures, we want to use the normal variant.
+linux-image-generic-64 [i386] | linux-image-generic [!armhf]
 lsb-base
 lsb-release
 mobile-broadband-provider-info

@@ -21,11 +21,11 @@ eos-chrome-plugin-updater-s3
 eos-codecs-manager
 eos-event-recorder-daemon
 eos-exploration-center
-# Updater currently only built for i386, but could be amd64, too
-eos-flashplugin-updater [i386]
+# Flash plugin only for x86 arches
+eos-flashplugin-updater [i386 amd64]
 eos-gates
-# Updater currently only built for i386, but could be amd64, too
-eos-google-talkplugin-updater [i386]
+# Google Talk plugin only for x86 arches
+eos-google-talkplugin-updater [i386 amd64]
 eos-language-pack-ar
 eos-language-pack-bn
 eos-language-pack-en
