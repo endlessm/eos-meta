@@ -17,9 +17,6 @@ systemctl disable eos-autoupdater.timer
 # sure.
 systemctl stop eos-autoupdater.service
 
-# Disable the /boot bind mount
-systemctl disable boot.mount
-
 # 4th element in mountinfo is the "root" within a mounted filesystem, 5th is
 # where it's mounted. Hence dig out where our root is coming from, so we're
 # always using the _current_ root filesystem instead of the last updated
