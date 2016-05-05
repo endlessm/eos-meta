@@ -61,6 +61,7 @@ libmtdev1
 libpangomm-1.4-1
 libpulse0
 libpulse-mainloop-glib0
+libpython2.7
 libsdl1.2debian
 libsdl-image1.2
 libsdl-mixer1.2
