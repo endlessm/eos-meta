@@ -71,7 +71,7 @@ ln -s /home /sysroot/sysroot/
 # Merge the passwd and group files from /lib back into the corresponding
 # files in /etc so that debian maintainer scripts can update them as
 # they expect.
-eos-convert-passwd
+eos-convert-passwd --root=/sysroot
 
 # Make the systemd journal persistent
 mkdir /var/log/journal
