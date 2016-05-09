@@ -72,4 +72,5 @@ libswscale3
 libumfpack5.6.2
 libwpd-0.10-10
 libwpg-0.3-3
+python-cairo
 python-gst-1.0
