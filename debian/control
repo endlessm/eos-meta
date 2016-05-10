@@ -88,6 +88,30 @@ Description: Target packages of the Endless distribution for odroidu2
  .
  This set provides the platform specific package list for armhf-ec100
 
+Package: eos-installer-meta
+Architecture: any
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless installer
+ This metapackage depends on all packages required for the Endless
+ installer tool.
+
+Package: eos-installer-meta-i386
+Architecture: i386
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless installer
+ This metapackage depends on all packages required for the Endless
+ installer tool.
+ .
+ This set provides the platform specific package list for i386.
+
+Package: eos-installer-meta-ec100
+Architecture: armhf
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless installer
+ This metapackage depends on all packages required for the Endless
+ installer tool.
+ .
+ This set provides the platform specific package list for armhf-ec100.
 
 Package: eos-apps
 Architecture: any
