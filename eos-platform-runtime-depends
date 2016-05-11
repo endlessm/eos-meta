@@ -3,8 +3,3 @@
 # Base dependencies shared between core and runtime
 include app-depends
 include base-depends
-
-# Other app specific dependencies
-libsdl-gfx1.2-4
-libwpd-0.9-9
-libwpg-0.2-2
