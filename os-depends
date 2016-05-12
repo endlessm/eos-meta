@@ -2,6 +2,7 @@
 chromium-browser
 cups
 dbus-x11
+dconf-cli
 dosfstools
 dracut
 eos-boot-helper
