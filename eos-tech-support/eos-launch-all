@@ -8,6 +8,12 @@ script=`basename $0`
 CORE_APPS=`grep -Rl X-Endless-Merged /usr/share/applications | sort`
 BUNDLE_APPS=/endless/share/applications/*.desktop
 
+USERID=`id -u`
+if [ $USERID = 0 ]; then
+    echo "Not allowed to run this program with superuser privileges"
+    exit 1
+fi
+
 for desktop in $CORE_APPS $BUNDLE_APPS
 do
     echo $desktop
