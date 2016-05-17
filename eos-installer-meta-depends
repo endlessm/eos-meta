@@ -13,6 +13,7 @@ dracut
 eos-boot-helper
 eos-composite-mode
 eos-factory-tools
+eos-installer
 eos-keyring
 eos-license-service
 eos-plymouth-theme
@@ -68,7 +69,6 @@ gir1.2-ostree-1.0
 gnome-calculator
 gnome-clocks
 gnome-control-center
-gnome-initial-setup
 gnome-orca
 gnome-screenshot
 gnome-session
