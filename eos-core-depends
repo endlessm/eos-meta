@@ -40,6 +40,7 @@ eos-media
 eos-metrics-instrumentation
 evolution
 gdb
+gnome-initial-setup
 # For compatibility with 2.3 bundles:
 gstreamer0.10-tools
 icedtea-plugin
