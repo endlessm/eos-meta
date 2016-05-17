@@ -3,3 +3,5 @@
 # Common dependencies shared between metapackages
 include base-depends
 include os-depends
+
+eos-installer
