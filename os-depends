@@ -28,8 +28,8 @@ linux-firmware
 linux-image-generic-64 [i386] | linux-image-generic [!armhf]
 lsb-base
 lsb-release
-module-init-tools
 mobile-broadband-provider-info
+module-init-tools
 network-manager
 network-manager-gnome
 network-manager-vpnc-gnome
@@ -45,8 +45,8 @@ sudo
 systemd-sysv
 # ARM boot loader
 u-boot-tools [armhf]
-usb-modeswitch
 udev
+usb-modeswitch
 vim-tiny
 wpasupplicant
 xauth
