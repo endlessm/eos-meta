@@ -12,6 +12,8 @@ apt-utils
 brasero
 btrfs-tools
 cheese
+chromium-browser
+cups
 debconf-i18n
 eog
 eos-acknowledgements
@@ -38,36 +40,11 @@ eos-language-pack-vi
 eos-language-pack-zh-cn
 eos-media
 eos-metrics-instrumentation
-evolution
-gdb
-gnome-initial-setup
-# For compatibility with 2.3 bundles:
-gstreamer0.10-tools
-icedtea-plugin
-# Needed to support some Epson scanners
-imagescan
-kde-games-core-declarative
-kdeedu-kvtml-data
-libreoffice
-libsdl-gfx1.2-5
-# Needed by pitivi and gnome-sudoku
-python-gi-cairo
-# Needed by pitivi and labyrinth
-python-xdg
-rhythmbox (>= 2.99.1)
-unoconv
-unrar
-whiptail
-xdg-app
-
-
-# moved here from os-depends due to installer
-chromium-browser
-cups
 eos-social
 eos-speedwagon
 eos-tutorial
 evince
+evolution
 file-roller
 fonts-arabeyes
 fonts-arphic-ukai
@@ -100,10 +77,12 @@ fonts-uralic
 fonts-vlgothic
 foomatic-db-compressed-ppds
 fprintd
+gdb
 gedit
 gnome-calculator
 gnome-clocks
 gnome-control-center
+gnome-initial-setup
 gnome-orca
 gnome-screenshot
 gnome-software
@@ -112,6 +91,8 @@ gnome-system-monitor
 gnome-terminal
 grilo-plugins-0.2
 gvfs-bin
+# For compatibility with 2.3 bundles:
+gstreamer0.10-tools
 ibus-anthy
 ibus-cangjie
 ibus-chewing
@@ -124,12 +105,24 @@ ibus-m17n
 ibus-table-wubi
 ibus-tegaki
 ibus-unikey
+icedtea-plugin
+# Needed to support some Epson scanners
+imagescan
+kde-games-core-declarative
+kdeedu-kvtml-data
+libreoffice
+libsdl-gfx1.2-5
 nautilus
 obexd-client
 openprinting-ppds
 openssh-server
 printer-driver-all
 python-dbus
+# Needed by pitivi and gnome-sudoku
+python-gi-cairo
+# Needed by pitivi and labyrinth
+python-xdg
+rhythmbox (>= 2.99.1)
 rtkit
 shotwell
 simple-scan
@@ -142,5 +135,9 @@ ttf-femkeklaver
 ttf-sil-gentium-basic
 ttf-wqy-microhei
 ttf-wqy-zenhei
+unoconv
+unrar
 vinagre
 vino
+whiptail
+xdg-app
