@@ -5,3 +5,4 @@ include base-depends
 include os-depends
 
 eos-installer
+gnome-initial-setup
