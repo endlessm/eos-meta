@@ -28,6 +28,7 @@ fonts-ubuntu-font-family-console
 geoclue-2.0
 gettext-base
 gir1.2-ostree-1.0
+gnome-initial-setup
 gnome-session
 gnome-themes-standard
 gnupg
