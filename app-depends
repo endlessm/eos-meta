@@ -1,5 +1,5 @@
 # Dependencies shared between core and runtime for apps. As we move to
-# xdg-app, these should not be needed in the core.
+# flatpak, these should not be needed in the core.
 eos-knowledge-0
 eos-sdk-webhelper
 freeglut3
