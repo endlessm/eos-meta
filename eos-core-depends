@@ -46,6 +46,7 @@ eos-tutorial
 evince
 evolution
 file-roller
+flatpak
 fonts-arabeyes
 fonts-arphic-ukai
 fonts-arphic-uming
@@ -140,4 +141,3 @@ unrar
 vinagre
 vino
 whiptail
-xdg-app
