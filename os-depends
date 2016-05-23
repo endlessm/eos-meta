@@ -5,6 +5,7 @@ dosfstools
 dracut
 eos-boot-helper
 eos-composite-mode
+eos-default-background
 eos-factory-tools
 eos-license-service
 eos-plymouth-theme
