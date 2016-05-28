@@ -6,12 +6,12 @@ dracut
 eos-boot-helper
 eos-composite-mode
 eos-default-background
+eos-default-settings
 eos-factory-tools
 eos-license-service
 eos-plymouth-theme
 eos-shell
 eos-tech-support
-eos-theme
 eos-updater
 exfat-fuse
 fake-hwclock
