@@ -3,3 +3,5 @@
 # Base dependencies shared between core and runtime
 include app-depends
 include base-depends
+
+eos-extra-fonts
