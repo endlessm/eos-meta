@@ -60,6 +60,7 @@ eos-updater
 evince
 evolution
 exfat-fuse
+exfat-utils
 fake-hwclock
 file
 file-roller
