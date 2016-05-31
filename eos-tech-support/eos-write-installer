@@ -1,0 +1,123 @@
+#!/bin/bash -e
+
+# Writes a raw installer image (possibly zipped)
+# to a device (e.g., USB drive or SD card)
+# using dd, with status monitoring via pv
+#
+# Afterwards, adds an exfat partition that fills
+# the rest of the available space to the beginning
+# of the partition table and creates the filesystem
+# on it. NOTE: the partition table will not be
+# in physical order so Windows can mount the image
+# partition.
+
+if [ $# -lt 2 ] ; then
+    echo "Missing command line arguments"
+    echo "Usage:"
+    echo "   $0 image device"
+    echo "Where:"
+    echo "   image = installer image file to write"
+    echo "   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')"
+    exit
+fi
+
+DEVICE="$2"
+IMAGE="$1"
+
+USERID=$(id -u)
+if [ "$USERID" != "0" ]; then
+    echo "Program requires superuser privileges"
+    exit 1
+fi
+
+# Check for required tools
+command -v mkfs.exfat >/dev/null || {
+    echo "mkfs.exfat is not installed... aborting!"
+    echo "Try 'sudo apt-get install exfat-utils'"
+    exit 1
+}
+
+command -v dd >/dev/null || {
+    echo "dd is not installed... aborting!"
+    echo "Try 'sudo apt-get install coreutils'"
+    exit 1
+}
+
+command -v gzip >/dev/null || {
+    echo "gzip is not installed... aborting!"
+    echo "Try 'sudo apt-get install gzip'"
+    exit 1
+}
+
+command -v pv >/dev/null || {
+    echo "pv is not installed... aborting!"
+    echo "Try 'sudo apt-get install pv'"
+    exit 1
+}
+
+if test \! -b $DEVICE; then
+    echo "$DEVICE does not exist or is not a block device... aborting!"
+    exit 1
+fi
+
+if grep -qs $DEVICE /proc/mounts; then
+    # Protect against overwriting the device currently in use
+    echo "$DEVICE is currently in use -- please unmount and try again"
+    exit 1
+fi
+
+# Write the image
+DD_IN_OPTS=(iflag=nonblock bs=1M)
+DD_OUT_OPTS=(oflag=nonblock conv=fsync bs=1M)
+
+if file --mime-type "$IMAGE" | grep -q gzip$; then
+    # Image is gzipped
+    # The following would calculate the original size
+    # of the unzipped file if less than 4G: 
+    # IMAGE_SIZE=$(zcat -l "$IMAGE" | awk 'NR==2 { print $2 }')
+    # But this doesn't help for large images,
+    # so we just show relative progress
+    zcat "$IMAGE" | pv | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
+else
+    # Image is not gzipped
+    # We can show progress as percentage of total image size
+    IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
+    dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE} \
+        | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
+fi
+
+# Get the current partition table
+TABLE=$(sfdisk -d $DEVICE)
+
+# Split the partition table to header and partitions
+HEADER=$(echo "$TABLE" | grep -v '^/')
+PARTS=$(echo "$TABLE" | grep '^/' | sed -e 's/.*: //')
+
+# Grab the last sector and add one to get the start of our exfat partition
+START=$(echo "$HEADER" | grep 'last-lba' | sed -e 's/^last-lba: //')
+START=$(($START + 1))
+
+# Remove the last-lba line so that we fill the disk
+HEADER=$(echo "$HEADER" | sed -e '/^last-lba:/d')
+
+# Prepend our partition
+PARTS="start=$START, name=eosimages, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7
+$PARTS"
+
+# Reconstruct the table
+TABLE="$HEADER
+$PARTS"
+
+# Replace the partition table with our modified version
+echo "$TABLE" | sfdisk --force --no-reread $DEVICE
+
+# At this point udev should have seen that sfdisk closed the block device
+# which was opened for writing, so it will be reprobing.
+# Add udevadm settle here to avoid races.
+udevadm settle
+partprobe
+
+# Grab the eosimages partition and create exfat fs on it
+PART=$(sfdisk -d $DEVICE | grep 'eosimages' | cut -f1 -d' ')
+mkfs.exfat -n eosimages $PART
+
