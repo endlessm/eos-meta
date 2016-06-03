@@ -65,11 +65,11 @@ find /sysroot/{bin,etc,lib,sbin,usr,opt,var} -xdev -type f -size 0 -links +2 \
 # to the real /home.
 # Note that making /syroot a symlink to / fails as dracut will 
 # pick that up when re-generating the initramfs and blow up
-mkdir /sysroot/sysroot
+mkdir -p /sysroot/sysroot
 ln -s /home /sysroot/sysroot/
 
 # Make the systemd journal persistent
-mkdir /var/log/journal
+mkdir -p /var/log/journal
 
 # Enable systemd coredumps storage
 echo "Enabling systemd coredumps processing and storage"
