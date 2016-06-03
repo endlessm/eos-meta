@@ -67,24 +67,9 @@ if grep -qs $DEVICE /proc/mounts; then
 fi
 
 # Write the image
-DD_IN_OPTS=(iflag=nonblock bs=1M)
-DD_OUT_OPTS=(oflag=nonblock conv=fsync bs=1M)
-
-if file --mime-type "$IMAGE" | grep -q gzip$; then
-    # Image is gzipped
-    # The following would calculate the original size
-    # of the unzipped file if less than 4G: 
-    # IMAGE_SIZE=$(zcat -l "$IMAGE" | awk 'NR==2 { print $2 }')
-    # But this doesn't help for large images,
-    # so we just show relative progress
-    zcat "$IMAGE" | pv | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
-else
-    # Image is not gzipped
-    # We can show progress as percentage of total image size
-    IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
-    dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE} \
-        | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
-fi
+echo
+echo "Writing $IMAGE to $DEVICE..."
+eos-write-image -f "$IMAGE" "$DEVICE"
 
 # Get the current partition table
 TABLE=$(sfdisk -d $DEVICE)
