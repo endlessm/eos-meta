@@ -1,0 +1,149 @@
+#!/bin/bash -e
+
+# Fetches both installer and OS images, optionally writing them to a block device
+
+BASE_URL="http://images.endlessm-sf.com"
+MANIFEST_BASE_URL="https://d1anzknqnc1kmb.cloudfront.net"
+KEYRING="/usr/share/keyrings/eos-image-keyring.gpg"
+
+ARGS=$(getopt -o v:p:d:h -l "version:,personality:,device:,help" -n "$0" -- "$@")
+eval set -- "$ARGS"
+
+usage() {
+    cat <<EOF
+Usage:
+   $0 [options]
+Options:
+   -v,--version	Specify version for the Endless OS image (default: newest)
+   -p,--personality	Specify personality for the Endless OS image (default: base)
+   -d,--device	If given, writes the installer image to the specified block device
+   -h,--help	show this message
+EOF
+}
+
+while true; do
+    case "$1" in
+        -v|--version)
+            shift
+            VERSION=$1
+            shift
+            ;;
+        -p|--personality)
+            shift
+            PERSONALITY=$1
+            shift
+            ;;
+        -d|--device)
+            shift
+            DEVICE=$1
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+
+download_and_verify() {
+  echo
+  echo "Downloading $1 from $2"
+  # FIXME: wget is used here since curl seems to append a 416 error document
+  #        to an already completely downloaded file...
+  wget --continue $2 || return 1
+  echo
+  echo "Downloading signature for $1 from $3"
+  curl -L -O $3 || return 1
+  echo
+  echo "Verifying..."
+  gpgv --keyring $KEYRING $(basename $3) $(basename $2) || return 1
+  echo
+  echo "Download ok."
+  return 0
+}
+
+echo
+echo "Fetching Endless OS Installer manifest..."
+# For installer, we always get the latest base image
+JSON=$(curl $MANIFEST_BASE_URL/releases-eosinstaller.json.gz | gzip -d)
+SELECTED=$(echo $JSON | jq '.images[] | values' | jq -s 'max_by(.version)')
+IMAGE_URL=$(echo $SELECTED | jq -r '.personality_images["base"] | .full | .file')
+SIGNATURE_URL=$(echo $SELECTED | jq -r '.personality_images["base"] | .full | .signature')
+
+if test "null" = "$IMAGE_URL" -o "null" = $SIGNATURE_URL
+then
+  echo
+  echo "Problem fetching the Endless OS Installer manifest. Please try again."
+  exit 1
+fi
+
+# Download & verify
+download_and_verify "Endless OS Installer image" $BASE_URL/$IMAGE_URL $BASE_URL/$SIGNATURE_URL
+
+# If specified, write the installer image to the block device
+if test -n $DEVICE
+then
+  if test \! -b $DEVICE; then
+    echo "$DEVICE does not exist or is not a block device... aborting!"
+    exit 1
+  fi
+  # To support easier development in the repo
+  WRITER=$(dirname $0)/eos-write-installer
+  if test \! -x $WRITER
+  then
+    WRITER=eos-write-installer
+  fi
+  $WRITER $(basename $IMAGE_URL) $DEVICE || exit 1
+fi
+
+echo
+echo "Fetching Endless OS Image manifest..."
+JSON=$(curl $MANIFEST_BASE_URL/releases-eos.json.gz | gzip -d)
+
+# If the user specified a version, select that but otherwise we go with latest
+if test -z "$VERSION"
+then
+  SELECTED=$(echo $JSON | jq '.images[] | values' | jq -s 'max_by(.version)')
+else
+  SELECTED=$(echo $JSON | jq '.images[] | values' | jq -s ".[] | select(.version | contains(\"$1\"))")
+fi
+
+if test -z "$PERSONALITY"
+then
+  PERSONALITY="base"
+fi
+
+# Only full images are supported for now
+IMAGE_URL=$(echo $SELECTED | jq -r ".personality_images[\"$PERSONALITY\"] | .full | .file")
+SIGNATURE_URL=$(echo $SELECTED | jq -r ".personality_images[\"$PERSONALITY\"] | .full | .signature")
+
+if test "null" = "$IMAGE_URL" -o "null" = $SIGNATURE_URL
+then
+  echo
+  echo "Problem fetching the Endless OS Image manifest. Please try again."
+  return 1
+fi
+
+# Download & verify
+download_and_verify "Endless OS Image" $BASE_URL/$IMAGE_URL $BASE_URL/$SIGNATURE_URL
+
+# If we wrote a disk with the installer image, copy the OS image over.
+if test -n $DEVICE
+then
+  # Try to mount the exfat partition
+  udisksctl mount -b ${DEVICE}1 --no-user-interaction || exit 1
+  # Grab the mount point
+  MOUNTPOINT=$(grep ${DEVICE}1 /proc/mounts | cut -f2 -d' ')
+  if test -n "$MOUNTPOINT" -a -d "$MOUNTPOINT"
+  then
+    cp $(basename $SIGNATURE_URL) "$MOUNTPOINT"/
+    pv $(basename $IMAGE_URL) > "$MOUNTPOINT"/$(basename $IMAGE_URL)
+  fi
+  udisksctl unmount -b ${DEVICE}1 --no-user-interaction
+  sync
+fi
+
