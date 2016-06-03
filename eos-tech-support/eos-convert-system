@@ -80,22 +80,21 @@ mkdir /var/log/journal
 echo "Enabling systemd coredumps processing and storage"
 echo "kernel.core_pattern=|/lib/systemd/systemd-coredump %p %u %g %s %t %c %e" > /etc/sysctl.d/50-coredump.conf
 
+# Put the kernels/initramfs in the expected place by Debian
+cp -pax ${OSTREE_DEPLOY_CURRENT}/boot/{vmlinuz,initramfs}*  /boot
+rename 's/-\w*$//g,s/initramfs/initrd\.img/g' /boot/{vmlinuz,init}*
+
 if [ -L /boot/uEnv.txt ] ; then 
   # Running on ARM
-  echo "Please install flash-kernel after reboot for correct kernel upgrades" 
-  K=$(grep kernel_image /boot/uEnv.txt | cut -d '=' -f 2)
-  U=$(grep ramdisk_image /boot/uEnv.txt | cut -d '=' -f 2)
-  B=$(grep bootargs /boot/uEnv.txt)
-  
-  cp /boot/${K} /boot/uImage
-  cp /boot/${U} /boot/uInitrd
-  echo -e 'kernel_image=uImage\nramdisk_image=uInitrd\n' > /boot/uEnv.txt
-  echo ${B} | sed 's/ostree=[^ ]*//g' >> /boot/uEnv.txt
-else
-  # Intel, put the kernels/initramfs in the expected place by Debian
-  cp -pax ${OSTREE_DEPLOY_CURRENT}/boot/{vmlinuz,initramfs}*  /boot
-  rename 's/-\w*$//g,s/initramfs/initrd\.img/g' /boot/{vmlinuz,init}*
+  ln -r -s /boot/vmlinuz* /boot/vmlinuz
+  ln -r -s /boot/initrd* /boot/initrd.img
 
+  sed -i \
+    -e 's:^kernel_image=.*:kernel_image=/vmlinuz:' \
+    -e 's:^ramdisk_image=.*:ramdisk_image=/initrd.img:' \
+    -e 's/ostree=[^ ]*//g' \
+    /boot/uEnv.txt
+else
   O=$(grep options /boot/loader/entries/*.conf | head -n1 | cut -d ' ' -f 2-)
   echo GRUB_CMDLINE_LINUX_DEFAULT=\"${O} \" | sed 's/ostree=[^ ]*//g' \
     >> /etc/default/grub
