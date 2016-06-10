@@ -11,6 +11,7 @@ dracut
 eos-boot-helper
 eos-composite-mode
 eos-factory-tools
+eos-image-keyring
 eos-installer
 eos-keyring
 eos-license-service
