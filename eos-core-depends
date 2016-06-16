@@ -90,7 +90,6 @@ gnome-software
 gnome-sushi
 gnome-system-monitor
 gnome-terminal
-grilo-plugins-0.2
 gvfs-bin
 # For compatibility with 2.3 bundles:
 gstreamer0.10-tools
