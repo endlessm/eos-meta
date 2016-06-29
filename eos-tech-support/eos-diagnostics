@@ -233,7 +233,7 @@ function dumpDiagnostics(filename) {
     fullDump += '======================\n'
     fullDump += '\n';
     fullDump += 'PCI\n\n';
-    fullDump += trySpawn('lspci');
+    fullDump += trySpawn('lspci -knn');
     fullDump += '\n';
     fullDump += 'USB\n\n';
     fullDump += trySpawn('lsusb');
