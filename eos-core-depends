@@ -142,3 +142,5 @@ vino
 virtualbox-guest-utils [amd64]
 virtualbox-guest-x11 [amd64]
 whiptail
+xdg-desktop-portal
+xdg-desktop-portal-gtk
