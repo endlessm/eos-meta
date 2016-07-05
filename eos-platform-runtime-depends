@@ -77,4 +77,6 @@ libumfpack5.6.2
 libwpd-0.10-10
 libwpg-0.3-3
 python-cairo
+python-gi
 python-gst-1.0
+python3-gi
