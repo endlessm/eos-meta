@@ -260,18 +260,25 @@ function dumpDiagnostics(filename) {
     fullDump += collectFlashInfo();
     fullDump += '\n';
 
-    fullDump += '===========================\n'
-    fullDump += '= App manager information =\n'
-    fullDump += '===========================\n'
+    fullDump += '================================\n'
+    fullDump += '= Flatpak remote configuration =\n'
+    fullDump += '================================\n'
     fullDump += '\n';
-    fullDump += tryReadFile('/etc/eos-app-manager/eos-app-manager.ini', 'No app manager info file\n');
+    fullDump += trySpawn('flatpak remote-list --show-details');
     fullDump += '\n';
 
-    fullDump += '==========================\n'
-    fullDump += '= Installed applications =\n'
-    fullDump += '==========================\n'
+    fullDump += '==============================\n'
+    fullDump += '= Flatpak installed runtimes =\n'
+    fullDump += '==============================\n'
     fullDump += '\n';
-    fullDump += trySpawn('eamctl list-apps --verbose');
+    fullDump += trySpawn('flatpak list --runtime --show-details');
+    fullDump += '\n';
+
+    fullDump += '==================================\n'
+    fullDump += '= Flatpak installed applications =\n'
+    fullDump += '==================================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('flatpak list --app --show-details');
     fullDump += '\n';
 
     fullDump += '================\n'
