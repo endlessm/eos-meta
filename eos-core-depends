@@ -1,7 +1,6 @@
 # Metapackage for the core OS
 
 # Common dependencies shared between metapackages
-include app-depends
 include base-depends
 include os-depends
 
@@ -17,7 +16,6 @@ cups
 debconf-i18n
 eog
 eos-acknowledgements
-eos-app-manager
 eos-chrome-plugin-updater
 eos-chrome-plugin-updater-s3
 eos-codecs-manager
