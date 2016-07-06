@@ -1,7 +1,6 @@
 # Metapackage for the core OS
 
 # Common dependencies shared between metapackages
-include app-depends
 include base-depends
 include os-depends
 
