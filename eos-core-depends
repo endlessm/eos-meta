@@ -70,12 +70,15 @@ fonts-paktype
 fonts-quattrocento
 fonts-roboto
 fonts-sil-andika
+fonts-sil-gentium-basic
 fonts-sil-padauk
 fonts-thai-tlwg
 fonts-tlwg-waree
 fonts-unfonts-core
 fonts-uralic
 fonts-vlgothic
+fonts-wqy-microhei
+fonts-wqy-zenhei
 foomatic-db-compressed-ppds
 fprintd
 gdb
@@ -132,9 +135,6 @@ totem
 tracker
 ttf-ancient-fonts
 ttf-femkeklaver
-ttf-sil-gentium-basic
-ttf-wqy-microhei
-ttf-wqy-zenhei
 unoconv
 unrar
 vinagre
