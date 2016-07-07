@@ -17,15 +17,11 @@ debconf-i18n
 eog
 eos-acknowledgements
 eos-chrome-plugin-updater
-eos-chrome-plugin-updater-s3
+eos-chrome-plugin-updater-s3 [armhf]
 eos-codecs-manager
 eos-event-recorder-daemon
 eos-exploration-center
-# Flash plugin only for i386 right now
-eos-flashplugin-updater [i386]
 eos-gates
-# Google Talk plugin only for i386 right now
-eos-google-talkplugin-updater [i386]
 eos-language-pack-ar
 eos-language-pack-bn
 eos-language-pack-en
@@ -93,8 +89,6 @@ gnome-sushi
 gnome-system-monitor
 gnome-terminal
 gvfs-bin
-# For compatibility with 2.3 bundles:
-gstreamer0.10-tools
 ibus-anthy
 ibus-cangjie
 ibus-chewing
@@ -120,10 +114,6 @@ openprinting-ppds
 openssh-server
 printer-driver-all
 python-dbus
-# Needed by pitivi and gnome-sudoku
-python-gi-cairo
-# Needed by pitivi and labyrinth
-python-xdg
 rhythmbox (>= 2.99.1)
 rtkit
 shotwell

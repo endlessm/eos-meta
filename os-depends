@@ -1,4 +1,7 @@
 # Dependencies shared between OS metapackages
+adduser
+avahi-daemon
+bluez
 dbus-x11
 dconf-cli
 dosfstools
@@ -8,6 +11,7 @@ eos-composite-mode
 eos-default-background
 eos-default-settings
 eos-factory-tools
+eos-keyring
 eos-license-service
 eos-plymouth-theme
 eos-shell
@@ -16,13 +20,22 @@ eos-updater
 exfat-fuse
 exfat-utils
 fake-hwclock
+file
 fonts-dejavu
+geoclue-2.0
+gettext-base
 gir1.2-ostree-1.0
 gnome-session
+gnupg
 # Could just be i386 amd64, but theoretically supports other arches
 grub2 [!armhf]
 grub-efi-amd64-image [!armhf]
-shim-efi-image [!armhf]
+gstreamer1.0-tools
+iproute2
+less
+libpam-fprintd
+libpam-runtime
+libpam-systemd
 linux-firmware
 # Kernel package. All arm installs use platform specific kernels, so
 # those appear in the platform specific -depends files. The -64 variant
@@ -33,10 +46,12 @@ lsb-base
 lsb-release
 mobile-broadband-provider-info
 module-init-tools
+net-tools
 network-manager
 network-manager-gnome
 network-manager-vpnc-gnome
 ntp
+openssh-client
 ostree
 p7zip-full
 parted
@@ -44,6 +59,7 @@ policykit-1
 pulseaudio
 pulseaudio-module-bluetooth
 pulseaudio-module-x11
+shim-efi-image [!armhf]
 sudo
 systemd-sysv
 # ARM boot loader
