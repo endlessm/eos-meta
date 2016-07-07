@@ -59,7 +59,7 @@ policykit-1
 pulseaudio
 pulseaudio-module-bluetooth
 pulseaudio-module-x11
-shim-efi-image [!armhf]
+shim-efi-image [amd64]
 sudo
 systemd-sysv
 # ARM boot loader
