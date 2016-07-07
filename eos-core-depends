@@ -21,11 +21,7 @@ eos-chrome-plugin-updater-s3
 eos-codecs-manager
 eos-event-recorder-daemon
 eos-exploration-center
-# Flash plugin only for i386 right now
-eos-flashplugin-updater [i386]
 eos-gates
-# Google Talk plugin only for i386 right now
-eos-google-talkplugin-updater [i386]
 eos-language-pack-ar
 eos-language-pack-bn
 eos-language-pack-en

@@ -16,8 +16,6 @@ libegl1-mesa-drivers [!armhf]
 libgles2-mesa [!armhf]
 libglib2.0-data
 libglu1-mesa [!armhf]
-# Adobe flash is x86 only
-libhal1-flash [i386 amd64]
 libnss-altfiles
 libnss-myhostname
 locales
