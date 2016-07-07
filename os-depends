@@ -30,7 +30,6 @@ gnupg
 # Could just be i386 amd64, but theoretically supports other arches
 grub2 [!armhf]
 grub-efi-amd64-image [!armhf]
-shim-efi-image [!armhf]
 gstreamer1.0-tools
 iproute2
 less
@@ -60,6 +59,7 @@ policykit-1
 pulseaudio
 pulseaudio-module-bluetooth
 pulseaudio-module-x11
+shim-efi-image [!armhf]
 sudo
 systemd-sysv
 # ARM boot loader
