@@ -34,8 +34,6 @@ libboost-system1.55.0
 libboost-thread1.55.0
 libcairomm-1.0-1
 libcanberra-gtk3-0
-libcanberra-gtk-module
-libcaribou-gtk-module
 libclutter-1.0-0
 libclutter-gtk-1.0-0
 libcogl20
