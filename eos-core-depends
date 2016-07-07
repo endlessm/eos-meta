@@ -89,8 +89,6 @@ gnome-sushi
 gnome-system-monitor
 gnome-terminal
 gvfs-bin
-# For compatibility with 2.3 bundles:
-gstreamer0.10-tools
 ibus-anthy
 ibus-cangjie
 ibus-chewing
