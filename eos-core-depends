@@ -114,10 +114,6 @@ openprinting-ppds
 openssh-server
 printer-driver-all
 python-dbus
-# Needed by pitivi and gnome-sudoku
-python-gi-cairo
-# Needed by pitivi and labyrinth
-python-xdg
 rhythmbox (>= 2.99.1)
 rtkit
 shotwell
