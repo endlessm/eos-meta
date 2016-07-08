@@ -25,6 +25,8 @@ libsoup2.4-dev
 make
 patchutils
 quilt
+ruby-compass
+ruby-sass
 strace
 valgrind
 vim
