@@ -10,6 +10,7 @@ apt-transport-https
 apt-utils
 brasero
 btrfs-tools
+cdrdao
 cheese
 chromium-browser
 cups
