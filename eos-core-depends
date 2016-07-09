@@ -118,6 +118,7 @@ rhythmbox (>= 2.99.1)
 rtkit
 shotwell
 simple-scan
+smbclient
 system-config-printer-gnome
 systemd-coredump
 totem
