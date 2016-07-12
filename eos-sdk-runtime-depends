@@ -4,6 +4,7 @@ automake
 bison
 build-essential
 diffutils
+eos-knowledge-0-dev
 eos-knowledge-db-build
 eos-node-modules-dev
 eos-platform-runtime
