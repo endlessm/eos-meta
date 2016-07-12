@@ -41,7 +41,7 @@ libboost-thread1.55.0
 libcairomm-1.0-1
 libcanberra-gtk3-0
 libclutter-1.0-0
-libclutter-gst-2.0
+libclutter-gst-2.0-0
 libclutter-gtk-1.0-0
 libcogl20
 libcogl-pango20
@@ -57,7 +57,7 @@ libgtkmm-2.4-1c2a
 libgtkmm-3.0-1
 libgtkspell3-3-0
 libinput10
-libjson-glib-1.0
+libjson-glib-1.0-0
 libkdeedu-data
 libkdegames6abi1
 libkdegamesprivate1abi1
