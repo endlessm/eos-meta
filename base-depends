@@ -8,6 +8,7 @@ gnome-themes-standard
 gstreamer1.0-libav
 gstreamer1.0-plugins-good
 gstreamer1.0-pulseaudio
+gstreamer1.0-tools
 libcanberra-gtk-module
 libcanberra-gtk3-module
 libcanberra-pulse
