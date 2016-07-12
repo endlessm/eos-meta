@@ -8,6 +8,12 @@ eos-extra-fonts
 eos-knowledge-0
 eos-sdk-webhelper
 freeglut3
+gir1.2-clutter-1.0
+gir1.2-clutter-gst-2.0
+gir1.2-cogl-1.0
+gir1.2-coglpango-1.0
+gir1.2-gtkclutter-1.0
+gir1.2-json-1.0
 gstreamer0.10-alsa
 gstreamer0.10-plugins-base
 gstreamer0.10-plugins-good
@@ -35,6 +41,7 @@ libboost-thread1.55.0
 libcairomm-1.0-1
 libcanberra-gtk3-0
 libclutter-1.0-0
+libclutter-gst-2.0
 libclutter-gtk-1.0-0
 libcogl20
 libcogl-pango20
@@ -50,6 +57,7 @@ libgtkmm-2.4-1c2a
 libgtkmm-3.0-1
 libgtkspell3-3-0
 libinput10
+libjson-glib-1.0
 libkdeedu-data
 libkdegames6abi1
 libkdegamesprivate1abi1
