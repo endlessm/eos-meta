@@ -14,6 +14,7 @@ gir1.2-cogl-1.0
 gir1.2-coglpango-1.0
 gir1.2-gtkclutter-1.0
 gir1.2-json-1.0
+gir1.2-webkit2-4.0
 gstreamer0.10-alsa
 gstreamer0.10-plugins-base
 gstreamer0.10-plugins-good
@@ -80,6 +81,7 @@ libsdl-pango1
 libsdl-ttf2.0-0
 libswscale3
 libumfpack5.6.2
+libwebkit2gtk-4.0-37
 libwpd-0.10-10
 libwpg-0.3-3
 python-cairo
