@@ -47,11 +47,18 @@ fi
 echo "Updating HOME directory"
 sed -i "s#/sysroot/home#/home#g" /etc/passwd* /etc/adduser.conf /etc/default/useradd
 
+# Directories in the deployment root to merge to /sysroot
+ROOT_DIRS=(bin etc lib sbin usr opt var endless)
+if [ -d ${OSTREE_DEPLOY_CURRENT}/lib64 ]; then
+  ROOT_DIRS+=(lib64)
+fi
+
 echo "Hardlinking files from $OSTREE_DEPLOY_CURRENT, this may take a while"
 
 # Copy the system directories to the real filesystems /
-cp -paxl ${OSTREE_DEPLOY_CURRENT}/{bin,etc,lib,sbin,usr,opt,var,endless} /sysroot
-
+for dir in ${ROOT_DIRS[@]}; do
+  cp -paxl ${OSTREE_DEPLOY_CURRENT}/${dir} /sysroot
+done
 
 # Overlay the /var as deployed on the systems /var
 echo "Overlaying deployed /var FROM ${OSTREE_DEPLOY}"
@@ -63,8 +70,10 @@ cp -paxl ${OSTREE_DEPLOY}/var /sysroot
 # We look for files with greater than 2 links since we just hardlinked
 # everything to the ostree deployment, so by definition all files will
 # have at least 2 links.
-find /sysroot/{bin,etc,lib,sbin,usr,opt,var} -xdev -type f -size 0 -links +2 \
-  -exec eos-break-links '{}' '+'
+for dir in ${ROOT_DIRS[@]}; do
+  find /sysroot/${dir} -xdev -type f -size 0 -links +2 \
+       -exec eos-break-links '{}' '+'
+done
 
 # homedirs are /sysroot/home/<user> for some odd reason so point /sysroot/home 
 # to the real /home.
