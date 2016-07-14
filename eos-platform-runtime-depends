@@ -6,6 +6,7 @@ include base-depends
 # Dependencies for apps included in the runtime.
 eos-extra-fonts
 eos-knowledge-0
+eos-knowledge-0-bin
 eos-sdk-webhelper
 freeglut3
 gir1.2-clutter-1.0
