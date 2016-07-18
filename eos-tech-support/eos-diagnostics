@@ -228,6 +228,13 @@ function dumpDiagnostics(filename) {
     fullDump += trySpawn('xrandr -q --verbose');
     fullDump += '\n';
 
+    fullDump += '=====================\n'
+    fullDump += '= Audio information =\n'
+    fullDump += '=====================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('pactl list');
+    fullDump += '\n';
+
     fullDump += '======================\n'
     fullDump += '= Device information =\n'
     fullDump += '======================\n'
