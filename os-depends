@@ -2,6 +2,7 @@
 adduser
 avahi-daemon
 bluez
+cryptsetup
 dbus-x11
 dconf-cli
 dosfstools
