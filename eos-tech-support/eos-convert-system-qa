@@ -2,7 +2,7 @@
 
 # OSTree dev repo URL settings.
 OSTREE_USER=endless
-OSTREE_HOST=ostree.endlessm.com
+OSTREE_HOST=origin.ostree.endlessm.com
 OSTREE_DEV_ROOT=staging/dev
 
 function usage {
