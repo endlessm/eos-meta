@@ -11,7 +11,7 @@ Invalid option: $1
 
 Valid options:
     -m, --metrics     Configure Metrics System for Dev.
-    -a, --apps        Configure App Server for Staging.
+    -a, --apps        Configure Flatpak for Staging.
     -o, --ostree      Configure OSTree for Staging.
     -j, --journal     Configure systemd journal to be persistent.
 EOF
@@ -82,14 +82,8 @@ if $METRICS; then
     eos-select-metrics-env dev
 fi
 
-# Change app server to staging.
-if $APPS; then
-    echo "Configuring App Server for Staging."
-    eos-select-app-server $STAGING_SERVER
-fi
-
-# Change OSTree server and check it.
-if $OSTREE; then
+# Change OSTree and Flatpak servers to staging.
+if $OSTREE || $APPS; then
     # Get the HTTP password for the dev repos.
     read -p "OSTree password: " OSTREE_PASSWORD
     if [ -z "$OSTREE_PASSWORD" ]; then
@@ -97,42 +91,62 @@ if $OSTREE; then
         exit 1
     fi
 
-    # Get the current refspec.
-    refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
-    branch=${refspec#*:}
-    arch=${branch#*/}
+    # Change the Flatpak runtime and apps server URLs.
+    if $APPS; then
+        runtime_url=$(flatpak remote-list -d | awk '/^eos-runtimes/{print $3}')
+        runtime_repo=${runtime_url##*/}
+        new_runtime_url="https://${OSTREE_USER}:${OSTREE_PASSWORD}@${OSTREE_HOST}/${OSTREE_DEV_ROOT}/${runtime_repo}"
 
-    # Get the OS major.minor version,
-    version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
+        echo "Setting flatpak runtimes URL to $new_runtime_url"
+        flatpak remote-modify eos-runtimes --url="$new_runtime_url"
 
-    # Construct the new branch.
-    new_branch="eos${version}/${arch}"
+        apps_url=$(flatpak remote-list -d | awk '/^eos-apps/{print $3}')
+        apps_repo=${apps_url##*/}
+        new_apps_url="https://${OSTREE_USER}:${OSTREE_PASSWORD}@${OSTREE_HOST}/${OSTREE_DEV_ROOT}/${apps_repo}"
 
-    # Get the current URL and convert to staging.
-    url=$(ostree config get 'remote "eos".url')
-    repo=${url##*/}
-    new_url="https://${OSTREE_USER}:${OSTREE_PASSWORD}@${OSTREE_HOST}/${OSTREE_DEV_ROOT}/${repo}"
+        echo "Setting flatpak apps URL to $new_runtime_url"
+        flatpak remote-modify eos-apps --url="$new_apps_url"
+    fi
 
-    # Make sure the autoupdater doesn't start the updater after it's
-    # killed below.
-    echo "Stopping running eos-autoupdater."
-    systemctl stop eos-autoupdater.timer
-    systemctl stop eos-autoupdater.service
+    # Change OSTree server and check it.
+    if $OSTREE; then
+        # Get the current refspec.
+        refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
+        branch=${refspec#*:}
+        arch=${branch#*/}
 
-    echo "Killing eos-updater."
-    killall eos-updater &>/dev/null
+        # Get the OS major.minor version,
+        version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
 
-    echo "Configuring OSTree for Staging."
-    # HACK! HACK! HACK! ostree admin set-origin is horribly broken as of
-    # ostree 2015.7. It won't change the url or use any --set options
-    # for an existing remote. Instead, use the config builtin to handle
-    # that. The correct set-origin command is left in place in case this
-    # is ever fixed. Upstream bug at
-    # https://bugzilla.gnome.org/show_bug.cgi?id=753373
-    ostree config set 'remote "eos".url' "$new_url"
-    ostree config set 'remote "eos".branches' "${new_branch};"
-    ostree admin set-origin eos "$new_url" "$new_branch" \
-        --set=branches="${new_branch};"
+        # Construct the new branch.
+        new_branch="eos${version}/${arch}"
+
+        # Get the current URL and convert to staging.
+        url=$(ostree config get 'remote "eos".url')
+        repo=${url##*/}
+        new_url="https://${OSTREE_USER}:${OSTREE_PASSWORD}@${OSTREE_HOST}/${OSTREE_DEV_ROOT}/${repo}"
+
+        # Make sure the autoupdater doesn't start the updater after it's
+        # killed below.
+        echo "Stopping running eos-autoupdater."
+        systemctl stop eos-autoupdater.timer
+        systemctl stop eos-autoupdater.service
+
+        echo "Killing eos-updater."
+        killall eos-updater &>/dev/null
+
+        echo "Configuring OSTree for Staging."
+        # HACK! HACK! HACK! ostree admin set-origin is horribly broken
+        # as of ostree 2015.7. It won't change the url or use any --set
+        # options for an existing remote. Instead, use the config
+        # builtin to handle that. The correct set-origin command is left
+        # in place in case this is ever fixed. Upstream bug at
+        # https://bugzilla.gnome.org/show_bug.cgi?id=753373
+        ostree config set 'remote "eos".url' "$new_url"
+        ostree config set 'remote "eos".branches' "${new_branch};"
+        ostree admin set-origin eos "$new_url" "$new_branch" \
+            --set=branches="${new_branch};"
+    fi
 fi
 
 echo "All done!"
