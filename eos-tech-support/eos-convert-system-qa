@@ -1,6 +1,9 @@
 #!/bin/bash -e
 
-STAGING_SERVER="http://staging.appupdates.endlessm.com"
+# OSTree dev repo URL settings.
+OSTREE_USER=endless
+OSTREE_HOST=ostree.endlessm.com
+OSTREE_DEV_ROOT=staging/dev
 
 function usage {
     cat <<EOF
@@ -87,6 +90,13 @@ fi
 
 # Change OSTree server and check it.
 if $OSTREE; then
+    # Get the HTTP password for the dev repos.
+    read -p "OSTree password: " OSTREE_PASSWORD
+    if [ -z "$OSTREE_PASSWORD" ]; then
+        echo "error: No password supplied" >&2
+        exit 1
+    fi
+
     # Get the current refspec.
     refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
     branch=${refspec#*:}
@@ -100,7 +110,8 @@ if $OSTREE; then
 
     # Get the current URL and convert to staging.
     url=$(ostree config get 'remote "eos".url')
-    new_url=$(echo $url | sed 's,/ostree/,/staging/dev/,')
+    repo=${url##*/}
+    new_url="https://${OSTREE_USER}:${OSTREE_PASSWORD}@${OSTREE_HOST}/${OSTREE_DEV_ROOT}/${repo}"
 
     # Make sure the autoupdater doesn't start the updater after it's
     # killed below.
@@ -122,6 +133,6 @@ if $OSTREE; then
     ostree config set 'remote "eos".branches' "${new_branch};"
     ostree admin set-origin eos "$new_url" "$new_branch" \
         --set=branches="${new_branch};"
-
-    echo "All done!"
 fi
+
+echo "All done!"
