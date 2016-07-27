@@ -105,8 +105,6 @@ ibus-unikey
 icedtea-plugin
 # Needed to support some Epson scanners
 imagescan
-kde-games-core-declarative
-kdeedu-kvtml-data
 libreoffice
 libsdl-gfx1.2-5
 nautilus
