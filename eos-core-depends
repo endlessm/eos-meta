@@ -106,7 +106,6 @@ icedtea-plugin
 # Needed to support some Epson scanners
 imagescan
 libreoffice
-libsdl-gfx1.2-5
 nautilus
 obexd-client
 openprinting-ppds
