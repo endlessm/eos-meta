@@ -20,7 +20,9 @@ gstreamer0.10-alsa
 gstreamer0.10-plugins-base
 gstreamer0.10-plugins-good
 gstreamer0.10-pulseaudio
+kde-games-core-declarative
 kde-runtime
+kdeedu-kvtml-data
 khelpcenter4
 libalut0
 libasound2
@@ -75,6 +77,7 @@ libpulse0
 libpulse-mainloop-glib0
 libpython2.7
 libsdl1.2debian
+libsdl-gfx1.2-5
 libsdl-image1.2
 libsdl-mixer1.2
 libsdl-net1.2
@@ -90,3 +93,11 @@ python-cairo
 python-gi
 python-gst-1.0
 python3-gi
+
+# Language packs for runtime dependencies
+kde-l10n-ar
+kde-l10n-es
+kde-l10n-fr
+kde-l10n-ptbr
+kde-l10n-pt
+kde-l10n-zhcn
