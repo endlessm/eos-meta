@@ -103,7 +103,6 @@ ibus-libzhuyin
 ibus-m17n
 ibus-table-wubi
 ibus-unikey
-icedtea-plugin
 # Needed to support some Epson scanners
 imagescan
 libreoffice
