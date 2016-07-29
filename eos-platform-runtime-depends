@@ -73,6 +73,7 @@ liblua5.1-0
 liblua5.2-0
 libmtdev1
 libpangomm-1.4-1
+libportaudio2
 libpulse0
 libpulse-mainloop-glib0
 libpython2.7
@@ -83,6 +84,7 @@ libsdl-mixer1.2
 libsdl-net1.2
 libsdl-pango1
 libsdl-ttf2.0-0
+libsoundtouch0
 libswscale3
 libumfpack5.6.2
 libwebkit2gtk-4.0-37
