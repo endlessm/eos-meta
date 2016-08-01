@@ -2,11 +2,12 @@
 
 # Fetches both installer and OS images, optionally writing them to a block device
 
-BASE_URL="http://images.endlessm-sf.com"
+INTERNAL_BASE_URL="http://images.endlessm-sf.com"
 MANIFEST_BASE_URL="https://d1anzknqnc1kmb.cloudfront.net"
+BASE_URL="$MANIFEST_BASE_URL"
 KEYRING="/usr/share/keyrings/eos-image-keyring.gpg"
 
-ARGS=$(getopt -o v:p:d:h -l "version:,personality:,device:,help" -n "$0" -- "$@")
+ARGS=$(getopt -o v:p:d:ih -l "version:,personality:,device:,internal,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -17,6 +18,7 @@ Options:
    -v,--version	Specify version for the Endless OS image (default: newest)
    -p,--personality	Specify personality for the Endless OS image (default: base)
    -d,--device	If given, writes the installer image to the specified block device
+   -i,--internal	Fetch images from the Endless network, not Cloudfront
    -h,--help	show this message
 EOF
 }
@@ -37,6 +39,10 @@ while true; do
             shift
             DEVICE=$1
             shift
+            ;;
+        -i|--internal)
+            shift
+            BASE_URL="$INTERNAL_BASE_URL"
             ;;
         -h|--help)
             usage
@@ -146,4 +152,3 @@ then
   udisksctl unmount -b ${DEVICE}1 --no-user-interaction
   sync
 fi
-
