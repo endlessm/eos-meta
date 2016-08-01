@@ -107,7 +107,7 @@ fi
 download_and_verify "Endless OS Installer image" $BASE_URL/$IMAGE_URL $BASE_URL/$SIGNATURE_URL
 
 # If specified, write the installer image to the block device
-if test -n $DEVICE
+if test -n "$DEVICE"
 then
   if test \! -b $DEVICE; then
     echo "$DEVICE does not exist or is not a block device... aborting!"
@@ -154,7 +154,7 @@ fi
 download_and_verify "Endless OS Image" $BASE_URL/$IMAGE_URL $BASE_URL/$SIGNATURE_URL
 
 # If we wrote a disk with the installer image, copy the OS image over.
-if test -n $DEVICE
+if test -n "$DEVICE"
 then
   # Try to mount the exfat partition
   udisksctl mount -b ${DEVICE}1 --no-user-interaction || exit 1
