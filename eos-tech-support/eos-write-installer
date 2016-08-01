@@ -18,7 +18,7 @@ if [ $# -lt 2 ] ; then
     echo "Where:"
     echo "   image = installer image file to write"
     echo "   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')"
-    exit
+    exit 2
 fi
 
 DEVICE="$2"
