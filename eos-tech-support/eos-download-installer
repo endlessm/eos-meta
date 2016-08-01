@@ -5,7 +5,9 @@
 INTERNAL_BASE_URL="http://images.endlessm-sf.com"
 MANIFEST_BASE_URL="https://d1anzknqnc1kmb.cloudfront.net"
 BASE_URL="$MANIFEST_BASE_URL"
-KEYRING="/usr/share/keyrings/eos-image-keyring.gpg"
+KEYRING_FILENAME="eos-image-keyring.gpg"
+KEYRING_URL="$MANIFEST_BASE_URL/$KEYRING_FILENAME"
+KEYRING_SYSTEM_PATH="/usr/share/keyrings/$KEYRING_FILENAME"
 
 ARGS=$(getopt -o v:p:d:ih -l "version:,personality:,device:,internal,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
@@ -71,6 +73,20 @@ download_and_verify() {
   echo "Download ok."
   return 0
 }
+
+if [ -f "$SYSTEM_KEYRING" ]
+then
+  KEYRING="$SYSTEM_KEYRING"
+else
+  KEYRING="$(readlink -f ./$KEYRING_FILENAME)"
+  if [ ! -f "$KEYRING" ]
+  then
+    echo
+    echo "Fetching Endless keyring"
+    curl -o"$KEYRING" "$KEYRING_URL"
+  fi
+fi
+echo "Using keyring at $KEYRING"
 
 echo
 echo "Fetching Endless OS Installer manifest..."
