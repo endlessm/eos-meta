@@ -11,18 +11,66 @@
 # in physical order so Windows can mount the image
 # partition.
 
-if [ $# -lt 2 ] ; then
-    echo "Missing command line arguments"
-    echo "Usage:"
-    echo "   $0 image device"
-    echo "Where:"
-    echo "   image = installer image file to write"
-    echo "   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')"
-    exit 2
+EOS_WRITE_IMAGE=$(dirname $0)/eos-write-image
+if [ ! -f $EOS_WRITE_IMAGE ]; then
+    EOS_WRITE_IMAGE='eos-write-image'
 fi
 
-DEVICE="$2"
-IMAGE="$1"
+ARGS=$(getopt -o i:,o:,h -l "installer:,os-image:,help" -n "$0" -- "$@")
+eval set -- "$ARGS"
+
+usage() {
+    cat <<EOF
+Usage:
+   $0 [options] DEVICE
+Arguments:
+    DEVICE	Device path (e.g. '/dev/sdb' or '/dev/mmcblk0')
+Options:
+   -i,--installer	Path to Endless OS installer image (required)
+   -o,--os-image	Path to Endless OS image to add to installer (required)
+   -h,--help	show this message
+EOF
+}
+
+function check_exists() {
+    if [ ! -f "$1" ]; then
+        echo "$1 does not exist or is not a file device"
+        exit 1
+    fi
+}
+while true; do
+    case "$1" in
+        -i|--installer)
+            shift
+            INSTALLER_IMAGE="$1"
+            check_exists "$INSTALLER_IMAGE"
+            shift
+            ;;
+        -o|--os-image)
+            shift
+            OS_IMAGE="$1"
+            check_exists "$OS_IMAGE"
+            check_exists "$OS_IMAGE.asc"
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+
+if [ $# -lt 1 ] ; then
+    echo "Missing DEVICE"
+    usage
+    exit 1
+fi
+
+DEVICE="$1"
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
@@ -66,10 +114,16 @@ if grep -qs $DEVICE /proc/mounts; then
     exit 1
 fi
 
+if [ ! -f "$INSTALLER_IMAGE" -o ! -f "$OS_IMAGE" ]; then
+    echo "--installer and --image are required"
+    usage
+    exit 2
+fi
+
 # Write the image
 echo
-echo "Writing $IMAGE to $DEVICE..."
-eos-write-image -f "$IMAGE" "$DEVICE"
+echo "Writing $INSTALLER_IMAGE to $DEVICE..."
+$EOS_WRITE_IMAGE -f "$INSTALLER_IMAGE" "$DEVICE"
 
 # Get the current partition table
 TABLE=$(sfdisk -d $DEVICE)
@@ -106,3 +160,15 @@ partprobe
 PART=$(sfdisk -d $DEVICE | grep 'eosimages' | cut -f1 -d' ')
 mkfs.exfat -n eosimages $PART
 
+# Try to mount the exfat partition
+udisksctl mount -b ${DEVICE}1 --no-user-interaction || exit 1
+# Grab the mount point
+MOUNTPOINT=$(grep ${DEVICE}1 /proc/mounts | cut -f2 -d' ')
+if test -n "$MOUNTPOINT" -a -d "$MOUNTPOINT"
+then
+  # Write image and its signature
+  cp "$OS_IMAGE.asc" "$MOUNTPOINT"/
+  pv "$OS_IMAGE" > "$MOUNTPOINT"/"$OS_IMAGE"
+fi
+udisksctl unmount -b ${DEVICE}1 --no-user-interaction
+sync
