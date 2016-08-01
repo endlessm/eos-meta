@@ -114,7 +114,7 @@ if test "null" = "$OS_IMAGE_URL" -o "null" = $OS_SIGNATURE_URL
 then
   echo
   echo "Problem fetching the image manifest. Please try again."
-  return 1
+  exit 1
 fi
 
 # Download & verify
