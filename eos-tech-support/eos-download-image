@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-# Fetches both installer and OS images, optionally writing them to a block device
+# Fetches and verifies an image (installer or regular OS)
 
 INTERNAL_BASE_URL="http://images.endlessm-sf.com"
 MANIFEST_BASE_URL="https://d1anzknqnc1kmb.cloudfront.net"
@@ -8,8 +8,9 @@ BASE_URL="$MANIFEST_BASE_URL"
 KEYRING_FILENAME="eos-image-keyring.gpg"
 KEYRING_URL="$MANIFEST_BASE_URL/$KEYRING_FILENAME"
 KEYRING_SYSTEM_PATH="/usr/share/keyrings/$KEYRING_FILENAME"
+PRODUCT="eos"
 
-ARGS=$(getopt -o v:p:d:ih -l "version:,personality:,device:,internal,help" -n "$0" -- "$@")
+ARGS=$(getopt -o v:p:r:ih -l "version:,personality:,product:,internal,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -19,7 +20,7 @@ Usage:
 Options:
    -v,--version	Specify version for the Endless OS image (default: newest)
    -p,--personality	Specify personality for the Endless OS image (default: base)
-   -d,--device	If given, writes the installer image to the specified block device
+   -r,--product	Specify product to download (eg eosinstaller; default: eos)
    -i,--internal	Fetch images from the Endless network, not Cloudfront
    -h,--help	show this message
 EOF
@@ -37,9 +38,9 @@ while true; do
             PERSONALITY=$1
             shift
             ;;
-        -d|--device)
+        -r|--product)
             shift
-            DEVICE=$1
+            PRODUCT=$1
             shift
             ;;
         -i|--internal)
@@ -89,26 +90,8 @@ fi
 echo "Using keyring at $KEYRING"
 
 echo
-echo "Fetching Endless OS Installer manifest..."
-# For installer, we always get the latest base image
-JSON=$(curl $MANIFEST_BASE_URL/releases-eosinstaller.json.gz | gzip -d)
-SELECTED=$(echo $JSON | jq '.images[] | values' | jq -s 'max_by(.version)')
-IMAGE_URL=$(echo $SELECTED | jq -r '.personality_images["base"] | .full | .file')
-SIGNATURE_URL=$(echo $SELECTED | jq -r '.personality_images["base"] | .full | .signature')
-
-if test "null" = "$IMAGE_URL" -o "null" = $SIGNATURE_URL
-then
-  echo
-  echo "Problem fetching the Endless OS Installer manifest. Please try again."
-  exit 1
-fi
-
-# Download & verify
-download_and_verify "Endless OS Installer image" $BASE_URL/$IMAGE_URL $BASE_URL/$SIGNATURE_URL
-
-echo
-echo "Fetching Endless OS Image manifest..."
-JSON=$(curl $MANIFEST_BASE_URL/releases-eos.json.gz | gzip -d)
+echo "Fetching manifest..."
+JSON=$(curl $MANIFEST_BASE_URL/releases-$PRODUCT.json.gz | gzip -d)
 
 # If the user specified a version, select that but otherwise we go with latest
 if test -z "$VERSION"
@@ -130,22 +113,9 @@ OS_SIGNATURE_URL=$(echo $SELECTED | jq -r ".personality_images[\"$PERSONALITY\"]
 if test "null" = "$OS_IMAGE_URL" -o "null" = $OS_SIGNATURE_URL
 then
   echo
-  echo "Problem fetching the Endless OS Image manifest. Please try again."
+  echo "Problem fetching the image manifest. Please try again."
   return 1
 fi
 
 # Download & verify
-download_and_verify "Endless OS Image" $BASE_URL/$OS_IMAGE_URL $BASE_URL/$OS_SIGNATURE_URL
-
-# If specified, write the installer image to the block device and copy the OS image over
-if test -n "$DEVICE"
-then
-  # To support easier development in the repo
-  WRITER=$(dirname $0)/eos-write-installer
-  if test \! -x $WRITER
-  then
-    WRITER=eos-write-installer
-  fi
-
-  $WRITER --installer $(basename $IMAGE_URL) --os-image $(basename $OS_IMAGE_URL) $DEVICE
-fi
+download_and_verify "image" $BASE_URL/$OS_IMAGE_URL $BASE_URL/$OS_SIGNATURE_URL
