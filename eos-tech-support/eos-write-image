@@ -115,11 +115,15 @@ blkdiscard "$DEVICE" &>/dev/null || true
 if file --mime-type "$IMAGE" | grep -q gzip$; then
     # Image is gzipped
     # The following would calculate the original size
-    # of the unzipped file if less than 4G: 
+    # of the unzipped file if less than 4G:
     # IMAGE_SIZE=$(zcat -l "$IMAGE" | awk 'NR==2 { print $2 }')
     # But this doesn't help for large images,
-    # so we just show relative progress
-    zcat "$IMAGE" | pv | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
+    # so we just show relative progress unless .size is present
+    if [ -f "$IMAGE.size" ]; then
+        IMAGE_SIZE=$(cat $IMAGE.size)
+        PV_ARGS="-s $IMAGE_SIZE"
+    fi
+    zcat "$IMAGE" | pv $PV_ARGS | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
 else
     # Image is not gzipped
     # We can show progress as percentage of total image size
