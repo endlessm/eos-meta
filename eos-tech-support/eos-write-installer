@@ -15,8 +15,12 @@ EOS_WRITE_IMAGE=$(dirname $0)/eos-write-image
 if [ ! -f $EOS_WRITE_IMAGE ]; then
     EOS_WRITE_IMAGE='eos-write-image'
 fi
+EOS_DOWNLOAD_IMAGE=$(dirname $0)/eos-download-image
+if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
+    EOS_DOWNLOAD_IMAGE='eos-download-image'
+fi
 
-ARGS=$(getopt -o i:,o:,h -l "installer:,os-image:,help" -n "$0" -- "$@")
+ARGS=$(getopt -o i:,o:,lh -l "installer:,os-image:,latest,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -26,9 +30,13 @@ Usage:
 Arguments:
     DEVICE	Device path (e.g. '/dev/sdb' or '/dev/mmcblk0')
 Options:
-   -i,--installer	Path to Endless OS installer image (required)
-   -o,--os-image	Path to Endless OS image to add to installer (required)
-   -h,--help	show this message
+   -i,--installer PATH	Path to Endless OS installer image
+   -o,--os-image  PATH	Path to Endless OS image to add to installer
+   -l,--latest		Fetch latest OS and/or installer image
+   -h,--help		show this message
+If --latest is specified and one or both of --installer or --os-image are
+missing, the latest image will be downloaded. If --latest is not specified,
+both --installer and --os-image must be specified.
 EOF
 }
 
@@ -52,6 +60,10 @@ while true; do
             check_exists "$OS_IMAGE"
             check_exists "$OS_IMAGE.asc"
             shift
+            ;;
+        -l|--latest)
+            shift
+            FETCH_LATEST=true
             ;;
         -h|--help)
             usage
@@ -114,8 +126,17 @@ if grep -qs $DEVICE /proc/mounts; then
     exit 1
 fi
 
+if [ ! -z "$FETCH_LATEST" ]; then
+    if [ -z "$INSTALLER_IMAGE" ]; then
+        INSTALLER_IMAGE=$($EOS_DOWNLOAD_IMAGE --product eosinstaller)
+    fi
+    if [ -z "$OS_IMAGE" ]; then
+        OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --product eos)
+    fi
+fi
+
 if [ ! -f "$INSTALLER_IMAGE" -o ! -f "$OS_IMAGE" ]; then
-    echo "--installer and --image are required"
+    echo "--installer and --image are required if --latest is not specified"
     usage
     exit 2
 fi
