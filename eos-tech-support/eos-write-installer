@@ -11,18 +11,78 @@
 # in physical order so Windows can mount the image
 # partition.
 
-if [ $# -lt 2 ] ; then
-    echo "Missing command line arguments"
-    echo "Usage:"
-    echo "   $0 image device"
-    echo "Where:"
-    echo "   image = installer image file to write"
-    echo "   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')"
-    exit
+EOS_WRITE_IMAGE=$(dirname $0)/eos-write-image
+if [ ! -f $EOS_WRITE_IMAGE ]; then
+    EOS_WRITE_IMAGE='eos-write-image'
+fi
+EOS_DOWNLOAD_IMAGE=$(dirname $0)/eos-download-image
+if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
+    EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-DEVICE="$2"
-IMAGE="$1"
+ARGS=$(getopt -o i:,o:,lh -l "installer:,os-image:,latest,help" -n "$0" -- "$@")
+eval set -- "$ARGS"
+
+usage() {
+    cat <<EOF
+Usage:
+   $0 [options] DEVICE
+Arguments:
+    DEVICE	Device path (e.g. '/dev/sdb' or '/dev/mmcblk0')
+Options:
+   -i,--installer PATH	Path to Endless OS installer image
+   -o,--os-image  PATH	Path to Endless OS image to add to installer
+   -l,--latest		Fetch latest OS and/or installer image
+   -h,--help		show this message
+If --latest is specified and one or both of --installer or --os-image are
+missing, the latest image will be downloaded. If --latest is not specified,
+both --installer and --os-image must be specified.
+EOF
+}
+
+function check_exists() {
+    if [ ! -f "$1" ]; then
+        echo "$1 does not exist or is not a file device"
+        exit 1
+    fi
+}
+while true; do
+    case "$1" in
+        -i|--installer)
+            shift
+            INSTALLER_IMAGE="$1"
+            check_exists "$INSTALLER_IMAGE"
+            shift
+            ;;
+        -o|--os-image)
+            shift
+            OS_IMAGE="$1"
+            check_exists "$OS_IMAGE"
+            check_exists "$OS_IMAGE.asc"
+            shift
+            ;;
+        -l|--latest)
+            shift
+            FETCH_LATEST=true
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+
+if [ $# -lt 1 ] ; then
+    echo "Missing DEVICE"
+    usage
+    exit 1
+fi
+
+DEVICE="$1"
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
@@ -66,25 +126,25 @@ if grep -qs $DEVICE /proc/mounts; then
     exit 1
 fi
 
-# Write the image
-DD_IN_OPTS=(iflag=nonblock bs=1M)
-DD_OUT_OPTS=(oflag=nonblock conv=fsync bs=1M)
-
-if file --mime-type "$IMAGE" | grep -q gzip$; then
-    # Image is gzipped
-    # The following would calculate the original size
-    # of the unzipped file if less than 4G: 
-    # IMAGE_SIZE=$(zcat -l "$IMAGE" | awk 'NR==2 { print $2 }')
-    # But this doesn't help for large images,
-    # so we just show relative progress
-    zcat "$IMAGE" | pv | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
-else
-    # Image is not gzipped
-    # We can show progress as percentage of total image size
-    IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
-    dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE} \
-        | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
+if [ ! -z "$FETCH_LATEST" ]; then
+    if [ -z "$INSTALLER_IMAGE" ]; then
+        INSTALLER_IMAGE=$($EOS_DOWNLOAD_IMAGE --product eosinstaller)
+    fi
+    if [ -z "$OS_IMAGE" ]; then
+        OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --product eos)
+    fi
 fi
+
+if [ ! -f "$INSTALLER_IMAGE" -o ! -f "$OS_IMAGE" ]; then
+    echo "--installer and --image are required if --latest is not specified"
+    usage
+    exit 2
+fi
+
+# Write the image
+echo
+echo "Writing $INSTALLER_IMAGE to $DEVICE..."
+$EOS_WRITE_IMAGE -f "$INSTALLER_IMAGE" "$DEVICE"
 
 # Get the current partition table
 TABLE=$(sfdisk -d $DEVICE)
@@ -121,3 +181,19 @@ partprobe
 PART=$(sfdisk -d $DEVICE | grep 'eosimages' | cut -f1 -d' ')
 mkfs.exfat -n eosimages $PART
 
+# Give udisks a chance to notice the new partition
+partprobe
+udevadm settle
+
+# Try to mount the exfat partition
+udisksctl mount -b ${DEVICE}1 --no-user-interaction || exit 1
+# Grab the mount point
+MOUNTPOINT=$(grep ${DEVICE}1 /proc/mounts | cut -f2 -d' ')
+if test -n "$MOUNTPOINT" -a -d "$MOUNTPOINT"
+then
+  # Write image and its signature
+  cp "$OS_IMAGE.asc" "$MOUNTPOINT"/
+  pv "$OS_IMAGE" > "$MOUNTPOINT"/"$OS_IMAGE"
+fi
+udisksctl unmount -b ${DEVICE}1 --no-user-interaction
+sync
