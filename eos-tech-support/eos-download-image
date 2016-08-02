@@ -14,7 +14,7 @@ ARGS=$(getopt -o v:p:r:ih -l "version:,personality:,product:,internal,help" -n "
 eval set -- "$ARGS"
 
 usage() {
-    cat <<EOF
+    cat >&2 <<EOF
 Usage:
    $0 [options]
 Options:
@@ -58,39 +58,44 @@ while true; do
     esac
 done
 
+log() {
+    echo >&2
+    echo "$@" >&2
+}
+
 download_and_verify() {
-  echo
-  echo "Downloading $1 from $2"
+  log "Downloading $1 from $2"
   # FIXME: wget is used here since curl seems to append a 416 error document
   #        to an already completely downloaded file...
   wget --continue $2 || return 1
-  echo
-  echo "Downloading signature for $1 from $3"
+
+  log "Downloading signature for $1 from $3"
   curl -L -O $3 || return 1
-  echo
-  echo "Verifying..."
+
+  ensure_keyring
+
+  log "Verifying..."
   gpgv --keyring $KEYRING $(basename $3) $(basename $2) || return 1
-  echo
-  echo "Download ok."
+
+  log "Download ok."
   return 0
 }
 
-if [ -f "$SYSTEM_KEYRING" ]
-then
-  KEYRING="$SYSTEM_KEYRING"
-else
-  KEYRING="$(readlink -f ./$KEYRING_FILENAME)"
-  if [ ! -f "$KEYRING" ]
+ensure_keyring() {
+  if [ -f "$SYSTEM_KEYRING" ]
   then
-    echo
-    echo "Fetching Endless keyring"
-    curl -o"$KEYRING" "$KEYRING_URL"
+    KEYRING="$SYSTEM_KEYRING"
+  else
+    KEYRING="$(readlink -f ./$KEYRING_FILENAME)"
+    if [ ! -f "$KEYRING" ]
+    then
+      log "Fetching Endless keyring"
+      curl -o"$KEYRING" "$KEYRING_URL"
+    fi
   fi
-fi
-echo "Using keyring at $KEYRING"
+}
 
-echo
-echo "Fetching manifest..."
+log "Fetching manifest..."
 JSON=$(curl $MANIFEST_BASE_URL/releases-$PRODUCT.json.gz | gzip -d)
 
 # If the user specified a version, select that but otherwise we go with latest
@@ -112,10 +117,11 @@ OS_SIGNATURE_URL=$(echo $SELECTED | jq -r ".personality_images[\"$PERSONALITY\"]
 
 if test "null" = "$OS_IMAGE_URL" -o "null" = $OS_SIGNATURE_URL
 then
-  echo
-  echo "Problem fetching the image manifest. Please try again."
+  log "Problem fetching the image manifest. Please try again."
   exit 1
 fi
 
 # Download & verify
-download_and_verify "image" $BASE_URL/$OS_IMAGE_URL $BASE_URL/$OS_SIGNATURE_URL
+download_and_verify "image" $BASE_URL/$OS_IMAGE_URL $BASE_URL/$OS_SIGNATURE_URL >&2
+
+echo $(basename $OS_IMAGE_URL)
