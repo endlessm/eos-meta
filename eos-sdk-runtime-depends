@@ -12,6 +12,8 @@ eos-sdk-0-bin
 eos-sdk-0-dev
 fakeroot
 flex
+fonts-dosis
+fonts-lato
 gdb
 git
 gtk-doc-tools
