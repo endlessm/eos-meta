@@ -3,6 +3,7 @@ attr
 bzip2
 ca-certificates
 eos-icon-theme
+fonts-lato
 fonts-liberation
 gnome-themes-standard
 gstreamer1.0-libav
