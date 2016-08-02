@@ -18,11 +18,11 @@ usage() {
 Usage:
    $0 [options]
 Options:
-   -v,--version	Specify version for the Endless OS image (default: newest)
+   -v,--version		Specify version for the Endless OS image (default: newest)
    -p,--personality	Specify personality for the Endless OS image (default: base)
-   -r,--product	Specify product to download (eg eosinstaller; default: eos)
+   -r,--product		Specify product to download (eg eosinstaller; default: eos)
    -i,--internal	Fetch images from the Endless network, not Cloudfront
-   -h,--help	show this message
+   -h,--help		show this message
 EOF
 }
 
