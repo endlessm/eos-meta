@@ -160,6 +160,10 @@ partprobe
 PART=$(sfdisk -d $DEVICE | grep 'eosimages' | cut -f1 -d' ')
 mkfs.exfat -n eosimages $PART
 
+# Give udisks a chance to notice the new partition
+partprobe
+udevadm settle
+
 # Try to mount the exfat partition
 udisksctl mount -b ${DEVICE}1 --no-user-interaction || exit 1
 # Grab the mount point
