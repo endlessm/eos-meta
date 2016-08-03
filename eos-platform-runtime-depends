@@ -92,6 +92,7 @@ libwpg-0.3-3
 libxss1
 python-cairo
 python-gi
+python-gi-cairo
 python-gst-1.0
 python3-gi
 
