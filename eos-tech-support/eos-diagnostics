@@ -4,6 +4,29 @@ const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
 
+function collectGraphicsRenderer() {
+    let iface =
+        '<node>' +
+        '<interface name="org.gnome.SessionManager">' +
+        '<property name="Renderer" type="s" access="read"/>' +
+        '</interface>' +
+        '</node>';
+
+    let sessionProxyProto = Gio.DBusProxy.makeProxyWrapper(iface);
+    let sessionProxy = new sessionProxyProto(Gio.DBus.session,
+                                             'org.gnome.SessionManager',
+                                             '/org/gnome/SessionManager');
+
+    let output = 'Graphics renderer: ';
+    if (sessionProxy)
+        output += sessionProxy.Renderer;
+    else
+        output += 'unknown';
+    output += '\n';
+
+    return output;
+}
+
 function collectBoardInfo() {
     let table = { 'Product name': '/sys/devices/virtual/dmi/id/product_name',
 		  'Product serial': '/sys/devices/virtual/dmi/id/product_uuid',
@@ -226,6 +249,8 @@ function dumpDiagnostics(filename) {
     fullDump += '=======================\n'
     fullDump += '\n';
     fullDump += trySpawn('xrandr -q --verbose');
+    fullDump += '\n';
+    fullDump += collectGraphicsRenderer();
     fullDump += '\n';
 
     fullDump += '=====================\n'
