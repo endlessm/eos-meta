@@ -12,7 +12,7 @@ Invalid option: $1
 Valid options:
     -m, --metrics     Configure Metrics System for Dev.
     -a, --apps        Configure Flatpak for Staging.
-    -o, --ostree      Configure OSTree for Staging.
+    -o, --ostree      Configure OSTree for Staging (checked daily).
     -j, --journal     Configure systemd journal to be persistent.
 EOF
 }
@@ -146,6 +146,10 @@ if $OSTREE || $APPS; then
         ostree config set 'remote "eos".branches' "${new_branch};"
         ostree admin set-origin eos "$new_url" "$new_branch" \
             --set=branches="${new_branch};"
+
+        # Check for an update every time the updater runs
+        # rather than once every two weeks
+	sed -i 's/IntervalDays=14/IntervalDays=0/' /etc/eos-updater.conf
     fi
 fi
 
