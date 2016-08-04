@@ -193,7 +193,7 @@ if test -n "$MOUNTPOINT" -a -d "$MOUNTPOINT"
 then
   # Write image and its signature
   cp "$OS_IMAGE.asc" "$MOUNTPOINT"/
-  pv "$OS_IMAGE" > "$MOUNTPOINT"/"$OS_IMAGE"
+  pv "$OS_IMAGE" > "$MOUNTPOINT"/"$(basename "$OS_IMAGE")"
 fi
 udisksctl unmount -b ${DEVICE}1 --no-user-interaction
 sync
