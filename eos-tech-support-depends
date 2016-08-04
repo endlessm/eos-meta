@@ -1,5 +1,6 @@
 bash-completion
 iw
+jq
 lshw
 pv
 screen
