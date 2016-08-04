@@ -65,12 +65,10 @@ log() {
 
 download_and_verify() {
   log "Downloading $1 from $2"
-  # FIXME: wget is used here since curl seems to append a 416 error document
-  #        to an already completely downloaded file...
   wget --continue $2 || return 1
 
   log "Downloading signature for $1 from $3"
-  curl -L -O $3 || return 1
+  wget --continue $3 || return 1
 
   ensure_keyring
 
@@ -90,13 +88,13 @@ ensure_keyring() {
     if [ ! -f "$KEYRING" ]
     then
       log "Fetching Endless keyring"
-      curl -o"$KEYRING" "$KEYRING_URL"
+      wget -O "$KEYRING" "$KEYRING_URL"
     fi
   fi
 }
 
 log "Fetching manifest..."
-JSON=$(curl $MANIFEST_BASE_URL/releases-$PRODUCT.json.gz | gzip -d)
+JSON=$(wget -O- $MANIFEST_BASE_URL/releases-$PRODUCT.json.gz | gzip -d)
 
 # If the user specified a version, select that but otherwise we go with latest
 if test -z "$VERSION"
