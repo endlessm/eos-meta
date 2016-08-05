@@ -113,13 +113,13 @@ if $OSTREE || $APPS; then
         # Get the current refspec.
         refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
         branch=${refspec#*:}
-        arch=${branch#*/}
 
         # Get the OS major.minor version,
         version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
 
-        # Construct the new branch.
-        new_branch="eos${version}/${arch}"
+        # Construct the new branch. The major version is the last
+        # component of the branch. Replace it with the full version.
+        new_branch="${branch%/*}/eos${version}"
 
         # Get the current URL and convert to staging.
         url=$(ostree config get 'remote "eos".url')
