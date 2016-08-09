@@ -5,19 +5,25 @@ failed_apps=()
 
 script=`basename $0`
 
-CORE_APPS=`grep -Rl X-Endless-Merged /usr/share/applications | sort`
-BUNDLE_APPS=/endless/share/applications/*.desktop
-
 USERID=`id -u`
 if [ $USERID = 0 ]; then
     echo "Not allowed to run this program with superuser privileges"
     exit 1
 fi
 
-for desktop in $CORE_APPS $BUNDLE_APPS
+CORE_DESKTOPS=`grep -Rl X-Endless-Merged /usr/share/applications | sort`
+CORE_APPS=
+for desktop in $CORE_DESKTOPS
 do
-    echo $desktop
     app=`basename $desktop | sed 's/\(.*\)\..*/\1/'`
+    CORE_APPS+="$app "
+done
+
+FLATPAK_APPS=`flatpak list --app`
+
+for app in $CORE_APPS $FLATPAK_APPS
+do
+    echo $app
     gtk-launch $app
     zenity --question --title=$script --text="Did $app launch successfully?" --ok-label="Yes" --cancel-label="No"
     if [ $? == "0" ]; then
