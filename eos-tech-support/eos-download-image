@@ -41,22 +41,35 @@ def ensure_keyring():
     return keyring
 
 
-def download_and_verify(image_url, signature_url):
-    log("Downloading image from", image_url)
+def download_and_verify(base, meta, what='image'):
+    image_url = '{}/{}'.format(base, meta['file'])
+    signature_url = '{}/{}'.format(base, meta['signature'])
+
+    image = os.path.basename(image_url)
+
+    log("Downloading compressed", what, "from", image_url)
     check_call("wget", "--continue", image_url)
 
-    log("Downloading signature from", signature_url)
+    with open(image + '.size', 'w') as f:
+        f.write(str(meta['extracted_size']))
+
+    log("Downloading compressed", what, "from", signature_url)
     check_call("wget", "--continue", signature_url)
+
+    if meta.get('extracted_signature'):
+        url = '{}/{}'.format(base, meta['extracted_signature'])
+        log("Downloading uncompressed", what, "signature from", url)
+        check_call("wget", "--continue", url)
 
     keyring = ensure_keyring()
 
     log("Verifying")
     check_call("gpgv", "--keyring", keyring,
                os.path.basename(signature_url),
-               os.path.basename(image_url))
+               image)
 
     log("Download okay.")
-    return os.path.basename(image_url)
+    return image
 
 
 def main():
@@ -105,9 +118,11 @@ def main():
         log("Known personalities:", *sorted(personalities.keys()))
         sys.exit(1)
 
-    image_url = '{}/{}'.format(base, personality['full']['file'])
-    signature_url = '{}/{}'.format(base, personality['full']['signature'])
-    print(download_and_verify(image_url, signature_url))
+    meta = personality['full']
+    if 'boot' in meta and meta['boot']['file']:
+        download_and_verify(base, meta['boot'], what='bootloader')
+
+    print(download_and_verify(base, meta))
 
 
 if __name__ == '__main__':
