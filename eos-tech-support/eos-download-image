@@ -1,125 +1,114 @@
-#!/bin/bash -e
+#!/usr/bin/env python3
+# vim: fileencoding=utf-8 sts=4 sw=4 et
+import argparse
+import codecs
+import distutils.version
+import gzip
+import json
+import os
+import shlex
+import subprocess
+import sys
+import urllib.request
 
-# Fetches and verifies an image (installer or regular OS)
+INTERNAL_BASE_URL = "http://images.endlessm-sf.com"
+PUBLIC_BASE_URL = "https://d1anzknqnc1kmb.cloudfront.net"
+KEYRING_FILENAME = "eos-image-keyring.gpg"
+KEYRING_URL = PUBLIC_BASE_URL + "/" + KEYRING_FILENAME
+KEYRING_SYSTEM_PATH = "/usr/share/keyrings/eos-image-keyring.gpg"
 
-INTERNAL_BASE_URL="http://images.endlessm-sf.com"
-MANIFEST_BASE_URL="https://d1anzknqnc1kmb.cloudfront.net"
-BASE_URL="$MANIFEST_BASE_URL"
-KEYRING_FILENAME="eos-image-keyring.gpg"
-KEYRING_URL="$MANIFEST_BASE_URL/$KEYRING_FILENAME"
-KEYRING_SYSTEM_PATH="/usr/share/keyrings/$KEYRING_FILENAME"
-PRODUCT="eos"
 
-ARGS=$(getopt -o v:p:r:ih -l "version:,personality:,product:,internal,help" -n "$0" -- "$@")
-eval set -- "$ARGS"
+def log(*args):
+    sys.stderr.write('\n')
+    print(*args, file=sys.stderr)
+    sys.stderr.flush()
 
-usage() {
-    cat >&2 <<EOF
-Usage:
-   $0 [options]
-Options:
-   -v,--version		Specify version for the Endless OS image (default: newest)
-   -p,--personality	Specify personality for the Endless OS image (default: base)
-   -r,--product		Specify product to download (eg eosinstaller; default: eos)
-   -i,--internal	Fetch images from the Endless network, not Cloudfront
-   -h,--help		show this message
-EOF
-}
 
-while true; do
-    case "$1" in
-        -v|--version)
-            shift
-            VERSION=$1
-            shift
-            ;;
-        -p|--personality)
-            shift
-            PERSONALITY=$1
-            shift
-            ;;
-        -r|--product)
-            shift
-            PRODUCT=$1
-            shift
-            ;;
-        -i|--internal)
-            shift
-            BASE_URL="$INTERNAL_BASE_URL"
-            ;;
-        -h|--help)
-            usage
-            exit 0
-            ;;
-        --)
-            shift
-            break
-            ;;
-    esac
-done
+def check_call(*args):
+    log('$ ' + ' '.join(map(shlex.quote, args)))
+    subprocess.check_call(args, stdout=sys.stderr)
 
-log() {
-    echo >&2
-    echo "$@" >&2
-}
 
-download_and_verify() {
-  log "Downloading $1 from $2"
-  wget --continue $2 || return 1
+def ensure_keyring():
+    if os.path.isfile(KEYRING_SYSTEM_PATH):
+        return KEYRING_SYSTEM_PATH
 
-  log "Downloading signature for $1 from $3"
-  wget --continue $3 || return 1
+    keyring = os.path.abspath(KEYRING_FILENAME)
+    if not os.path.isfile(keyring):
+        log("Fetching Endless keyring")
+        check_call("wget", "-O", keyring, KEYRING_URL)
 
-  ensure_keyring
+    return keyring
 
-  log "Verifying..."
-  gpgv --keyring $KEYRING $(basename $3) $(basename $2) || return 1
 
-  log "Download ok."
-  return 0
-}
+def download_and_verify(image_url, signature_url):
+    log("Downloading image from", image_url)
+    check_call("wget", "--continue", image_url)
 
-ensure_keyring() {
-  if [ -f "$SYSTEM_KEYRING" ]
-  then
-    KEYRING="$SYSTEM_KEYRING"
-  else
-    KEYRING="$(readlink -f ./$KEYRING_FILENAME)"
-    if [ ! -f "$KEYRING" ]
-    then
-      log "Fetching Endless keyring"
-      wget -O "$KEYRING" "$KEYRING_URL"
-    fi
-  fi
-}
+    log("Downloading signature from", signature_url)
+    check_call("wget", "--continue", signature_url)
 
-log "Fetching manifest..."
-JSON=$(wget -O- $MANIFEST_BASE_URL/releases-$PRODUCT.json.gz | gzip -d)
+    keyring = ensure_keyring()
 
-# If the user specified a version, select that but otherwise we go with latest
-if test -z "$VERSION"
-then
-  SELECTED=$(echo $JSON | jq '.images[] | values' | jq -s 'max_by(.version)')
-else
-  SELECTED=$(echo $JSON | jq '.images[] | values' | jq -s ".[] | select(.version | contains(\"$1\"))")
-fi
+    log("Verifying")
+    check_call("gpgv", "--keyring", keyring,
+               os.path.basename(signature_url),
+               os.path.basename(image_url))
 
-if test -z "$PERSONALITY"
-then
-  PERSONALITY="base"
-fi
+    log("Download okay.")
+    return os.path.basename(image_url)
 
-# Only full images are supported for now
-OS_IMAGE_URL=$(echo $SELECTED | jq -r ".personality_images[\"$PERSONALITY\"] | .full | .file")
-OS_SIGNATURE_URL=$(echo $SELECTED | jq -r ".personality_images[\"$PERSONALITY\"] | .full | .signature")
 
-if test "null" = "$OS_IMAGE_URL" -o "null" = $OS_SIGNATURE_URL
-then
-  log "Problem fetching the image manifest. Please try again."
-  exit 1
-fi
+def main():
+    p = argparse.ArgumentParser(
+        description='Fetches and verifies an image (installer or regular OS)')
+    p.add_argument('-v', '--version',
+                   help='Image version (default: newest)')
+    p.add_argument('-p', '--personality',
+                   help='Image personality (default: base)',
+                   default='base')
+    p.add_argument('-r', '--product',
+                   help='Product (eg: eosinstaller; default: eos)',
+                   default='eos')
+    p.add_argument('-i', '--internal',
+                   action='store_true',
+                   help='Fetch images from the Endless internal network')
 
-# Download & verify
-download_and_verify "image" $BASE_URL/$OS_IMAGE_URL $BASE_URL/$OS_SIGNATURE_URL >&2
+    args = p.parse_args()
+    base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
 
-echo $(basename $OS_IMAGE_URL)
+    manifest_url = '{base}/releases-{product}.json.gz'.format(
+        base=base, product=args.product)
+    req = urllib.request.Request(manifest_url)
+    with urllib.request.urlopen(req) as conn:
+        with gzip.GzipFile(mode='r', fileobj=conn) as manifest_fp:
+            manifest = json.load(codecs.getreader('utf8')(manifest_fp))
+
+    images = list(manifest['images'].values())
+    images.sort(key=lambda i: distutils.version.StrictVersion(i['version']))
+    if args.version is not None:
+        for selected in images:
+            if selected['version'] == args.version:
+                break
+        else:
+            log("Image version", repr(args.version), "not found")
+            log("Known versions:", *[i['version'] for i in images])
+            sys.exit(1)
+    else:
+        selected = images[-1]
+
+    personalities = selected['personality_images']
+    try:
+        personality = personalities[args.personality]
+    except KeyError:
+        log("Personality", repr(args.personality), "not found")
+        log("Known personalities:", *sorted(personalities.keys()))
+        sys.exit(1)
+
+    image_url = '{}/{}'.format(base, personality['full']['file'])
+    signature_url = '{}/{}'.format(base, personality['full']['signature'])
+    print(download_and_verify(image_url, signature_url))
+
+
+if __name__ == '__main__':
+    main()
