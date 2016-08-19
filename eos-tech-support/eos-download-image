@@ -80,9 +80,14 @@ def main():
     p.add_argument('-p', '--personality',
                    help='Image personality (default: base)',
                    default='base')
-    p.add_argument('-r', '--product',
+    g = p.add_mutually_exclusive_group()
+    g.add_argument('-r', '--product',
                    help='Product (eg: eosinstaller; default: eos)',
                    default='eos')
+    g.add_argument('-w', '--windows-tool',
+                   action='store_true',
+                   help='Fetch the Windows USB creator/installer, '
+                        'not an Endless OS image')
     p.add_argument('-i', '--internal',
                    action='store_true',
                    help='Fetch images from the Endless internal network')
@@ -90,6 +95,21 @@ def main():
     args = p.parse_args()
     base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
 
+    if args.windows_tool:
+        fetch_windows_tool(base)
+    else:
+        fetch_image(args, base)
+
+
+def fetch_windows_tool(base):
+    filename = 'endless-usb-creator-latest.exe'
+    url = '{}/endless-usb-creator/{}'.format(base, filename)
+    log("Fetching Windows tool")
+    check_call("wget", "--timestamping", url)
+    print(filename)
+
+
+def fetch_image(args, base):
     manifest_url = '{base}/releases-{product}.json.gz'.format(
         base=base, product=args.product)
     req = urllib.request.Request(manifest_url)
