@@ -14,6 +14,7 @@ Usage:
 Where:
    image = raw or zipped image file (.img or .img.gz)
    device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')
+            or '-' to write uncompressed image to stdout
    block_size = block size in bytes (default = '1M')
 Options:
    -f,--force	don't ask to proceed with writing
@@ -52,14 +53,14 @@ while true; do
 done
 
 command -v dd >/dev/null || {
-    echo "dd is not installed... aborting!"
-    echo "Try 'sudo apt-get install coreutils'"
+    echo "dd is not installed... aborting!" >&2
+    echo "Try 'sudo apt-get install coreutils'" >&2
     exit 1
 }
 
 command -v pv >/dev/null || {
-    echo "pv is not installed... aborting!"
-    echo "Try 'sudo apt-get install pv'"
+    echo "pv is not installed... aborting!" >&2
+    echo "Try 'sudo apt-get install pv'" >&2
     exit 1
 }
 
@@ -81,53 +82,59 @@ DD_IN_OPTS+=(bs="$BLOCK_SIZE")
 DD_OUT_OPTS+=(bs="$BLOCK_SIZE")
 
 if [ "$USERID" != "0" ]; then
-    echo "Program requires superuser privileges"
+    echo "Program requires superuser privileges" >&2
     exit 1
 fi
 
 if [ ! -f "$IMAGE" ]; then
-    echo "$IMAGE not found"
+    echo "$IMAGE not found" >&2
     exit 1
 fi
 
-if [ ! -b $DEVICE ]; then
-    echo "$DEVICE not found or is not a block device"
-    exit 1
-fi
+cat_image() {
+    if file --mime-type "$IMAGE" | grep -q gzip$; then
+        # Image is gzipped
+        # The following would calculate the original size
+        # of the unzipped file if less than 4G:
+        # IMAGE_SIZE=$(zcat -l "$IMAGE" | awk 'NR==2 { print $2 }')
+        # But this doesn't help for large images,
+        # so we just show relative progress unless .size is present
+        if [ -f "$IMAGE.size" ]; then
+            IMAGE_SIZE=$(cat $IMAGE.size)
+            PV_ARGS="-s $IMAGE_SIZE"
+        fi
+        zcat "$IMAGE" | pv $PV_ARGS
+    else
+        # Image is not gzipped
+        # We can show progress as percentage of total image size
+        IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
+        dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE}
+    fi
+}
 
-if grep -qs $DEVICE /proc/mounts; then
-    # Protect against overwriting the device currently in use
-    echo "$DEVICE is currently in use -- please unmount and try again"
-    exit 1
-fi
-
-if ! $FORCE; then
-    read -p "Are you sure you want to overwrite all data on $DEVICE? [y/N] "
-    response=${REPLY,,} # to lower
-    if [[ ! $response =~ ^(yes|y)$ ]]; then
+if [ "$DEVICE" == "-" ]; then
+    cat_image
+else
+    if [ ! -b $DEVICE ]; then
+        echo "$DEVICE not found or is not a block device" >&2
         exit 1
     fi
-fi
 
-# Try to format / discard all the sectors on the device
-blkdiscard "$DEVICE" &>/dev/null || true
-
-if file --mime-type "$IMAGE" | grep -q gzip$; then
-    # Image is gzipped
-    # The following would calculate the original size
-    # of the unzipped file if less than 4G:
-    # IMAGE_SIZE=$(zcat -l "$IMAGE" | awk 'NR==2 { print $2 }')
-    # But this doesn't help for large images,
-    # so we just show relative progress unless .size is present
-    if [ -f "$IMAGE.size" ]; then
-        IMAGE_SIZE=$(cat $IMAGE.size)
-        PV_ARGS="-s $IMAGE_SIZE"
+    if grep -qs $DEVICE /proc/mounts; then
+        # Protect against overwriting the device currently in use
+        echo "$DEVICE is currently in use -- please unmount and try again" >&2
+        exit 1
     fi
-    zcat "$IMAGE" | pv $PV_ARGS | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
-else
-    # Image is not gzipped
-    # We can show progress as percentage of total image size
-    IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
-    dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE} \
-        | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
+
+    if ! $FORCE; then
+        read -p "Are you sure you want to overwrite all data on $DEVICE? [y/N] "
+        response=${REPLY,,} # to lower
+        if [[ ! $response =~ ^(yes|y)$ ]]; then
+            exit 1
+        fi
+    fi
+
+    # Try to format / discard all the sectors on the device
+    blkdiscard "$DEVICE" &>/dev/null || true
+    cat_image | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
 fi
