@@ -92,29 +92,20 @@ if [ "$USERID" != "0" ]; then
 fi
 
 # Check for required tools
-command -v mkfs.exfat >/dev/null || {
-    echo "mkfs.exfat is not installed... aborting!"
-    echo "Try 'sudo apt-get install exfat-utils'"
-    exit 1
-}
-
-command -v dd >/dev/null || {
-    echo "dd is not installed... aborting!"
-    echo "Try 'sudo apt-get install coreutils'"
-    exit 1
-}
-
-command -v gzip >/dev/null || {
-    echo "gzip is not installed... aborting!"
-    echo "Try 'sudo apt-get install gzip'"
-    exit 1
-}
-
-command -v pv >/dev/null || {
-    echo "pv is not installed... aborting!"
-    echo "Try 'sudo apt-get install pv'"
-    exit 1
-}
+declare -A dependencies
+dependencies=(
+    [dd]='coreutils'
+    [gzip]='gzip'
+    [mkfs.exfat]='exfat-utils'
+    [pv]='pv'
+)
+for command in "${!dependencies[@]}"; do
+    if ! which "$command" >/dev/null 2>&1; then
+        echo "$command is not installed... aborting!" >&2
+        echo "Try 'sudo apt-get install ${dependencies[$command]}'" >&2
+        exit 1
+    fi
+done
 
 if test \! -b $DEVICE; then
     echo "$DEVICE does not exist or is not a block device... aborting!"
