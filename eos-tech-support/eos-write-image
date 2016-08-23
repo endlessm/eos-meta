@@ -53,17 +53,19 @@ while true; do
     esac
 done
 
-command -v dd >/dev/null || {
-    echo "dd is not installed... aborting!" >&2
-    echo "Try 'sudo apt-get install coreutils'" >&2
-    exit 1
-}
-
-command -v pv >/dev/null || {
-    echo "pv is not installed... aborting!" >&2
-    echo "Try 'sudo apt-get install pv'" >&2
-    exit 1
-}
+declare -A dependencies
+dependencies=(
+    [dd]='coreutils'
+    [pv]='pv'
+    [zcat]='gzip'
+)
+for command in "${!dependencies[@]}"; do
+    if ! which "$command" >/dev/null 2>&1; then
+        echo "$command is not installed... aborting!" >&2
+        echo "Try 'sudo apt-get install ${dependencies[$command]}'" >&2
+        exit 1
+    fi
+done
 
 if [ $# -lt 2 ] ; then
     echo "Missing command line arguments" >&2
