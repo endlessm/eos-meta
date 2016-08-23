@@ -1,4 +1,5 @@
 #!/bin/bash -e
+set -o pipefail
 
 # Writes a raw installer image (possibly zipped)
 # to a device (e.g., USB drive or SD card)
