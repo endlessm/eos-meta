@@ -20,7 +20,7 @@ if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o i:,o:,lh -l "installer:,os-image:,latest,help" -n "$0" -- "$@")
+ARGS=$(getopt -o i:o:lh -l "installer:,os-image:,latest,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
