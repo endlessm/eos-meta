@@ -24,6 +24,7 @@ gstreamer0.10-alsa
 gstreamer0.10-plugins-base
 gstreamer0.10-plugins-good
 gstreamer0.10-pulseaudio
+gvfs-bin
 kde-games-core-declarative
 kde-runtime
 kdeedu-kvtml-data
