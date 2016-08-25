@@ -19,7 +19,7 @@ do
     CORE_APPS+="$app "
 done
 
-FLATPAK_APPS=`flatpak list --app`
+FLATPAK_APPS=`flatpak list --app | grep -v EknServices`
 
 for app in $CORE_APPS $FLATPAK_APPS
 do
