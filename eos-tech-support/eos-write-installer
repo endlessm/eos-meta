@@ -1,4 +1,5 @@
 #!/bin/bash -e
+set -o pipefail
 
 # Writes a raw installer image (possibly zipped)
 # to a device (e.g., USB drive or SD card)
@@ -20,7 +21,7 @@ if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o i:,o:,lh -l "installer:,os-image:,latest,help" -n "$0" -- "$@")
+ARGS=$(getopt -o i:o:lh -l "installer:,os-image:,latest,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -91,36 +92,27 @@ if [ "$USERID" != "0" ]; then
 fi
 
 # Check for required tools
-command -v mkfs.exfat >/dev/null || {
-    echo "mkfs.exfat is not installed... aborting!"
-    echo "Try 'sudo apt-get install exfat-utils'"
-    exit 1
-}
+declare -A dependencies
+dependencies=(
+    [dd]='coreutils'
+    [gzip]='gzip'
+    [mkfs.exfat]='exfat-utils'
+    [pv]='pv'
+)
+for command in "${!dependencies[@]}"; do
+    if ! which "$command" >/dev/null 2>&1; then
+        echo "$command is not installed... aborting!" >&2
+        echo "Try 'sudo apt-get install ${dependencies[$command]}'" >&2
+        exit 1
+    fi
+done
 
-command -v dd >/dev/null || {
-    echo "dd is not installed... aborting!"
-    echo "Try 'sudo apt-get install coreutils'"
-    exit 1
-}
-
-command -v gzip >/dev/null || {
-    echo "gzip is not installed... aborting!"
-    echo "Try 'sudo apt-get install gzip'"
-    exit 1
-}
-
-command -v pv >/dev/null || {
-    echo "pv is not installed... aborting!"
-    echo "Try 'sudo apt-get install pv'"
-    exit 1
-}
-
-if test \! -b $DEVICE; then
+if [ ! -b "$DEVICE" ]; then
     echo "$DEVICE does not exist or is not a block device... aborting!"
     exit 1
 fi
 
-if grep -qs $DEVICE /proc/mounts; then
+if grep -qs "$DEVICE" /proc/mounts; then
     # Protect against overwriting the device currently in use
     echo "$DEVICE is currently in use -- please unmount and try again"
     exit 1
@@ -147,7 +139,7 @@ echo "Writing $INSTALLER_IMAGE to $DEVICE..."
 $EOS_WRITE_IMAGE -f "$INSTALLER_IMAGE" "$DEVICE"
 
 # Get the current partition table
-TABLE=$(sfdisk -d $DEVICE)
+TABLE=$(sfdisk -d "$DEVICE")
 
 # Split the partition table to header and partitions
 HEADER=$(echo "$TABLE" | grep -v '^/')
@@ -169,7 +161,7 @@ TABLE="$HEADER
 $PARTS"
 
 # Replace the partition table with our modified version
-echo "$TABLE" | sfdisk --force --no-reread $DEVICE
+echo "$TABLE" | sfdisk --force --no-reread "$DEVICE"
 
 # At this point udev should have seen that sfdisk closed the block device
 # which was opened for writing, so it will be reprobing.
@@ -178,22 +170,22 @@ udevadm settle
 partprobe
 
 # Grab the eosimages partition and create exfat fs on it
-PART=$(sfdisk -d $DEVICE | grep 'eosimages' | cut -f1 -d' ')
-mkfs.exfat -n eosimages $PART
+PART=$(sfdisk -d "$DEVICE" | grep 'eosimages' | cut -f1 -d' ')
+mkfs.exfat -n eosimages "$PART"
 
 # Give udisks a chance to notice the new partition
 partprobe
 udevadm settle
 
 # Try to mount the exfat partition
-udisksctl mount -b ${DEVICE}1 --no-user-interaction || exit 1
+udisksctl mount -b "$PART" --no-user-interaction || exit 1
 # Grab the mount point
-MOUNTPOINT=$(grep ${DEVICE}1 /proc/mounts | cut -f2 -d' ')
+MOUNTPOINT=$(grep "$PART" /proc/mounts | cut -f2 -d' ')
 if test -n "$MOUNTPOINT" -a -d "$MOUNTPOINT"
 then
   # Write image and its signature
   cp "$OS_IMAGE.asc" "$MOUNTPOINT"/
   pv "$OS_IMAGE" > "$MOUNTPOINT"/"$(basename "$OS_IMAGE")"
 fi
-udisksctl unmount -b ${DEVICE}1 --no-user-interaction
+udisksctl unmount -b "$PART" --no-user-interaction
 sync
