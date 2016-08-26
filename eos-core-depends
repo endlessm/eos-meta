@@ -50,7 +50,6 @@ fonts-arphic-uming
 fonts-crosextra-caladea
 fonts-crosextra-carlito
 fonts-farsiweb
-fonts-gargi
 fonts-indic
 fonts-kacst
 fonts-khmeros
@@ -63,11 +62,9 @@ fonts-sil-andika
 fonts-sil-gentium-basic
 fonts-sil-padauk
 fonts-thai-tlwg
-fonts-tlwg-waree
 fonts-unfonts-core
 fonts-uralic
 fonts-vlgothic
-fonts-wqy-microhei
 fonts-wqy-zenhei
 foomatic-db-compressed-ppds
 fprintd
