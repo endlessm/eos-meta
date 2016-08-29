@@ -29,5 +29,6 @@ locales
 lzma
 mawk
 netbase
+sound-theme-freedesktop
 ttf-freefont
 xdg-utils
