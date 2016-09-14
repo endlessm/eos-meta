@@ -102,9 +102,11 @@ obexd-client
 openprinting-ppds
 openssh-server
 printer-driver-all
+python3-showmehow
 rhythmbox (>= 2.99.1)
 rtkit
 shotwell
+showmehow-service
 simple-scan
 smbclient
 system-config-printer-gnome
