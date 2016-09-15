@@ -31,6 +31,7 @@ libjson-glib-dev
 libsoup2.4-dev
 libwebkit2gtk-4.0-dev
 make
+openjdk-7-jdk
 patchutils
 quilt
 ruby-compass
