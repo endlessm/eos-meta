@@ -1,6 +1,7 @@
-#!/bin/bash
+#!/bin/bash -e
 # Copyright (C) 2016 Endless Mobile, Inc.
 # Licensed under the GPLv2
+set -o pipefail
 
 #Usage: eos-windows-uninstall [device]
 #Uninstalls grub and restores the normal Windows boot setup
@@ -15,7 +16,7 @@ LINUX_MBR="type=83" #for testing only
 #If we have mounted a partition, unmount before exiting
 #Remove the temp files we created
 cleanup() {
-	if ! [ -z $mountpoint ]; then
+	if ! [ -z $mountpoint ] && ! [ -z $found ]; then
 		udisksctl unmount -b "$part" --no-user-interaction
 	fi
 	rm -rf /tmp/eos-uninstall.*
@@ -29,11 +30,11 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 #arguments checking
-dev="$(realpath $1)"
 if [ $# -lt 1 ]; then
   echo "Usage: $0 <EOS+WINDOWS DEVICE>" >&2
   exit 1
 fi
+dev="$(realpath $1)"
 
 #Read the partition table off of the device. 
 #Save partition label in a temporary file in case we need to restore it
@@ -41,16 +42,14 @@ fi
 #	1) is partitioned
 #	2) is a block device
 #	3) is not mounted	
-table="$(mktemp -t eos-uninstall.XXXXXX)" || exit 1; sfdisk --dump $dev > $table
-if [ $? != 0 ]; then
-	echo "Partition table could not be read on $dev"
-	exit 1
-elif ! [ -b "$dev" ]; then
+table="$(mktemp -t eos-uninstall.XXXXXX)"; 
+if ! [ -b "$dev" ]; then
 	echo "$dev is not a block device."
 	exit 1
-fi
-
-if grep -qs $dev /proc/mounts; then
+elif ! sfdisk --dump $dev > $table; then
+	echo "Partition table could not be read on $dev"
+	exit 1
+elif grep -qs "$dev" /proc/mounts; then
 	echo "$dev is mounted. Please unmount it and try again."
 	exit 1
 fi
@@ -62,7 +61,7 @@ cat $table
 #Iterate over all Windows partitions on the device and mount them
 #Fail if we find no partitions that match the windows signature
 #Stop when we find endless/endless.img
-endless_img_path=""; win_parts="$(mktemp -t eos-uninstall.XXXXXX)" || exit 1
+endless_img_path=""; win_parts="$(mktemp -t eos-uninstall.XXXXXX)" 
 echo "Searching for windows partitions"
 
 #Save windows partitions to a temporary file
@@ -71,31 +70,24 @@ echo "Searching for windows partitions"
 if grep "$WIN_MBR\|$LINUX_MBR" $table | cut -f1 -d' ' > $win_parts; then
 	while read part; do
 		echo "Mounting partition: $part"
-		udisksctl mount -b "$part" --no-user-interaction || exit 1
+		udisksctl mount -o ro -b "$part" --no-user-interaction 
 		mountpoint=$(grep "$part" /proc/mounts | cut -f2 -d' ')
-		endless_img_path="$(find  $mountpoint -noleaf -regex ".*/endless/endless.img")"
-		if [ $? != 0 ]; then
-			echo "Failed while searching $dev"
-			exit 1
-		elif ! [ -z $endless_img_path ]; then 
+		endless_img_path="${mountpoint}/endless/endless.img"
+		if [ -f "$endless_img_path" ]; then 
+			found="1"
+			echo "Found endless/endless.img on $part"
 			break
 		fi
 		udisksctl unmount -b "$part" --no-user-interaction
 	done < $win_parts
+	if [ -z $found ]; then
+		echo "endless/endless.img not found."
+		exit 1
+	fi
 else
-	echo "No windows partitions found on device"
+	echo "No windows partitions found on device."
 	exit 1
 fi
-
-#Tell the user where we found endless.img. Fail if we didn't find it.
-#Use path from device node, rather than the temporary mount point
-if [ -z $endless_img_path ]; then
-	echo "Could not find endless/endless.img"
-	exit 1
-fi
-eos_dir_path="${endless_img_path%endless.img}"
-dev_path="$part${eos_dir_path#$mountpoint}"
-echo "Endless install directory is: $dev_path"
 
 #get the disklabel type from the partition table
 label_type="$(grep "label: " $table | cut -f2 -d' ')"
@@ -105,20 +97,51 @@ echo "label type is $label_type"
 #Check that
 #	1) bootrack.img exists alongside endless.img
 #	2) The partition table on bootrack.img matches the one on the device
+#	3) The size of boottrack.img matches the space before partition 1 (1048576 bytes)
 #Write boottrack.img to the HDD, skipping the partition table.
 if [ "$label_type" = "dos" ]; then
-	printf -v boottrack_path "%sboottrack.img" "$eos_dir_path"
-	if ! [ -e $boottrack_path ]; then
-		echo "endless/bootrack.img not found. Aborting"
+	boottrack_path="${mountpoint}/endless/boottrack.img"
+	
+	#Get the start of the first partition from sfdisk output
+	start="$(awk -F':|,| ' '/start=/ { gsub(/ /, "", $0); 
+				gsub(/start=/, "", $0); 
+				print $2 } ' "$table" | head -n 1)"
+	#512 bytes per sector
+	start=$(($start*512))
+
+	if ! [ -f "$boottrack_path" ]; then
+		echo "endless/bootrack.img not found. Aborting."
+		exit 1
+	elif [ "$(stat $boottrack_path --format=%s)" != "$start" ]; then
+		echo "boottrack.img is the wrong size. Aborting."
 		exit 1
 	fi
-	boottrack_table="$(mktemp -t eos-uninstall.XXXXXX)" || exit 1
-	sfdisk -d $boottrack_path > boottrack_table
-	label_diff="$(diff $boottrack_table $table)"	
-	if [ -s $label_diff ]; then
-		echo "Partition tables differ on bootrack.img and $dev. Aborting"
+
+	#Remove device, label-id, and device node from sfdisk output
+	remove_table_ids() {
+		awk '{
+			if ($1 !~ /device:/) {
+				if ($3 ~ /start=/) {
+					$1 = ""; $2 = "";
+				}
+			print
+			}
+		}'
+	}
+	boottrack_table="$(mktemp -t eos-uninstall.XXXXXX)"
+	disk_table="$(mktemp -t eos-uninstall.XXXXXX)"
+	sfdisk -d $boottrack_path | remove_table_ids > $boottrack_table
+	cat $table | remove_table_ids > $disk_table
+
+	if diff -q "$boottrack_table" "$disk_table"; then
+		echo "Writing boottrack.img to $dev"
+		dd if=$boottrack_path of=$dev bs=1 count=440
+		dd if=$boottrack_path of=$dev bs=512 skip=1 seek=1
+	else
+		echo "Partition table on boottrack.img differs from partition table on $dev. Aborting"
 		exit 1
 	fi
-	dd if=$boottrack_path of=$dev bs=1 count=446
-	dd if=$boottrack_path of=$dev bs=512 skip=1 seek=1
-fi	
+else
+	echo "UEFI is not supported yet. Sorry about that."
+	exit 1
+fi
