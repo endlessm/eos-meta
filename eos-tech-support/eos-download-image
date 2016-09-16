@@ -102,9 +102,9 @@ def main():
 
 
 def fetch_windows_tool(base):
-    filename = 'endless-usb-creator-latest.exe'
-    url = '{}/endless-usb-creator/{}'.format(base, filename)
-    log("Fetching Windows tool")
+    filename = 'endless-installer.exe'
+    url = '{}/endless-installer/{}'.format(base, filename)
+    log("Fetching Windows Installer")
     check_call("wget", "--timestamping", url)
     print(filename)
 
