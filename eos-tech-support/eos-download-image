@@ -110,7 +110,7 @@ def fetch_windows_tool(base):
 
 
 def fetch_image(args, base):
-    manifest_url = '{base}/releases-{product}.json.gz'.format(
+    manifest_url = '{base}/releases-{product}-3.json.gz'.format(
         base=base, product=args.product)
     req = urllib.request.Request(manifest_url)
     with urllib.request.urlopen(req) as conn:
