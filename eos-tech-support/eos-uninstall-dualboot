@@ -1,0 +1,200 @@
+#!/bin/bash
+# Copyright (C) 2016 Endless Mobile, Inc.
+# Licensed under the GPLv2
+set -e
+set -o pipefail
+
+ARGS=$(getopt -o gnh -l "gap,no-act,help" -n "$0" -- "$@")
+eval set -- "$ARGS"
+
+usage() {
+    cat <<EOF
+Usage:
+   $0 [--no-act] DEVICE
+
+Uninstalls GRUB from an Endless OS dual-boot machine, restoring the normal
+Windows boot setup.
+
+Arguments:
+    DEVICE        Device path (e.g. '/dev/sda')
+
+Options:
+    -g,--gap      On MBR drives, reinstate the sectors between the MBR and the
+                  first partition. (The second stage of GRUB is written here.)
+                  You may need this if GRUB has overwritten something important.
+    -n,--no-act   Don't actually make any changes to DEVICE
+EOF
+}
+
+while true; do
+    case "$1" in
+        -g|--gap)
+            shift
+            GAP="true"
+            ;;
+        -n|--no-act)
+            shift
+            NO_ACT="true"
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+
+#arguments checking
+if [ $# -lt 1 ]; then
+  echo "Missing DEVICE" >&2
+  usage >&2
+  exit 1
+fi
+dev="$(realpath $1)"
+
+#Windows partition labels
+WIN_GUID="EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
+WIN_MBR="7"
+
+#If we have mounted a partition, unmount before exiting
+#Remove the temp files we created
+cleanup() {
+    if ! [ -z "$mountpoint" ] && ! [ -z "$found" ]; then
+        udisksctl unmount -b "$part" --no-user-interaction
+    fi
+    rm -rf /tmp/eos-uninstall.*
+}
+trap cleanup EXIT
+
+#make sure we're root
+if [ "$(id -u)" != "0" ]; then
+    echo "$0 must be run as root." >&2
+    exit 1
+fi
+
+#Read the partition table off of the device.
+#Save partition label in a temporary file in case we need to restore it
+#Check that the device:
+#    1) is partitioned
+#    2) is a block device
+#    3) is not mounted
+table="$(mktemp -t eos-uninstall.XXXXXX)";
+if ! [ -b "$dev" ]; then
+    echo "$dev is not a block device." >&2
+    exit 1
+elif ! sfdisk --dump "$dev" > "$table"; then
+    echo "Partition table could not be read on $dev" >&2
+    exit 1
+elif grep -qs "$dev" /proc/mounts; then
+    echo "$dev is mounted. Please unmount it and try again." >&2
+    exit 1
+fi
+
+#Display the partition table
+echo "Partition table found on device."
+cat "$table"
+
+#Iterate over all Windows partitions on the device and mount them
+#Fail if we find no partitions that match the Windows signature
+#Stop when we find endless/endless.img
+endless_img_path=""; win_parts="$(mktemp -t eos-uninstall.XXXXXX)"
+echo "Searching for Windows partitions"
+
+#Save Windows partitions to a temporary file
+#Iterate over them and mount each, then grab the mount point
+#Exit if we don't find any Windows partitions
+if grep -i "type=$WIN_MBR\>\|type=$WIN_GUID" "$table" | cut -f1 -d' ' > $win_parts; then
+    while read part; do
+        echo "Mounting partition: $part"
+        udisksctl mount -o ro -b "$part" --no-user-interaction
+        mountpoint=$(grep "$part" /proc/mounts | cut -f2 -d' ')
+        endless_img_path="${mountpoint}/endless/endless.img"
+        if [ -f "$endless_img_path" ]; then
+            found="1"
+            echo "Found endless/endless.img on $part"
+            break
+        fi
+        udisksctl unmount -b "$part" --no-user-interaction
+    done < $win_parts
+    if [ -z "$found" ]; then
+        echo "endless/endless.img not found." >&2
+        exit 1
+    fi
+else
+    echo "No Windows partitions found on device." >&2
+    exit 1
+fi
+
+#get the disklabel type from the partition table
+label_type="$(grep "label: " $table | cut -f2 -d' ')"
+echo "label type is $label_type"
+
+#Run DOS sanity checks and write bootrack
+#Check that
+#    1) bootrack.img exists alongside endless.img
+#    2) The partition table on bootrack.img matches the one on the device
+#    3) The size of boottrack.img matches the space before partition 1 (typically 1MiB)
+#Write boottrack.img to the HDD, skipping the partition table.
+if [ "$label_type" = "dos" ]; then
+    boottrack_path="${mountpoint}/endless/boottrack.img"
+
+    # Get the start of the first partition from sfdisk output
+    # Note that sfdisk --dump lists partitions in numerical order, not on-disk order.
+    # Units are sectors of 512 bytes.
+    start="$(python -c 'import re, sys; print(512 * min(map(int,
+        re.findall(r"start=\s*(\d+)", open(sys.argv[1]).read()))))' "$table")"
+
+    if ! [ -f "$boottrack_path" ]; then
+        echo "$boottrack_path not found. Aborting." >&2
+        exit 1
+    fi
+
+    boottrack_size="$(stat $boottrack_path --format=%s)"
+
+    if [ "$boottrack_size" != "$start" ]; then
+        echo "$boottrack_path is $boottrack_size bytes; expected $start. Aborting." >&2
+        exit 1
+    fi
+
+    #Remove device, label-id, and device node from sfdisk output
+    remove_table_ids() {
+        awk '{
+            if ($1 !~ /device:/) {
+                if ($3 ~ /start=/) {
+                    $1 = ""; $2 = "";
+                }
+                print
+            }
+        }'
+    }
+    boottrack_table="$(mktemp -t eos-uninstall.XXXXXX)"
+    disk_table="$(mktemp -t eos-uninstall.XXXXXX)"
+    sfdisk -d "$boottrack_path" | remove_table_ids > "$boottrack_table"
+    cat "$table" | remove_table_ids > "$disk_table"
+
+    if diff -u "$boottrack_table" "$disk_table"; then
+        if [ -z "$NO_ACT" ]; then
+            echo "Reinstating MBR on $dev from $boottrack_path"
+            dd if="$boottrack_path" of="$dev" bs=1 count=440
+            udevadm settle
+
+            if [ "$GAP" == "true" ]; then
+                echo "Reinstating boot gap on $dev from $boottrack_path"
+                dd if="$boottrack_path" of="$dev" bs=512 skip=1 seek=1
+                udevadm settle
+            fi
+        else
+            echo "(Would write boottrack.img to $dev, but you specified --no-act)"
+        fi
+    else
+        echo "Partition table on $boottrack_path differs from that on $dev. Aborting" >&2
+        exit 1
+    fi
+else
+    echo "UEFI dual-boot systems are not yet supported by this tool." >&2
+    echo "You can use efibootmgr by hand to change the boot configuration." >&2
+    exit 1
+fi
