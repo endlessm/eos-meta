@@ -102,15 +102,15 @@ def main():
 
 
 def fetch_windows_tool(base):
-    filename = 'endless-usb-creator-latest.exe'
-    url = '{}/endless-usb-creator/{}'.format(base, filename)
-    log("Fetching Windows tool")
+    filename = 'endless-installer.exe'
+    url = '{}/endless-installer/{}'.format(base, filename)
+    log("Fetching Windows Installer")
     check_call("wget", "--timestamping", url)
     print(filename)
 
 
 def fetch_image(args, base):
-    manifest_url = '{base}/releases-{product}.json.gz'.format(
+    manifest_url = '{base}/releases-{product}-3.json.gz'.format(
         base=base, product=args.product)
     req = urllib.request.Request(manifest_url)
     with urllib.request.urlopen(req) as conn:
