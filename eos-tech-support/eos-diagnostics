@@ -126,17 +126,17 @@ function collectTemperatureInfo() {
     }
 }
 
-function collectFlashInfo() {
+function collectChromiumPluginsInfo() {
     let output = 'Version: ';
 
-    let flashPath = Gio.file_new_for_path('/var/lib/eos-flashplugin-updater/libflashplayer.so');
+    let flashPath = Gio.file_new_for_path('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/libpepflashplayer.so');
     if (!flashPath.query_exists(null)) {
 	output += 'not installed\n';
 	return output;
     }
 
     try {
-	let [res, version] = GLib.file_get_contents('/var/lib/eos-flashplugin-updater/VERSION.txt');
+	let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/VERSION.txt');
 	output += version;
 	output += '\n';
     } catch(e) {
@@ -286,11 +286,11 @@ function dumpDiagnostics(filename) {
     fullDump += collectTemperatureInfo();
     fullDump += '\n';
 
-    fullDump += '=====================\n'
-    fullDump += '= Flash information =\n'
-    fullDump += '=====================\n'
+    fullDump += '================================\n'
+    fullDump += '= Chromium plugins information =\n'
+    fullDump += '================================\n'
     fullDump += '\n';
-    fullDump += collectFlashInfo();
+    fullDump += collectChromiumPluginsInfo();
     fullDump += '\n';
 
     fullDump += '================================\n'
