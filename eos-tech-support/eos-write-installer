@@ -136,7 +136,7 @@ fi
 # Write the image
 echo
 echo "Writing $INSTALLER_IMAGE to $DEVICE..."
-$EOS_WRITE_IMAGE -f "$INSTALLER_IMAGE" "$DEVICE"
+$EOS_WRITE_IMAGE --removable -f "$INSTALLER_IMAGE" "$DEVICE"
 
 # Get the current partition table
 TABLE=$(sfdisk -d "$DEVICE")

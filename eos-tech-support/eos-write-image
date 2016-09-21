@@ -5,7 +5,7 @@ set -o pipefail
 # to a device (e.g., USB drive or SD card)
 # using dd, with status monitoring via pv
 
-ARGS=$(getopt -o fh -l "force,sparse,debug,help" -n "$0" -- "$@")
+ARGS=$(getopt -o fh -l "force,sparse,debug,removable,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -21,11 +21,13 @@ Options:
    -f,--force	don't ask to proceed with writing
    --sparse	use dd sparse conversion option
    --debug	turn on debugging messages
+   --removable	device is removable (remove fallback.efi)
    -h,--help	show this message
 EOF
 }
 
 FORCE=
+REMOVABLE=
 DD_IN_OPTS=(iflag=nonblock)
 DD_OUT_OPTS=(oflag=nonblock conv=fsync)
 while true; do
@@ -40,6 +42,10 @@ while true; do
             ;;
         --debug)
             set -x
+            shift
+            ;;
+	--removable)
+            REMOVABLE=true
             shift
             ;;
         -h|--help)
@@ -140,4 +146,42 @@ else
     # Try to format / discard all the sectors on the device
     blkdiscard "$DEVICE" &>/dev/null || true
     cat_image | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
+
+    # If removable device, delete $ESP/EFI/BOOT/fallback.efi
+    if [ "$REMOVABLE" ]; then
+
+        # Probe new partitions
+        partprobe
+        udevadm settle
+
+        # Assume ESP is the first partition
+        case "$DEVICE" in
+            /dev/mmcblk?)
+                ESP=${DEVICE}p1
+                ;;
+            /dev/sd?)
+                ESP=${DEVICE}1
+                ;;
+        esac
+
+	# Try to mount ESP
+	udisksctl mount -b "$ESP" --no-user-interaction || exit 1
+
+	# Grab the mountpoint
+	ESP_MP=$(grep "$ESP" /proc/mounts | cut -f2 -d' ')
+
+	if test -n "$ESP_MP" -a -d "$ESP_MP"
+	then
+	    FALLBACK="${ESP_MP}/EFI/BOOT/fallback.efi"
+
+            if [ ! -f "$FALLBACK" ]; then
+                echo "$FALLBACK not found" >&2
+            else
+                rm -v "$FALLBACK"
+            fi
+        fi
+
+        # Unmount ESP
+        udisksctl unmount -b "$ESP" --no-user-interaction
+    fi
 fi
