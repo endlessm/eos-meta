@@ -293,6 +293,16 @@ function dumpDiagnostics(filename) {
     fullDump += collectChromiumPluginsInfo();
     fullDump += '\n';
 
+    fullDump += '======================\n'
+    fullDump += '= Codecs information =\n'
+    fullDump += '======================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('find /var/lib/codecs');
+    fullDump += '\n';
+    fullDump += trySpawn('gst-inspect-1.0 libav');
+    fullDump += trySpawn('gst-inspect-1.0 -b');
+    fullDump += '\n';
+
     fullDump += '================================\n'
     fullDump += '= Flatpak remote configuration =\n'
     fullDump += '================================\n'
