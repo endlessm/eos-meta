@@ -191,6 +191,15 @@ function dumpDiagnostics(filename) {
     fullDump += tryReadFile('/etc/os-release');
     fullDump += '\n';
 
+    fullDump += '===================\n'
+    fullDump += '= EndlessOS image =\n'
+    fullDump += '===================\n'
+    fullDump += '\n';
+    fullDump += trySpawn('attr -q -g eos-image-version /sysroot');
+    fullDump += trySpawn('attr -q -g eos-image-version /');
+    fullDump += '\n';
+    fullDump += '\n';
+
     fullDump += '=========================\n'
     fullDump += '= EndlessOS personality =\n'
     fullDump += '=========================\n'
