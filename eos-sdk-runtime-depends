@@ -3,6 +3,7 @@ autoconf
 automake
 bison
 build-essential
+cmake
 diffutils
 eos-knowledge-0-dev
 eos-knowledge-db-build
