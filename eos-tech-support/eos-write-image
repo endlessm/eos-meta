@@ -164,15 +164,15 @@ else
                 ;;
         esac
 
-	# Try to mount ESP
-	udisksctl mount -b "$ESP" --no-user-interaction || exit 1
+        # Try to mount ESP
+        udisksctl mount -b "$ESP" --no-user-interaction || exit 1
 
-	# Grab the mountpoint
-	ESP_MP=$(grep "$ESP" /proc/mounts | cut -f2 -d' ')
+        # Grab the mountpoint
+        ESP_MP=$(grep "$ESP" /proc/mounts | cut -f2 -d' ')
 
-	if test -n "$ESP_MP" -a -d "$ESP_MP"
-	then
-	    FALLBACK="${ESP_MP}/EFI/BOOT/fallback.efi"
+        if test -n "$ESP_MP" -a -d "$ESP_MP"
+        then
+            FALLBACK="${ESP_MP}/EFI/BOOT/fallback.efi"
 
             if [ ! -f "$FALLBACK" ]; then
                 echo "$FALLBACK not found" >&2
