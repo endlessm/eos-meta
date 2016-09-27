@@ -172,12 +172,19 @@ else
 
         if test -n "$ESP_MP" -a -d "$ESP_MP"
         then
-            FALLBACK="${ESP_MP}/EFI/BOOT/fallback.efi"
+            ESP_BOOT="${ESP_MP}/EFI/BOOT"
+            ESP_ENDLESS="${ESP_MP}/EFI/endless"
+            FALLBACK="${ESP_BOOT}/fallback.efi"
+            MOKMANAGER="${ESP_ENDLESS}/MokManager.efi"
+            GRUB="${ESP_ENDLESS}/grubx64.efi"
 
             if [ ! -f "$FALLBACK" ]; then
                 echo "$FALLBACK not found" >&2
             else
                 rm -v "$FALLBACK"
+                mv -v "$MOKMANAGER" "$ESP_BOOT"
+                mv -v "$GRUB" "$ESP_BOOT"
+                rm -frv "$ESP_ENDLESS"
             fi
         fi
 
