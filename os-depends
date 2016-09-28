@@ -39,10 +39,11 @@ libpam-runtime
 libpam-systemd
 linux-firmware
 # Kernel package. All arm installs use platform specific kernels, so
-# those appear in the platform specific -depends files. The -64 variant
-# is a 64 bit kernel that we install on i386. For all other
-# architectures, we want to use the normal variant.
-linux-image-generic-64 [i386] | linux-image-generic [!armhf]
+# those appear in the platform specific -depends files. For amd64,
+# prefer the linux-signed-image variant, which contains the kernel
+# signed for UEFI. The -64 variant is a 64 bit kernel that we install on
+# i386. For all other architectures, we want to use the normal variant.
+linux-signed-image-generic [amd64] | linux-image-generic-64 [i386] | linux-image-generic [!armhf]
 lsb-base
 lsb-release
 mobile-broadband-provider-info
