@@ -52,6 +52,24 @@ function check_exists() {
     fi
 }
 
+function udisks_mount() {
+    udisksctl mount -b "$1" --no-user-interaction >&2
+    MOUNT_POINT=$(udisksctl info -b "$1" | awk '/MountPoints:/ { print $2 }')
+    if [ ! -d "$MOUNT_POINT" ]; then
+        echo "Failed to mount $1" >&2
+        exit 1
+    fi
+    echo $MOUNT_POINT
+}
+
+function udisks_unmount() {
+    udisksctl unmount -b "$1" --no-user-interaction >&2
+}
+
+function find_by_type() {
+    echo "$1" | grep -i "type=$2" | cut -d' ' -f1
+}
+
 NTFS=
 MBR=
 WRITABLE=
@@ -190,10 +208,6 @@ check_exists "$WINDOWS_TOOL" "Windows tool"
 echo
 echo "Partitioning $DEVICE..."
 
-find_by_type() {
-    echo "$1" | grep -i "type=$2" | cut -d' ' -f1
-}
-
 if [ "$MBR" ]; then
     sfdisk --label dos "$DEVICE" <<MBR_PARTITIONS
 1 : type=7
@@ -239,20 +253,6 @@ $MKFS_IMAGES $MKFS_ARGS eoslive "${DEVICE_IMAGES}"
 # Give udisks a chance to notice the new partitions
 partprobe
 udevadm settle
-
-udisks_mount() {
-    udisksctl mount -b "$1" --no-user-interaction >&2
-    MOUNT_POINT=$(udisksctl info -b "$1" | awk '/MountPoints:/ { print $2 }')
-    if [ ! -d "$MOUNT_POINT" ]; then
-        echo "Failed to mount $1" >&2
-        exit 1
-    fi
-    echo $MOUNT_POINT
-}
-
-udisks_unmount() {
-    udisksctl unmount -b "$1" --no-user-interaction >&2
-}
 
 if [ ! "$MBR" ]; then
     MOUNT_EFI=$(udisks_mount "$DEVICE_EFI")
