@@ -31,7 +31,7 @@ gnome-session
 gnupg
 # Could just be i386 amd64, but theoretically supports other arches
 grub2 [!armhf]
-grub-efi-amd64-image [i386 amd64]
+grub-efi-amd64-image-signed [amd64] | grub-efi-amd64-image [i386 amd64]
 iproute2
 less
 libpam-fprintd
