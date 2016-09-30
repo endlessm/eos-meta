@@ -25,10 +25,10 @@ eval set -- "$ARGS"
 usage() {
     cat <<EOF
 Usage:
-   $0 [options] DEVICE
+   $0 [options] OUTPUT
 
 Arguments:
-    DEVICE                 Device path (e.g. '/dev/sdb')
+    OUTPUT                 Device path (e.g. '/dev/sdb')
 
 Options:
    -o,--os-image PATH      Path to Endless OS image
@@ -118,12 +118,12 @@ while true; do
 done
 
 if [ $# -lt 1 ] ; then
-    echo "Missing DEVICE" >&2
+    echo "Missing OUTPUT" >&2
     usage >&2
     exit 1
 fi
 
-DEVICE="$1"
+OUTPUT="$1"
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
@@ -158,19 +158,19 @@ for command in "${!dependencies[@]}"; do
     fi
 done
 
-if [ ! -b "$DEVICE" ]; then
-    echo "$DEVICE does not exist or is not a block device... aborting!" >&2
+if [ ! -b "$OUTPUT" ]; then
+    echo "$OUTPUT does not exist or is not a block device... aborting!" >&2
     exit 1
 fi
 
-if grep -qs "$DEVICE" /proc/mounts; then
+if grep -qs "$OUTPUT" /proc/mounts; then
     # Protect against overwriting the device currently in use
-    echo "$DEVICE is currently in use -- please unmount and try again" >&2
+    echo "$OUTPUT is currently in use -- please unmount and try again" >&2
     exit 1
 fi
 
 if [ ! "$FORCE" ]; then
-    read -p "Are you sure you want to overwrite all data on $DEVICE? [y/N] "
+    read -p "Are you sure you want to overwrite all data on $OUTPUT? [y/N] "
     response="${REPLY,,}" # to lower
     if [[ ! "$response" =~ ^(yes|y)$ ]]; then
         exit 1
@@ -206,15 +206,15 @@ check_exists "$BOOT_ZIP.asc" "bootloader bundle signature"
 check_exists "$WINDOWS_TOOL" "Windows tool"
 
 echo
-echo "Partitioning $DEVICE..."
+echo "Preparing $OUTPUT..."
 
 if [ "$MBR" ]; then
-    sfdisk --label dos "$DEVICE" <<MBR_PARTITIONS
+    sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
 1 : type=7
 MBR_PARTITIONS
     udevadm settle
-    partprobe "$DEVICE"
-    PARTMAP=$(sfdisk --dump "$DEVICE")
+    partprobe "$OUTPUT"
+    PARTMAP=$(sfdisk --dump "$OUTPUT")
     DEVICE_IMAGES=$(find_by_type "$PARTMAP" "7")
 else
     # https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
@@ -230,14 +230,14 @@ else
     # It is important that the offset of the BIOS boot partition matches that
     # used in the Endless OS image builder, since it is embedded in the GRUB
     # image.
-    sfdisk --label gpt "$DEVICE" <<EFI_PARTITIONS
+    sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
 2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
 3 : size=1MiB, type=$PARTITION_BIOS_BOOT_GUID
 1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
 EFI_PARTITIONS
     udevadm settle
-    partprobe "$DEVICE"
-    PARTMAP=$(sfdisk --dump "$DEVICE")
+    partprobe "$OUTPUT"
+    PARTMAP=$(sfdisk --dump "$OUTPUT")
     DEVICE_IMAGES=$(find_by_type "$PARTMAP" "$PARTITION_BASIC_DATA_GUID")
     DEVICE_EFI=$(find_by_type "$PARTMAP" "$PARTITION_SYSTEM_GUID")
     DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
@@ -255,35 +255,35 @@ partprobe
 udevadm settle
 
 if [ ! "$MBR" ]; then
-    MOUNT_EFI=$(udisks_mount "$DEVICE_EFI")
-    unzip -q -d "${MOUNT_EFI}" "${BOOT_ZIP}" "EFI/*"
+    DIR_EFI=$(udisks_mount "$DEVICE_EFI")
+    unzip -q -d "${DIR_EFI}" "${BOOT_ZIP}" "EFI/*"
     udisks_unmount "$DEVICE_EFI"
 fi
 
-MOUNT_IMAGES=$(udisks_mount "$DEVICE_IMAGES")
-MOUNT_IMAGES_ENDLESS="${MOUNT_IMAGES}/endless"
-mkdir "$MOUNT_IMAGES_ENDLESS"
-unzip -q -d "${MOUNT_IMAGES_ENDLESS}" "${BOOT_ZIP}" "grub/*"
+DIR_IMAGES=$(udisks_mount "$DEVICE_IMAGES")
+DIR_IMAGES_ENDLESS="${DIR_IMAGES}/endless"
+mkdir "$DIR_IMAGES_ENDLESS"
+unzip -q -d "${DIR_IMAGES_ENDLESS}" "${BOOT_ZIP}" "grub/*"
 
 if [ ! "$WRITABLE" ]; then
     cp "${BOOT_ZIP}" "${BOOT_ZIP}.asc" "${EXTRACTED_SIGNATURE}" \
-        "$MOUNT_IMAGES_ENDLESS/"
-    echo "$(basename "${OS_IMAGE%.?z}")" > "${MOUNT_IMAGES_ENDLESS}/live"
-    cp "$WINDOWS_TOOL" "$MOUNT_IMAGES/"
+        "$DIR_IMAGES_ENDLESS/"
+    echo "$(basename "${OS_IMAGE%.?z}")" > "${DIR_IMAGES_ENDLESS}/live"
+    cp "$WINDOWS_TOOL" "$DIR_IMAGES/"
 fi
 
-"$EOS_WRITE_IMAGE" --removable "$OS_IMAGE" "-" > "${MOUNT_IMAGES_ENDLESS}/endless.img"
+"$EOS_WRITE_IMAGE" --removable "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
 udisks_unmount "$DEVICE_IMAGES"
 
 if [ "$MBR" ]; then
     # Bootstrap code, which will jump to sector 1
-    unzip -q -p "${BOOT_ZIP}" "ntfs/boot.img" | dd of="${DEVICE}" bs=446 count=1
+    unzip -q -p "${BOOT_ZIP}" "ntfs/boot.img" | dd of="${OUTPUT}" bs=446 count=1
     udevadm settle  # udev recreates device files after any write to the device
     # The rest of GRUB goes after the MBR and before the first partition.
-    unzip -q -p "${BOOT_ZIP}" "ntfs/core.img" | dd of="${DEVICE}" bs=512 seek=1
+    unzip -q -p "${BOOT_ZIP}" "ntfs/core.img" | dd of="${OUTPUT}" bs=512 seek=1
 else
     # Bootstrap code, built to jump to the offset of BIOS boot partition
-    unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${DEVICE}" bs=446 count=1
+    unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${OUTPUT}" bs=446 count=1
     udevadm settle  # udev recreates device files after any write to the device
     # The rest of GRUB goes into a dedicated BIOS-boot partition
     unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
