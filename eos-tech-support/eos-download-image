@@ -50,8 +50,9 @@ def download_and_verify(base, meta, what='image'):
     log("Downloading compressed", what, "from", image_url)
     check_call("wget", "--continue", image_url)
 
-    with open(image + '.size', 'w') as f:
-        f.write(str(meta['extracted_size']))
+    if meta.get('extracted_size'):
+        with open(image + '.size', 'w') as f:
+            f.write(str(meta['extracted_size']))
 
     log("Downloading compressed", what, "from", signature_url)
     check_call("wget", "--continue", signature_url)
@@ -139,8 +140,8 @@ def fetch_image(args, base):
         sys.exit(1)
 
     meta = personality['full']
-    if 'boot' in meta and meta['boot']['file']:
-        download_and_verify(base, meta['boot'], what='bootloader')
+    if 'boot' in personality and personality['boot']['file']:
+        download_and_verify(base, personality['boot'], what='bootloader')
 
     print(download_and_verify(base, meta))
 
