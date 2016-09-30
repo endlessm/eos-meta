@@ -243,27 +243,28 @@ EFI_PARTITIONS
     DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
 fi
 
-echo
-echo "Creating partitions"
-if [ ! "$MBR" ]; then
-    mkfs.vfat -n efi "${DEVICE_EFI}"
-fi
-$MKFS_IMAGES $MKFS_ARGS eoslive "${DEVICE_IMAGES}"
-
 # Give udisks a chance to notice the new partitions
 partprobe
 udevadm settle
 
 if [ ! "$MBR" ]; then
+    mkfs.vfat -n efi "${DEVICE_EFI}"
     DIR_EFI=$(udisks_mount "$DEVICE_EFI")
-    unzip -q -d "${DIR_EFI}" "${BOOT_ZIP}" "EFI/*"
-    udisks_unmount "$DEVICE_EFI"
 fi
 
+$MKFS_IMAGES $MKFS_ARGS eoslive "${DEVICE_IMAGES}"
 DIR_IMAGES=$(udisks_mount "$DEVICE_IMAGES")
+
+echo
+echo "Copying files"
+
 DIR_IMAGES_ENDLESS="${DIR_IMAGES}/endless"
 mkdir "$DIR_IMAGES_ENDLESS"
 unzip -q -d "${DIR_IMAGES_ENDLESS}" "${BOOT_ZIP}" "grub/*"
+
+if [ ! -z "$DIR_EFI" ]; then
+    unzip -q -d "${DIR_EFI}" "${BOOT_ZIP}" "EFI/*"
+fi
 
 if [ ! "$WRITABLE" ]; then
     cp "${BOOT_ZIP}" "${BOOT_ZIP}.asc" "${EXTRACTED_SIGNATURE}" \
@@ -273,7 +274,11 @@ if [ ! "$WRITABLE" ]; then
 fi
 
 "$EOS_WRITE_IMAGE" --removable "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
+
 udisks_unmount "$DEVICE_IMAGES"
+if [ ! "$MBR" ]; then
+    udisks_unmount "$DEVICE_EFI"
+fi
 
 if [ "$MBR" ]; then
     # Bootstrap code, which will jump to sector 1
