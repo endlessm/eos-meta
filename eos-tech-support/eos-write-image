@@ -11,18 +11,18 @@ eval set -- "$ARGS"
 usage() {
     cat <<EOF
 Usage:
-   $0 image device [block_size]
-Where:
-   image = raw or zipped image file (.img or .img.gz)
-   device = device name (e.g., '/dev/sdb' or '/dev/mmcblk0')
-            or '-' to write uncompressed image to stdout
-   block_size = block size in bytes (default = '1M')
+   $0 [options] IMAGE DEVICE [BLOCK_SIZE]
+Arguments:
+   IMAGE        raw or zipped image file (.img or .img.gz)
+   DEVICE       device name (e.g., '/dev/sdb' or '/dev/mmcblk0')
+                or '-' to write uncompressed image to stdout
+   BLOCK_SIZE   block size in bytes (default = '1M')
 Options:
-   -f,--force	don't ask to proceed with writing
-   --sparse	use dd sparse conversion option
-   --debug	turn on debugging messages
-   --removable	device is removable (remove fallback.efi)
-   -h,--help	show this message
+   -f,--force   don't ask to proceed with writing
+   --sparse     use dd sparse conversion option
+   --debug      turn on debugging messages
+   --removable  device is removable (remove fallback.efi)
+   -h,--help    show this message
 EOF
 }
 
@@ -44,7 +44,7 @@ while true; do
             set -x
             shift
             ;;
-	--removable)
+        --removable)
             REMOVABLE=true
             shift
             ;;
@@ -74,7 +74,12 @@ for command in "${!dependencies[@]}"; do
 done
 
 if [ $# -lt 2 ] ; then
-    echo "Missing command line arguments" >&2
+    if [ $# -eq 0 ]; then
+        echo "Error: missing IMAGE and DEVICE arguments" >&2
+    else
+        echo "Error: missing DEVICE arguments" >&2
+    fi
+    echo >&2
     usage >&2
     exit 1
 fi
