@@ -15,6 +15,7 @@ fakeroot
 flex
 gdb
 git
+gperf
 gtk-doc-tools
 libclutter-1.0-dev
 libclutter-gst-2.0-dev
@@ -27,10 +28,15 @@ libgjs-dev
 libglib2.0-dev
 libgstreamer1.0-dev
 libgtk-3-dev
+libgtk2.0-dev
 libjavascriptcoregtk-1.0-dev
+libjpeg-dev
 libjson-glib-dev
+libsecret-1-dev
 libsoup2.4-dev
+libsqlite3-dev
 libwebkit2gtk-4.0-dev
+libxslt1-dev
 make
 openjdk-7-jdk
 patchutils
