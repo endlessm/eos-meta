@@ -18,11 +18,11 @@ Where:
             or '-' to write uncompressed image to stdout
    block_size = block size in bytes (default = '1M')
 Options:
-   -f,--force	don't ask to proceed with writing
-   --sparse	use dd sparse conversion option
-   --debug	turn on debugging messages
-   --removable	device is removable (remove fallback.efi)
-   -h,--help	show this message
+   -f,--force   don't ask to proceed with writing
+   --sparse     use dd sparse conversion option
+   --debug      turn on debugging messages
+   --removable  device is removable (remove fallback.efi)
+   -h,--help    show this message
 EOF
 }
 
@@ -44,7 +44,7 @@ while true; do
             set -x
             shift
             ;;
-	--removable)
+        --removable)
             REMOVABLE=true
             shift
             ;;
