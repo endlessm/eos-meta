@@ -95,9 +95,10 @@ fi
 declare -A dependencies
 dependencies=(
     [dd]='coreutils'
-    [gzip]='gzip'
     [mkfs.exfat]='exfat-utils'
     [pv]='pv'
+    [xzcat]='xz-utils'
+    [zcat]='gzip'
 )
 for command in "${!dependencies[@]}"; do
     if ! which "$command" >/dev/null 2>&1; then
