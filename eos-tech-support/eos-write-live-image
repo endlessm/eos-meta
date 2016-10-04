@@ -117,7 +117,6 @@ fi
 declare -A dependencies
 dependencies=(
     [dd]='coreutils'
-    [pv]='pv'
     [unzip]='unzip'
     [xzcat]='xz-utils'
     [zcat]='gzip'

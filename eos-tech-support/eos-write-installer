@@ -96,7 +96,6 @@ declare -A dependencies
 dependencies=(
     [dd]='coreutils'
     [mkfs.exfat]='exfat-utils'
-    [pv]='pv'
     [xzcat]='xz-utils'
     [zcat]='gzip'
 )

@@ -62,7 +62,6 @@ done
 declare -A dependencies
 dependencies=(
     [dd]='coreutils'
-    [pv]='pv'
     [xzcat]='xz-utils'
     [zcat]='gzip'
 )
@@ -104,6 +103,17 @@ fi
 if [ ! -f "$IMAGE" ]; then
     echo "$IMAGE not found" >&2
     exit 1
+fi
+
+# fall back if pv isn't available
+if ! which pv >/dev/null 2>&1; then
+  pv() {
+    echo "Proceeding with no pv, there will be no progress message!" >&2
+    echo "Try 'sudo apt-get install pv'" >&2
+    echo "Writing..." >&2
+    cat
+    echo "Done!" >&2
+  }
 fi
 
 cat_image() {
