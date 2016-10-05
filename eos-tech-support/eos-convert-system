@@ -67,8 +67,8 @@ cp -paxl ${OSTREE_DEPLOY}/var /sysroot
 # To properly share objects with ostree, /var/lib/flatpak is a symlink
 # to /sysroot/flatpak. Since /sysroot will become /, point the symlink
 # to /flatpak instead.
-if [ "$(readlink -f /var/lib/flatpak)" = /sysroot/flatpak ]; then
-  ln -sfT /flatpak /var/lib/flatpak
+if [ "$(readlink -f /sysroot/var/lib/flatpak)" = /sysroot/flatpak ]; then
+  ln -sfT /flatpak /sysroot/var/lib/flatpak
 fi
 
 # Break any unwanted hard links. We assume that only empty files with
