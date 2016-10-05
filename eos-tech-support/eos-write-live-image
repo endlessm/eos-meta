@@ -19,7 +19,7 @@ if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o o:x:lnmwfh -l "os-image:,windows-tool:,latest,ntfs,mbr,writable,force,help" -n "$0" -- "$@")
+ARGS=$(getopt -o o:x:lnmwifh -l "os-image:,windows-tool:,latest,ntfs,mbr,writable,iso,force,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -28,7 +28,7 @@ Usage:
    $0 [options] OUTPUT
 
 Arguments:
-    OUTPUT                 Device path (e.g. '/dev/sdb')
+    OUTPUT                 Device path (e.g. '/dev/sdb') or ISO image
 
 Options:
    -o,--os-image PATH      Path to Endless OS image
@@ -36,6 +36,7 @@ Options:
    -l,--latest             Fetch latest OS image and/or Windows tool
    -w,--writable           Allow image to be modified when run (which
                            prevents installing it later)
+   -i,--iso                Write an ISO image
    -f,--force              don't ask to proceed before writing
    -h,--help               Show this message
 
@@ -72,6 +73,7 @@ function find_by_type() {
 
 NTFS=
 MBR=
+ISO=
 WRITABLE=
 FORCE=
 while true; do
@@ -101,6 +103,13 @@ while true; do
         -w|--writable)
             shift
             WRITABLE=true
+            ;;
+        -i|--iso)
+            shift
+            ISO=true
+            MBR=false
+            NTFS=false
+            WRITABLE=false
             ;;
         -f|--force)
             shift
@@ -140,14 +149,24 @@ dependencies=(
     [zcat]='gzip'
 )
 
-if [ "$NTFS" ]; then
-    MKFS_IMAGES="mkfs.ntfs"
-    MKFS_ARGS='--quick -L'
-    dependencies[$MKFS_IMAGES]='ntfs-3g'
+if [ "$ISO" ]; then
+    dependencies+=(
+        [xorriso]='xorriso'
+        [mkdosfs]='dosfstools'
+        [mcopy]='mtools'
+        [mkisofs]='genisoimage'
+        [grub-mkimage]='grub-common'
+    )
 else
-    MKFS_IMAGES="mkfs.exfat"
-    MKFS_ARGS=-n
-    dependencies[$MKFS_IMAGES]='exfat-utils'
+    if [ "$NTFS" ]; then
+        MKFS_IMAGES="mkfs.ntfs"
+        MKFS_ARGS='--quick -L'
+        dependencies[$MKFS_IMAGES]='ntfs-3g'
+    else
+        MKFS_IMAGES="mkfs.exfat"
+        MKFS_ARGS=-n
+        dependencies[$MKFS_IMAGES]='exfat-utils'
+    fi
 fi
 
 for command in "${!dependencies[@]}"; do
@@ -158,22 +177,32 @@ for command in "${!dependencies[@]}"; do
     fi
 done
 
-if [ ! -b "$OUTPUT" ]; then
-    echo "$OUTPUT does not exist or is not a block device... aborting!" >&2
-    exit 1
-fi
-
-if grep -qs "$OUTPUT" /proc/mounts; then
-    # Protect against overwriting the device currently in use
-    echo "$OUTPUT is currently in use -- please unmount and try again" >&2
-    exit 1
-fi
-
-if [ ! "$FORCE" ]; then
-    read -p "Are you sure you want to overwrite all data on $OUTPUT? [y/N] "
-    response="${REPLY,,}" # to lower
-    if [[ ! "$response" =~ ^(yes|y)$ ]]; then
+if [ "$ISO" ]; then
+    if [ -f "$OUTPUT" ] && [ ! "$FORCE" ]; then
+        echo "$OUTPUT already exists... aborting!" >&2
         exit 1
+    fi
+
+    OUTPUT_DIR=$(dirname "$OUTPUT")
+    mkdir -p "$OUTPUT_DIR"  &>/dev/null
+else
+    if [ ! -b "$OUTPUT" ]; then
+        echo "$OUTPUT does not exist or is not a block device... aborting!" >&2
+        exit 1
+    fi
+
+    if grep -qs "$OUTPUT" /proc/mounts; then
+        # Protect against overwriting the device currently in use
+        echo "$OUTPUT is currently in use -- please unmount and try again" >&2
+        exit 1
+    fi
+
+    if [ ! "$FORCE" ]; then
+        read -p "Are you sure you want to overwrite all data on $OUTPUT? [y/N] "
+        response="${REPLY,,}" # to lower
+        if [[ ! "$response" =~ ^(yes|y)$ ]]; then
+            exit 1
+        fi
     fi
 fi
 
@@ -208,52 +237,57 @@ check_exists "$WINDOWS_TOOL" "Windows tool"
 echo
 echo "Preparing $OUTPUT..."
 
-if [ "$MBR" ]; then
-    sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
+if [ "$ISO" ]; then
+    DIR_EFI="$(mktemp -d -t efi_dir.XXXXXX)"
+    DIR_IMAGES="$(mktemp -d -t iso9660_dir.XXXXXX)"
+else
+    if [ "$MBR" ]; then
+        sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
 1 : type=7
 MBR_PARTITIONS
-    udevadm settle
-    partprobe "$OUTPUT"
-    PARTMAP=$(sfdisk --dump "$OUTPUT")
-    DEVICE_IMAGES=$(find_by_type "$PARTMAP" "7")
-else
-    # https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
-    PARTITION_SYSTEM_GUID="c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
-    PARTITION_BIOS_BOOT_GUID="21686148-6449-6E6F-744E-656564454649"
-    PARTITION_BASIC_DATA_GUID="ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"
+        udevadm settle
+        partprobe "$OUTPUT"
+        PARTMAP=$(sfdisk --dump "$OUTPUT")
+        DEVICE_IMAGES=$(find_by_type "$PARTMAP" "7")
+    else
+        # https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
+        PARTITION_SYSTEM_GUID="c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
+        PARTITION_BIOS_BOOT_GUID="21686148-6449-6E6F-744E-656564454649"
+        PARTITION_BASIC_DATA_GUID="ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"
 
-    # We want the data partition, "eoslive", to occupy all the space on the disk
-    # after the UEFI and BIOS boot partitions. But, we also want it to be numbered
-    # first: apparently Windows will only mount the partition numbered first,
-    # regardless of where it is on the disk.
-    #
-    # It is important that the offset of the BIOS boot partition matches that
-    # used in the Endless OS image builder, since it is embedded in the GRUB
-    # image.
-    sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
+        # We want the data partition, "eoslive", to occupy all the space on the disk
+        # after the UEFI and BIOS boot partitions. But, we also want it to be numbered
+        # first: apparently Windows will only mount the partition numbered first,
+        # regardless of where it is on the disk.
+        #
+        # It is important that the offset of the BIOS boot partition matches that
+        # used in the Endless OS image builder, since it is embedded in the GRUB
+        # image.
+        sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
 2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
 3 : size=1MiB, type=$PARTITION_BIOS_BOOT_GUID
 1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
 EFI_PARTITIONS
+        udevadm settle
+        partprobe "$OUTPUT"
+        PARTMAP=$(sfdisk --dump "$OUTPUT")
+        DEVICE_IMAGES=$(find_by_type "$PARTMAP" "$PARTITION_BASIC_DATA_GUID")
+        DEVICE_EFI=$(find_by_type "$PARTMAP" "$PARTITION_SYSTEM_GUID")
+        DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
+    fi
+
+    # Give udisks a chance to notice the new partitions
+    partprobe
     udevadm settle
-    partprobe "$OUTPUT"
-    PARTMAP=$(sfdisk --dump "$OUTPUT")
-    DEVICE_IMAGES=$(find_by_type "$PARTMAP" "$PARTITION_BASIC_DATA_GUID")
-    DEVICE_EFI=$(find_by_type "$PARTMAP" "$PARTITION_SYSTEM_GUID")
-    DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
+
+    if [ ! "$MBR" ]; then
+        mkfs.vfat -n efi "${DEVICE_EFI}"
+        DIR_EFI=$(udisks_mount "$DEVICE_EFI")
+    fi
+
+    $MKFS_IMAGES $MKFS_ARGS eoslive "${DEVICE_IMAGES}"
+    DIR_IMAGES=$(udisks_mount "$DEVICE_IMAGES")
 fi
-
-# Give udisks a chance to notice the new partitions
-partprobe
-udevadm settle
-
-if [ ! "$MBR" ]; then
-    mkfs.vfat -n efi "${DEVICE_EFI}"
-    DIR_EFI=$(udisks_mount "$DEVICE_EFI")
-fi
-
-$MKFS_IMAGES $MKFS_ARGS eoslive "${DEVICE_IMAGES}"
-DIR_IMAGES=$(udisks_mount "$DEVICE_IMAGES")
 
 echo
 echo "Copying files"
@@ -275,24 +309,65 @@ fi
 
 "$EOS_WRITE_IMAGE" --removable "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
 
-udisks_unmount "$DEVICE_IMAGES"
-if [ ! "$MBR" ]; then
-    udisks_unmount "$DEVICE_EFI"
+echo
+echo "Finalizing image"
+
+if [ "$ISO" ]; then
+    DIR_EFI_SIZE=$(du -s ${DIR_EFI} | cut -f1)
+    ESP_SIZE=$(( (${DIR_EFI_SIZE} + 1024) / 1024 * 1024 ))
+
+    # Create ESP and copy the EFI content
+    truncate -s ${ESP_SIZE}K ${DIR_IMAGES_ENDLESS}/efi.img
+    mkdosfs ${DIR_IMAGES_ENDLESS}/efi.img
+    mcopy -s -i ${DIR_IMAGES_ENDLESS}/efi.img ${DIR_EFI}/EFI '::/'
+
+    # Generate the ISO image
+    unzip -q -d "${DIR_IMAGES_ENDLESS}/grub/i386-pc/" "${BOOT_ZIP}" "iso/*"
+    xorriso -as mkisofs \
+            -graft-points \
+            -b endless/grub/i386-pc/iso/eltorito.img \
+            -no-emul-boot \
+            -boot-load-size 4 \
+            -boot-info-table \
+            --grub2-boot-info \
+            --grub2-mbr ${DIR_IMAGES_ENDLESS}/grub/i386-pc/iso/boot_hybrid.img \
+            --efi-boot endless/efi.img \
+            -efi-boot-part \
+            --efi-boot-image \
+            --protective-msdos-label \
+            -o ${OUTPUT} \
+            -r \
+            -iso-level 4 \
+            ${DIR_IMAGES} \
+            --sort-weight 0 / --sort-weight 1 /endless
 fi
 
-if [ "$MBR" ]; then
-    # Bootstrap code, which will jump to sector 1
-    unzip -q -p "${BOOT_ZIP}" "ntfs/boot.img" | dd of="${OUTPUT}" bs=446 count=1
-    udevadm settle  # udev recreates device files after any write to the device
-    # The rest of GRUB goes after the MBR and before the first partition.
-    unzip -q -p "${BOOT_ZIP}" "ntfs/core.img" | dd of="${OUTPUT}" bs=512 seek=1
+echo
+echo "Cleaning up"
+
+if [ "$ISO" ]; then
+    rm -fr ${DIR_EFI}
+    rm -fr ${DIR_IMAGES}
 else
-    # Bootstrap code, built to jump to the offset of BIOS boot partition
-    unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${OUTPUT}" bs=446 count=1
-    udevadm settle  # udev recreates device files after any write to the device
-    # The rest of GRUB goes into a dedicated BIOS-boot partition
-    unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
-fi
+    udisks_unmount "$DEVICE_IMAGES"
+    if [ ! "$MBR" ]; then
+        udisks_unmount "$DEVICE_EFI"
+    fi
 
-udevadm settle
-sync
+    if [ "$MBR" ]; then
+        # Bootstrap code, which will jump to sector 1
+        unzip -q -p "${BOOT_ZIP}" "ntfs/boot.img" | dd of="${OUTPUT}" bs=446 count=1
+        udevadm settle  # udev recreates device files after any write to the device
+        # The rest of GRUB goes after the MBR and before the first partition.
+        unzip -q -p "${BOOT_ZIP}" "ntfs/core.img" | dd of="${OUTPUT}" bs=512 seek=1
+    else
+        # Bootstrap code, built to jump to the offset of BIOS boot partition
+        unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${OUTPUT}" bs=446 count=1
+        udevadm settle  # udev recreates device files after any write to the device
+        # The rest of GRUB goes into a dedicated BIOS-boot partition
+        unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
+    fi
+
+    udevadm settle
+    sync
+fi
