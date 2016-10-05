@@ -13,7 +13,7 @@ usage() {
 Usage:
    $0 [options] IMAGE DEVICE [BLOCK_SIZE]
 Arguments:
-   IMAGE        raw or zipped image file (.img or .img.gz)
+   IMAGE        raw or zipped image file (.img, .img.gz or .img.xz)
    DEVICE       device name (e.g., '/dev/sdb' or '/dev/mmcblk0')
                 or '-' to write uncompressed image to stdout
    BLOCK_SIZE   block size in bytes (default = '1M')
@@ -62,7 +62,7 @@ done
 declare -A dependencies
 dependencies=(
     [dd]='coreutils'
-    [pv]='pv'
+    [xzcat]='xz-utils'
     [zcat]='gzip'
 )
 for command in "${!dependencies[@]}"; do
@@ -105,8 +105,22 @@ if [ ! -f "$IMAGE" ]; then
     exit 1
 fi
 
+# fall back if pv isn't available
+if ! which pv >/dev/null 2>&1; then
+  pv() {
+    echo "Proceeding with no pv, there will be no progress message!" >&2
+    echo "Try 'sudo apt-get install pv'" >&2
+    echo "Writing..." >&2
+    cat
+    echo "Done!" >&2
+  }
+fi
+
 cat_image() {
-    if file --mime-type "$IMAGE" | grep -q gzip$; then
+    if file --mime-type "$IMAGE" | grep -q xz$; then
+        # Image is xzipped, xz has its own rate meter
+        xzcat -v "$IMAGE"
+    elif file --mime-type "$IMAGE" | grep -q gzip$; then
         # Image is gzipped
         # The following would calculate the original size
         # of the unzipped file if less than 4G:
@@ -119,7 +133,7 @@ cat_image() {
         fi
         zcat "$IMAGE" | pv $PV_ARGS
     else
-        # Image is not gzipped
+        # Image is uncompressed
         # We can show progress as percentage of total image size
         IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
         dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE}
