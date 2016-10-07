@@ -45,5 +45,6 @@ quilt
 ruby-compass
 ruby-sass
 strace
+uuid-dev
 valgrind
 vim
