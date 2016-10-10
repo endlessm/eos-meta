@@ -4,4 +4,4 @@
 include base-depends
 include os-depends
 
-eos-installer
+eos-installer-standalone
