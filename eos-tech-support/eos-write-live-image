@@ -159,6 +159,14 @@ if [ ! "$FORCE" ]; then
     fi
 fi
 
+if [ -z "$FETCH_LATEST" ]; then
+    if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
+        echo "--os-image and --windows-tool are required if --latest is not specified" >&2
+        usage >&2
+        exit 2
+    fi
+fi
+
 if [ ! -z "$FETCH_LATEST" ]; then
     if [ -z "$OS_IMAGE" ]; then
         OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --product eos)
@@ -166,12 +174,6 @@ if [ ! -z "$FETCH_LATEST" ]; then
     if [ -z "$WINDOWS_TOOL" ]; then
         WINDOWS_TOOL=$($EOS_DOWNLOAD_IMAGE --windows-tool)
     fi
-fi
-
-if [ ! -f "$WINDOWS_TOOL" ] || [ ! -f "$OS_IMAGE" ]; then
-    echo "--os-image and --windows-tool are required if --latest is not specified" >&2
-    usage >&2
-    exit 2
 fi
 
 check_exists "$OS_IMAGE" "image"
