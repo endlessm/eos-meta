@@ -35,7 +35,7 @@ libjson-glib-dev
 libsecret-1-dev
 libsoup2.4-dev
 libsqlite3-dev
-libwebkit2gtk-3.0-dev
+libwebkitgtk-3.0-dev
 libwebkit2gtk-4.0-dev
 libwebp-dev
 libxslt1-dev
