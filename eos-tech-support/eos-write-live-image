@@ -159,6 +159,14 @@ if [ ! "$FORCE" ]; then
     fi
 fi
 
+if [ -z "$FETCH_LATEST" ]; then
+    if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
+        echo "--os-image and --windows-tool are required if --latest is not specified" >&2
+        usage >&2
+        exit 2
+    fi
+fi
+
 if [ ! -z "$FETCH_LATEST" ]; then
     if [ -z "$OS_IMAGE" ]; then
         OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --product eos)
@@ -166,12 +174,6 @@ if [ ! -z "$FETCH_LATEST" ]; then
     if [ -z "$WINDOWS_TOOL" ]; then
         WINDOWS_TOOL=$($EOS_DOWNLOAD_IMAGE --windows-tool)
     fi
-fi
-
-if [ ! -f "$WINDOWS_TOOL" ] || [ ! -f "$OS_IMAGE" ]; then
-    echo "--os-image and --windows-tool are required if --latest is not specified" >&2
-    usage >&2
-    exit 2
 fi
 
 check_exists "$OS_IMAGE" "image"
@@ -254,14 +256,14 @@ udisks_unmount() {
 
 if [ ! "$MBR" ]; then
     MOUNT_EFI=$(udisks_mount "$DEVICE_EFI")
-    unzip -d "${MOUNT_EFI}" "${BOOT_ZIP}" "EFI/*"
+    unzip -q -d "${MOUNT_EFI}" "${BOOT_ZIP}" "EFI/*"
     udisks_unmount "$DEVICE_EFI"
 fi
 
 MOUNT_IMAGES=$(udisks_mount "$DEVICE_IMAGES")
 MOUNT_IMAGES_ENDLESS="${MOUNT_IMAGES}/endless"
 mkdir "$MOUNT_IMAGES_ENDLESS"
-unzip -d "${MOUNT_IMAGES_ENDLESS}" "${BOOT_ZIP}" "grub/*"
+unzip -q -d "${MOUNT_IMAGES_ENDLESS}" "${BOOT_ZIP}" "grub/*"
 
 if [ ! "$WRITABLE" ]; then
     cp "${BOOT_ZIP}" "${BOOT_ZIP}.asc" "${EXTRACTED_SIGNATURE}" \
@@ -275,16 +277,16 @@ udisks_unmount "$DEVICE_IMAGES"
 
 if [ "$MBR" ]; then
     # Bootstrap code, which will jump to sector 1
-    unzip -p "${BOOT_ZIP}" "ntfs/boot.img" | dd of="${DEVICE}" bs=446 count=1
+    unzip -q -p "${BOOT_ZIP}" "ntfs/boot.img" | dd of="${DEVICE}" bs=446 count=1
     udevadm settle  # udev recreates device files after any write to the device
     # The rest of GRUB goes after the MBR and before the first partition.
-    unzip -p "${BOOT_ZIP}" "ntfs/core.img" | dd of="${DEVICE}" bs=512 seek=1
+    unzip -q -p "${BOOT_ZIP}" "ntfs/core.img" | dd of="${DEVICE}" bs=512 seek=1
 else
     # Bootstrap code, built to jump to the offset of BIOS boot partition
-    unzip -p "${BOOT_ZIP}" "live/boot.img" | dd of="${DEVICE}" bs=446 count=1
+    unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${DEVICE}" bs=446 count=1
     udevadm settle  # udev recreates device files after any write to the device
     # The rest of GRUB goes into a dedicated BIOS-boot partition
-    unzip -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
+    unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
 fi
 
 udevadm settle
