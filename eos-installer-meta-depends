@@ -4,5 +4,4 @@
 include base-depends
 include os-depends
 
-eos-image-keyring
-eos-installer
+eos-installer-standalone
