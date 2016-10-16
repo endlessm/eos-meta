@@ -42,6 +42,7 @@ libxslt1-dev
 make
 openjdk-8-jdk
 patchutils
+python-polib
 python3-dbus
 python3-dbusmock
 quilt
