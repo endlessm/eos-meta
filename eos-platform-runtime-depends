@@ -3,6 +3,9 @@
 # Base dependencies shared between core and runtime
 include base-depends
 
+# Flatpak platform additions
+fontconfig-config-flatpak
+
 # Dependencies for apps included in the runtime.
 eos-extra-fonts
 eos-knowledge-0
