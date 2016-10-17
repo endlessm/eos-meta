@@ -147,6 +147,7 @@ dependencies=(
     [unzip]='unzip'
     [xzcat]='xz-utils'
     [zcat]='gzip'
+    [grub-bios-setup]='grub-pc'
 )
 
 if [ "$ISO" ]; then
@@ -361,11 +362,10 @@ else
         # The rest of GRUB goes after the MBR and before the first partition.
         unzip -q -p "${BOOT_ZIP}" "ntfs/core.img" | dd of="${OUTPUT}" bs=512 seek=1
     else
-        # Bootstrap code, built to jump to the offset of BIOS boot partition
-        unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${OUTPUT}" bs=446 count=1
-        udevadm settle  # udev recreates device files after any write to the device
-        # The rest of GRUB goes into a dedicated BIOS-boot partition
-        unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
+        DIR_LIVE="$(mktemp -d -t grub_dir_live.XXXXXX)"
+        unzip -q -d "${DIR_LIVE}" "${BOOT_ZIP}" "live/*"
+        /usr/sbin/grub-bios-setup --directory="${DIR_LIVE}" "${OUTPUT}"
+        rm -fr "${DIR_LIVE}"
     fi
 
     udevadm settle
