@@ -1,9 +1,6 @@
 #!/bin/bash -e
 
-# Lists all users (i.e., all home directories on /dev/sda2)
-
-DEVICE=/dev/sda2
-MOUNT=/mnt/sda2
+# Lists all users (i.e., all home directories on all ostree devices)
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
@@ -11,17 +8,34 @@ if [ "$USERID" != "0" ]; then
     exit 1
 fi
 
+MOUNT=`mktemp -d`
+
 cleanup() {
     set +e
-    umount $MOUNT
+    if mount | grep $MOUNT; then
+        umount $MOUNT
+    fi
     rmdir $MOUNT
 }
 trap cleanup EXIT
 
 mkdir -p $MOUNT
-mount $DEVICE $MOUNT
 
-# FIXME A more robust approach would be the following:
-# - read /usr/etc/login.defs and extract UID_MIN
-# - read /etc/passwd and get all users with uid >= UID_MIN
-ls $MOUNT/home
+DEVICES=`blkid -t LABEL=ostree | awk -F ":" '{print $1}'`
+
+echo
+
+for DEVICE in $DEVICES
+do
+    mount $DEVICE $MOUNT
+
+    # FIXME A more robust approach would be the following:
+    # - read /usr/etc/login.defs and extract UID_MIN
+    # - read /etc/passwd and get all users with uid >= UID_MIN
+    echo Users on $DEVICE:
+    ls $MOUNT/home
+    echo
+
+    umount $MOUNT
+done
+
