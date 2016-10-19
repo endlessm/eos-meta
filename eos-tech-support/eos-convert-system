@@ -5,12 +5,6 @@ if [ ! -L /ostree ]; then
   exit 1
 fi
 
-SECURE_BOOT_FILE=/proc/sys/kernel/secure_boot
-if [ -e ${SECURE_BOOT_FILE} ] && [ $(cat ${SECURE_BOOT_FILE}) -eq 1 ]; then
-  echo "Error: Secure boot needs to be disabled before running $0" >&2
-  exit 1
-fi
-
 # Set the metrics system to use the dev environment
 echo "Configuring Metrics System for Dev"
 source eos-select-metrics-env 'dev'
