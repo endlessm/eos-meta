@@ -7,6 +7,7 @@ dbus-x11
 dconf-cli
 dosfstools
 dracut
+efibootmgr [amd64]
 eos-boot-helper
 eos-composite-mode
 eos-default-background
