@@ -1,0 +1,147 @@
+#!/bin/bash -e
+
+# Upgrade from eos2 to eos3
+
+# Removes all installed legacy app bundles,
+# points to the latest ostree branches,
+# and starts the ostree upgrade process.
+# Requires the user to re-install any desired
+# apps as flatpaks from the app center
+# after rebooting into eos3.
+
+ARGS=$(getopt -o fh -l "force,help" -n "$0" -- "$@")
+eval set -- "$ARGS"
+
+usage() {
+    cat <<EOF
+Remove all legacy apps and upgrade from eos2 to eos3
+Usage:
+   $0
+Options:
+   -f,--force	don't ask for confirmation
+   -h,--help	show this message
+EOF
+}
+
+FORCE=false
+while true; do
+    case "$1" in
+        -f|--force)
+            FORCE=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+
+USERID=$(id -u)
+if [ "$USERID" != "0" ]; then
+    echo "Program requires superuser privileges"
+    exit 1
+fi
+
+major_version=`grep VERSION= /etc/os-release | awk -F '[".]' '{print $2}'`
+
+if [ $major_version -ne 2 ]; then
+    echo "This script only works with EndlessOS version 2"
+    exit 1
+fi
+
+if ! $FORCE; then
+    echo
+    echo "You are about to upgrade EndlessOS from version 2 to version 3."
+    echo
+    echo "EndlessOS 3 uses a new technology for applications called flatpak,"
+    echo "which is a standard format for deploying Linux applications that enables"
+    echo "Endless to run applications distributed by other development teams."
+    echo
+    echo "The legacy application format is no longer supported, and the first step"
+    echo "of the upgrade process is to remove all installed application bundles."
+    echo "Then, several gigabytes will be downloaded from the internet,"
+    echo "which may take a long time and incur data charges depending on your"
+    echo "internet connection and contract with your provider."
+    echo
+    echo "In the meantime, while downloading EndlessOS 3, you may continue"
+    echo "to use EndlessOS 2 and some of the core applications such as"
+    echo "the internet browser and office applications."
+    echo "Once the upgrade to EndlessOS 3 is downloaded and ready, you will be"
+    echo "asked to reboot, and then you will be able to install new flatpak apps"
+    echo "from the EndlessOS 3 app center."
+    echo
+    read -p "Are you sure you want to remove all legacy app bundles and proceed? [y/N] "
+    response=${REPLY,,} # to lower
+    if [[ ! $response =~ ^(yes|y)$ ]]; then
+        exit 1
+    fi
+fi
+
+# Stop any updates in progress
+killall ostree-daemon || true
+killall eos-updater || true
+
+# Attempt a clean uninstall of all installed apps
+for app in `eamctl list-apps`
+do
+    echo Uninstalling $app
+    eamctl uninstall $app || true
+done
+
+# Forcibly cleanup the app installation directories,
+# just in case anything useless was left behind
+rm -rf /var/endless || true
+rm -rf /var/endless-extra || true
+
+# Set up the ostree and flatpak repo config
+cat <<EOF > /ostree/repo/config
+[core]
+repo_version=1
+mode=bare
+
+[remote "eos"]
+url=https://ostree.endlessm.com/ostree/eos-amd64
+branches=os/eos/amd64/eos3;
+xa.disable=true
+
+[remote "eos-runtimes"]
+gpg-verify=true
+gpg-verify-summary=true
+url=https://ostree.endlessm.com/ostree/eos-amd64
+
+[remote "eos-apps"]
+gpg-verify=true
+gpg-verify-summary=true
+url=https://ostree.endlessm.com/ostree/eos-apps
+
+[remote "eos-external-apps"]
+gpg-verify=false
+gpg-verify-summary=false
+url=file:///var/lib/flatpak-external-apps
+EOF
+
+# Set the default branch for the flatpak repo
+mkdir -p /etc/gnome-software
+cat <<EOF > /etc/gnome-software/flatpak-extra.conf
+[remote:eos-apps]
+default-branch=eos3
+EOF
+
+# Change the refspec for the currently deployed ostree
+deployment=`ostree admin status | grep '* eos' | awk -F ' ' '{print $3}'`
+cat <<EOF > /ostree/deploy/eos/deploy/$deployment.origin
+[origin]
+refspec=eos:os/eos/amd64/eos3
+EOF
+
+# Perform the ostree upgrade
+ostree admin upgrade
+
+# All done
+echo "Upgrade complete! Please reboot the computer to start using EndlessOS 3"
+
