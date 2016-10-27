@@ -96,7 +96,17 @@ done
 # Forcibly cleanup the app installation directories,
 # just in case anything useless was left behind
 rm -rf /var/endless || true
-rm -rf /var/endless-extra || true
+rm -rf /var/endless-extra/* || true
+
+# Remove any existing subscriptions app data for all users
+for user in `ls /home`
+do
+    rm -rf /home/$user/.local/share/com.endlessm.subscriptions || true
+done
+
+# For split disk images, create the flatpak directory
+# on the secondary storage
+mkdir /var/endless-extra/flatpak || true
 
 # Set up the ostree and flatpak repo config
 cat <<EOF > /ostree/repo/config
