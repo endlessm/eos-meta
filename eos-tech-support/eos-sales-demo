@@ -1,0 +1,83 @@
+#!/bin/bash -e
+
+# Configures a device with a set of apps for sales demos
+# For each app listed, we attempt to install or update,
+# and add to the desktop
+# Extra unreleased apps can be installed from local .flatpak files
+# by appending their app IDs to the command
+
+APPS=$(cat <<EOF
+com.endlessm.prensa_libre.es_GT
+com.endlessm.extra.pt_BR
+com.endlessm.publimetro.es_MX
+EOF
+)
+
+ARGS=$(getopt -o rh -l "reset,help" -n "$0" -- "$@")
+eval set -- "$ARGS"
+
+usage() {
+    cat <<EOF
+Usage:
+   $0 [options] [EXTRA_APPS]
+Arguments:
+   EXTRA_APPS   additional apps to install from local files,
+                provided as a list of app_ID's separated by spaces,
+                where app_ID.flatpak is a file in the current directory
+Options:
+   -r,--reset   reset the desktop icon grid layou
+   -h,--help    show this message
+EOF
+}
+
+RESET=false
+
+while true; do
+    case "$1" in
+        -r|--reset)
+            RESET=true
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+
+if $RESET ; then
+    echo ""
+    echo "Resetting desktop icon grid layout"
+    eos-reset-desktop
+fi
+
+for app in $APPS
+do
+    if [ -z `flatpak list | grep $app` ] ; then
+	echo ""
+        echo "Installing $app"
+        flatpak install eos-apps $app eos3
+    else
+	echo ""
+        echo "Updating $app"
+        flatpak update $app
+    fi
+    echo ""
+    echo "Adding $app to desktop"
+    eos-add-to-desktop $app
+done
+
+while [ $# -ge 1 ] ; do
+    app=$1
+    shift
+    echo ""
+    echo "Installing $app from $app.flatpak"
+    flatpak install --bundle $app.flatpak
+    echo ""
+    echo "Adding $app to desktop"
+    eos-add-to-desktop $app
+done
