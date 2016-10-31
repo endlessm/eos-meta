@@ -1,0 +1,79 @@
+#!/bin/bash -e
+
+# Downloads Google Chrome and unzips to the user's home directory,
+# with a desktop launcher
+
+USERID=$(id -u)
+if [ "$USERID" == "0" ]; then
+    echo "Program cannot be run as superuser"
+    exit 1
+fi
+
+DEB_ARCH=`dpkg --print-architecture`
+case ${DEB_ARCH} in
+    amd64) ;; # Only 64-bit Intel architectures are supported
+    *) echo "Unsupported architecture ${DEB_ARCH}"
+       exit 1
+       ;;
+esac
+
+TEMP_DIR=`mktemp -d`
+DEST_DIR=~/.google-chrome
+WGET_COMMAND="wget -c --tries=5"
+CHROME_URL=http://dl.google.com/linux/chrome/deb
+CHROME_PACKAGES=${CHROME_URL}/dists/stable/main/binary-${DEB_ARCH}/Packages
+CHROME_FLAVOUR_VERSION=google-chrome-stable
+
+get_field() {
+    grep-dctrl -n -s $1 ${CHROME_FLAVOUR_VERSION} ${TEMP_DIR}/Packages
+}
+
+if ! ${WGET_COMMAND} "${CHROME_PACKAGES}" -O "${TEMP_DIR}/Packages"; then
+    echo "Failed to download Packages from Google Chrome"
+    exit 1
+fi
+
+package=$(get_field "Package")
+if [ -z "${package}" ]; then
+    echo "Packages does not contain ${CHROME_FLAVOUR_VERSION}"
+    exit 1
+fi
+
+CHROME_VERSION=$(get_field "Version")
+CHROME_SHA1SUM=$(get_field "SHA1")
+
+filename=$(get_field "Filename")
+CHROME_URL_FILENAME=${CHROME_URL}/${filename}
+CHROME_FILENAME=${CHROME_URL_FILENAME##*/}
+
+# Get Chrome
+echo "Downloading ${CHROME_FILENAME}"
+if ! ${WGET_COMMAND} "${CHROME_URL_FILENAME}" -O "${TEMP_DIR}/${CHROME_FILENAME}"; then
+    echo "Failed to download ${CHROME_FILENAME}"
+    exit 1
+fi
+
+# Verify SHA1 checksum of debian file
+echo "Verifying ${TEMP_DIR}/${CHROME_FILENAME}"
+echo "${CHROME_SHA1SUM} ${TEMP_DIR}/${CHROME_FILENAME}" | sha1sum -c > /dev/null 2>&1 || \
+{
+    echo "sha1sum mismatch ${TEMP_DIR}/${CHROME_FILENAME}"
+    exit 1
+}
+
+echo "Removing old version if installed"
+rm -rf ${DEST_DIR}
+
+echo "Installing ${TEMP_DIR}/${CHROME_FILENAME}"
+if ! dpkg -x ${TEMP_DIR}/${CHROME_FILENAME} ${DEST_DIR} ; then
+    echo "Cannot unpack package file ${CHROME_FILENAME}"
+    exit 1
+fi
+
+rm -rf ${TEMP_DIR}
+
+echo "Adding to desktop"
+cp ${DEST_DIR}/usr/share/applications/google-chrome.desktop ~/.local/share/applications/
+sed -i "s|/usr/bin/google-chrome-stable|${DEST_DIR}/opt/google/chrome/google-chrome|g" ~/.local/share/applications/google-chrome.desktop 
+sed -i "s|Icon=google-chrome|Icon=${DEST_DIR}/opt/google/chrome/product_logo_64.png|g" ~/.local/share/applications/google-chrome.desktop 
+eos-add-to-desktop google-chrome
