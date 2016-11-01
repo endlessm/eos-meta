@@ -3,17 +3,20 @@
 # Downloads Google Chrome and unzips to the user's home directory,
 # with a desktop launcher
 
+exit_with_error() {
+   echo $1
+   exit 1
+}
+
 USERID=$(id -u)
 if [ "$USERID" == "0" ]; then
-    echo "Program cannot be run as superuser"
-    exit 1
+    exit_with_error "Program cannot be run as superuser"
 fi
 
 DEB_ARCH=`dpkg --print-architecture`
 case ${DEB_ARCH} in
     amd64) ;; # Only 64-bit Intel architectures are supported
-    *) echo "Unsupported architecture ${DEB_ARCH}"
-       exit 1
+    *) exit_with_error "Unsupported architecture ${DEB_ARCH}"
        ;;
 esac
 
@@ -36,11 +39,6 @@ GCONF_VERSION=
 GCONF_SHA1SUM=
 GCONF_URL_FILENAME=
 GCONF_FILENAME=
-
-exit_with_error() {
-   echo $1
-   exit 1
-}
 
 get_field() {
     grep-dctrl -n -s $1 -P $2 ${TEMP_DIR}/Packages
