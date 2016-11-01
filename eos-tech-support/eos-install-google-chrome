@@ -20,110 +20,136 @@ esac
 TEMP_DIR=`mktemp -d`
 DEST_DIR=~/.google-chrome
 WGET_COMMAND="wget -c --tries=5"
+
 CHROME_URL=http://dl.google.com/linux/chrome/deb
 CHROME_PACKAGES=${CHROME_URL}/dists/stable/main/binary-${DEB_ARCH}/Packages
 CHROME_FLAVOUR_VERSION=google-chrome-stable
+CHROME_VERSION=
+CHROME_SHA1SUM=
+CHROME_URL_FILENAME=
+CHROME_FILENAME=
 
 GCONF_URL=http://httpredir.debian.org/debian
 GCONF_PACKAGES=${GCONF_URL}/dists/stable/main/binary-${DEB_ARCH}/Packages.xz
 GCONF_FLAVOUR_VERSION=libgconf-2-4
+GCONF_VERSION=
+GCONF_SHA1SUM=
+GCONF_URL_FILENAME=
+GCONF_FILENAME=
+
+exit_with_error() {
+   echo $1
+   exit 1
+}
 
 get_field() {
     grep-dctrl -n -s $1 -P $2 ${TEMP_DIR}/Packages
 }
 
-if ! ${WGET_COMMAND} "${CHROME_PACKAGES}" -O "${TEMP_DIR}/Packages"; then
-    echo "Failed to download Packages from Google Chrome"
-    exit 1
-fi
-
-package=$(get_field "Package" ${CHROME_FLAVOUR_VERSION})
-if [ -z "${package}" ]; then
-    echo "Packages does not contain ${CHROME_FLAVOUR_VERSION}"
-    exit 1
-fi
-
-CHROME_VERSION=$(get_field "Version" ${CHROME_FLAVOUR_VERSION})
-CHROME_SHA1SUM=$(get_field "SHA1" ${CHROME_FLAVOUR_VERSION})
-
-filename=$(get_field "Filename" ${CHROME_FLAVOUR_VERSION})
-CHROME_URL_FILENAME=${CHROME_URL}/${filename}
-CHROME_FILENAME=${CHROME_URL_FILENAME##*/}
-
-if ! ${WGET_COMMAND} "${GCONF_PACKAGES}" -O "${TEMP_DIR}/Packages.xz"; then
-    echo "Failed to download Packages from Debian"
-    exit 1
-fi
-unxz -f "${TEMP_DIR}/Packages.xz"
-
-package=$(get_field "Package" ${GCONF_FLAVOUR_VERSION})
-if [ -z "${package}" ]; then
-    echo "Packages does not contain ${GCONF_FLAVOUR_VERSION}"
-    exit 1
-fi
-
-GCONF_VERSION=$(get_field "Version" ${GCONF_FLAVOUR_VERSION})
-GCONF_SHA1SUM=$(get_field "SHA1" ${GCONF_FLAVOUR_VERSION})
-
-filename=$(get_field "Filename" ${GCONF_FLAVOUR_VERSION})
-GCONF_URL_FILENAME=${GCONF_URL}/${filename}
-GCONF_FILENAME=${GCONF_URL_FILENAME##*/}
-
-# Get Chrome
-echo "Downloading ${CHROME_FILENAME}"
-if ! ${WGET_COMMAND} "${CHROME_URL_FILENAME}" -O "${TEMP_DIR}/${CHROME_FILENAME}"; then
-    echo "Failed to download ${CHROME_FILENAME}"
-    exit 1
-fi
-
-# Verify SHA1 checksum of debian file
-echo "Verifying ${TEMP_DIR}/${CHROME_FILENAME}"
-echo "${CHROME_SHA1SUM} ${TEMP_DIR}/${CHROME_FILENAME}" | sha1sum -c > /dev/null 2>&1 || \
-{
-    echo "sha1sum mismatch ${TEMP_DIR}/${CHROME_FILENAME}"
-    exit 1
+download_packages_file() {
+    local packages_url=$1
+    local packages_filename=$(basename $1)
+    if ! ${WGET_COMMAND} "${packages_url}" -O "${TEMP_DIR}/${packages_filename}"; then
+        exit_with_error "Failed to download Packages file ${packages_filename} "
+    fi
+    if [[ ${packages_filename} == *.xz ]]; then
+        unxz -f ${TEMP_DIR}/${packages_filename}
+    fi
 }
 
-# Get Gconf
-echo "Downloading ${GCONF_FILENAME}"
-if ! ${WGET_COMMAND} "${GCONF_URL_FILENAME}" -O "${TEMP_DIR}/${GCONF_FILENAME}"; then
-    echo "Failed to download ${GCONF_FILENAME}"
-    exit 1
-fi
+fill_metadata_for_google_chrome() {
+    local package=$(get_field "Package" ${CHROME_FLAVOUR_VERSION})
+    if [ -z "${package}" ]; then
+        exit_with_error "Packages does not contain ${CHROME_FLAVOUR_VERSION}"
+    fi
 
-# Verify SHA1 checksum of debian file
-echo "Verifying ${TEMP_DIR}/${GCONF_FILENAME}"
-echo "${GCONF_SHA1SUM} ${TEMP_DIR}/${GCONF_FILENAME}" | sha1sum -c > /dev/null 2>&1 || \
-{
-    echo "sha1sum mismatch ${TEMP_DIR}/${GCONF_FILENAME}"
-    exit 1
+    CHROME_VERSION=$(get_field "Version" ${CHROME_FLAVOUR_VERSION})
+    CHROME_SHA1SUM=$(get_field "SHA1" ${CHROME_FLAVOUR_VERSION})
+
+    local filename=$(get_field "Filename" ${CHROME_FLAVOUR_VERSION})
+    CHROME_URL_FILENAME=${CHROME_URL}/${filename}
+    CHROME_FILENAME=${CHROME_URL_FILENAME##*/}
 }
 
-echo "Removing old version if installed"
-rm -rf ${DEST_DIR}
+fill_metadata_for_gconf() {
+    local package=$(get_field "Package" ${GCONF_FLAVOUR_VERSION})
+    if [ -z "${package}" ]; then
+        exit_with_error "Packages does not contain ${GCONF_FLAVOUR_VERSION}"
+    fi
 
-echo "Installing ${TEMP_DIR}/${CHROME_FILENAME}"
-if ! dpkg -x ${TEMP_DIR}/${CHROME_FILENAME} ${DEST_DIR} ; then
-    echo "Cannot unpack package file ${CHROME_FILENAME}"
-    exit 1
-fi
+    GCONF_VERSION=$(get_field "Version" ${GCONF_FLAVOUR_VERSION})
+    GCONF_SHA1SUM=$(get_field "SHA1" ${GCONF_FLAVOUR_VERSION})
 
-echo "Installing ${TEMP_DIR}/${GCONF_FILENAME}"
-if ! dpkg -x ${TEMP_DIR}/${GCONF_FILENAME} ${DEST_DIR} ; then
-    echo "Cannot unpack package file ${GCONF_FILENAME}"
-    exit 1
-fi
+    local filename=$(get_field "Filename" ${GCONF_FLAVOUR_VERSION})
+    GCONF_URL_FILENAME=${GCONF_URL}/${filename}
+    GCONF_FILENAME=${GCONF_URL_FILENAME##*/}
+}
 
-rm -rf ${TEMP_DIR}
+retrieve_packages_metadata() {
+    download_packages_file ${CHROME_PACKAGES}
+    fill_metadata_for_google_chrome
 
-echo "Symlinking the bundled libgconf-2 shared opbject"
-for gconf_so_file in ${DEST_DIR}/usr/lib/x86_64-linux-gnu/libgconf-2*so*; do
-    filename="$(basename ${gconf_so_file})"
-    ln -s ../../../usr/lib/x86_64-linux-gnu/${filename} ${DEST_DIR}/opt/google/chrome/${filename}
-done
+    download_packages_file ${GCONF_PACKAGES}
+    fill_metadata_for_gconf
+}
 
-echo "Adding to desktop"
-cp ${DEST_DIR}/usr/share/applications/google-chrome.desktop ~/.local/share/applications/
-sed -i "s|/usr/bin/google-chrome-stable|${DEST_DIR}/opt/google/chrome/google-chrome|g" ~/.local/share/applications/google-chrome.desktop
-sed -i "s|Icon=google-chrome|Icon=${DEST_DIR}/opt/google/chrome/product_logo_64.png|g" ~/.local/share/applications/google-chrome.desktop
+download_packages() {
+    echo "Downloading ${CHROME_FILENAME}"
+    if ! ${WGET_COMMAND} "${CHROME_URL_FILENAME}" -O "${TEMP_DIR}/${CHROME_FILENAME}"; then
+        exit_with_error "Failed to download ${CHROME_FILENAME}"
+    fi
+
+    # Verify SHA1 checksum of debian file
+    echo "Verifying ${TEMP_DIR}/${CHROME_FILENAME}"
+    echo "${CHROME_SHA1SUM} ${TEMP_DIR}/${CHROME_FILENAME}" | sha1sum -c > /dev/null 2>&1 || \
+    {
+        exit_with_error "sha1sum mismatch ${TEMP_DIR}/${CHROME_FILENAME}"
+    }
+
+    echo "Downloading ${GCONF_FILENAME}"
+    if ! ${WGET_COMMAND} "${GCONF_URL_FILENAME}" -O "${TEMP_DIR}/${GCONF_FILENAME}"; then
+        exit_with_error "Failed to download ${GCONF_FILENAME}"
+    fi
+
+    # Verify SHA1 checksum of debian file
+    echo "Verifying ${TEMP_DIR}/${GCONF_FILENAME}"
+    echo "${GCONF_SHA1SUM} ${TEMP_DIR}/${GCONF_FILENAME}" | sha1sum -c > /dev/null 2>&1 || \
+    {
+        exit_with_error "sha1sum mismatch ${TEMP_DIR}/${GCONF_FILENAME}"
+    }
+}
+
+install_packages() {
+    echo "Removing old version if installed"
+    rm -rf ${DEST_DIR}
+
+    echo "Installing ${TEMP_DIR}/${CHROME_FILENAME}"
+    if ! dpkg -x ${TEMP_DIR}/${CHROME_FILENAME} ${DEST_DIR} ; then
+        exit_with_error "Cannot unpack package file ${CHROME_FILENAME}"
+    fi
+
+    echo "Installing ${TEMP_DIR}/${GCONF_FILENAME}"
+    if ! dpkg -x ${TEMP_DIR}/${GCONF_FILENAME} ${DEST_DIR} ; then
+        exit_with_error "Cannot unpack package file ${GCONF_FILENAME}"
+    fi
+
+    rm -rf ${TEMP_DIR}
+
+    echo "Symlinking the bundled libgconf-2 shared opbject"
+    for gconf_so_file in ${DEST_DIR}/usr/lib/x86_64-linux-gnu/libgconf-2*so*; do
+        filename="$(basename ${gconf_so_file})"
+        ln -s ../../../usr/lib/x86_64-linux-gnu/${filename} ${DEST_DIR}/opt/google/chrome/${filename}
+    done
+
+    echo "Adding to desktop"
+    cp ${DEST_DIR}/usr/share/applications/google-chrome.desktop ~/.local/share/applications/
+    sed -i "s|/usr/bin/google-chrome-stable|${DEST_DIR}/opt/google/chrome/google-chrome|g" ~/.local/share/applications/google-chrome.desktop
+    sed -i "s|Icon=google-chrome|Icon=${DEST_DIR}/opt/google/chrome/product_logo_64.png|g" ~/.local/share/applications/google-chrome.desktop
+}
+
+retrieve_packages_metadata
+download_packages
+install_packages
+
 eos-add-to-desktop google-chrome
+exit 0
