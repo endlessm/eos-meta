@@ -88,6 +88,17 @@ Description: Target packages of the Endless distribution for odroidu2
  .
  This set provides the platform specific package list for armhf-ec100
 
+Package: eos-core-s905x
+Architecture: armhf
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless distribution for S905X-based boards
+ This package depends on all packages required for the Endless OS core images
+ .
+ It is also used to help ensure proper upgrades, so it is recommended that
+ it not be removed.
+ .
+ This set provides the platform specific package list for armhf-s905x
+
 Package: eos-installer-meta
 Architecture: any
 Depends: ${misc:Depends}, ${eos:Depends}
@@ -121,6 +132,15 @@ Description: Target packages of the Endless installer
  installer tool.
  .
  This set provides the platform specific package list for armhf-ec100.
+
+Package: eos-installer-meta-s905x
+Architecture: armhf
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless installer
+ This metapackage depends on all packages required for the Endless
+ installer tool.
+ .
+ This set provides the platform specific package list for armhf-s905x.
 
 Package: eos-dev
 Architecture: all
