@@ -109,6 +109,7 @@ shotwell
 showmehow-service
 simple-scan
 smbclient
+strace
 system-config-printer-gnome
 systemd-coredump
 totem
