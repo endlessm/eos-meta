@@ -43,7 +43,7 @@ echo "Updating HOME directory"
 sed -i "s#/sysroot/home#/home#g" /etc/passwd* /etc/adduser.conf /etc/default/useradd
 
 # Directories in the deployment root to merge to /sysroot
-ROOT_DIRS=(bin etc lib sbin usr opt var endless)
+ROOT_DIRS=(bin etc lib sbin usr opt var)
 if [ -d ${OSTREE_DEPLOY_CURRENT}/lib64 ]; then
   ROOT_DIRS+=(lib64)
 fi
