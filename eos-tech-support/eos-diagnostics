@@ -53,6 +53,212 @@ function collectBoardInfo() {
     return output;
 }
 
+function collectMmcDevice(dir, level) {
+    let fileEnum;
+    let output = '';
+    let attrs = ['cid', 'manfid', 'oemid', 'name', 'prv', 'serial', 'date',
+                 'hwrev', 'fwrev', 'csd', 'scr', 'vendor', 'device'];
+    let prefix = ' '.repeat(level);
+    let path = dir.get_path();
+
+    let subsys = dir.resolve_relative_path('subsystem');
+    if (!subsys.query_exists(null))
+        return '';
+
+    output += prefix + dir.get_basename() + '\n';
+
+    let contents = tryReadFile(path + '/firmware_node/path');
+    if (contents)
+        output += prefix + ' firmware_path: ' + contents;
+
+    try {
+        let driver = GLib.file_read_link(path + '/device/driver');
+        output += prefix + ' driver: ' + GLib.path_get_basename(driver) + '\n';
+    } catch (e) { }
+
+    try {
+        let driver = GLib.file_read_link(path + '/driver');
+        output += prefix + ' driver: ' + GLib.path_get_basename(driver) + '\n';
+    } catch (e) { }
+
+    for (var i = 0; i < attrs.length; i++) {
+        let attrPath = dir.resolve_relative_path(attrs[i]).get_path();
+        let contents = tryReadFile(attrPath);
+        if (!contents)
+            continue;
+        contents = contents.trim();
+        output += prefix + ' ' + attrs[i] + ': ' + contents + '\n';
+    }
+
+    output += '\n';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name,standard::type,standard::is-symlink',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let fileType = info.get_file_type('standard::type');
+        if (info.get_is_symlink() || fileType != Gio.FileType.DIRECTORY)
+            continue;
+        output += collectMmcDevice(fileEnum.get_child(info), level + 1);
+    }
+
+    return output;
+}
+
+function collectMmcDevices() {
+    let dir = Gio.File.new_for_path('/sys/class/mmc_host');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    // Recurse through MMC device info
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        output += collectMmcDevice(fileEnum.get_child(info), 0);
+    }
+
+    return output;
+}
+
+function collectI2cDevices() {
+    let dir = Gio.File.new_for_path('/sys/bus/i2c/devices');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    // This directory mixes i2c hosts and devices. Rather than try to
+    // parse them into a tree, we just have our loop iterations able to
+    // print useful info about both entry types.
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let devDir = fileEnum.get_child(info).get_path();
+        output += info.get_name() + '\n';
+
+        output += '  name: ' + tryReadFile(devDir + '/name');
+
+        let contents = tryReadFile(devDir + '/firmware_node/path');
+        if (contents)
+            output += '  firmware_path: ' + contents;
+
+        try {
+            let driver = GLib.file_read_link(devDir + '/device/driver');
+            output += '  driver: ' + GLib.path_get_basename(driver) + '\n';
+        } catch (e) { }
+
+        try {
+            let driver = GLib.file_read_link(devDir + '/driver');
+            output += '  driver: ' + GLib.path_get_basename(driver) + '\n';
+        } catch (e) { }
+
+        output += '\n';
+    }
+
+    return output;
+}
+
+function collectHdaProcCodecInfo(dir) {
+    let output = '';
+    let fileEnum;
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let name = info.get_name();
+        if (!name.startsWith('codec#'))
+            continue;
+
+        output += dir.get_basename() + ' ' + name + ':\n';
+        output += tryReadFile(fileEnum.get_child(info).get_path());
+        output += '\n';
+    }
+
+    return output;
+}
+
+function collectHdaProcInfo() {
+    let dir = Gio.File.new_for_path('/proc/asound');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let name = info.get_name();
+        if (name == 'cards' || !name.startsWith('card'))
+            continue;
+
+        output += collectHdaProcCodecInfo(fileEnum.get_child(info));
+    }
+
+    return output;
+}
+
+function collectHdaSysInfo() {
+    let dir = Gio.File.new_for_path('/sys/class/sound');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let dev = info.get_name();
+        let devDir = fileEnum.get_child(info).get_path();
+
+        let initPins = tryReadFile(devDir + '/init_pin_configs');
+        let driverPins = tryReadFile(devDir + '/driver_pin_configs');
+        if (!initPins)
+            continue;
+
+        output += dev + ':\n';
+        output += 'vendor: ' + tryReadFile(devDir + '/vendor_id')
+        output += 'subsystem: ' + tryReadFile(devDir + '/subsystem_id')
+        output += 'init_pin_configs:\n' + initPins.trim() + '\n';
+        if (driverPins)
+            output += 'driver_pin_configs:\n' + driverPins.trim() + '\n';
+
+        output += '\n';
+    }
+
+    return output;
+}
+
 function collectPrintersInfo() {
     let output = '';
     let ppds_dir_path = '/etc/cups/ppd';
@@ -188,8 +394,12 @@ let diagnostics = [
         content: function() { return tryReadFile('/etc/os-release'); },
     },
     {
-        title: 'Kernel version',
-        content: function() { return trySpawn('uname -a'); },
+        title: 'Kernel',
+        content: function() {
+            return trySpawn('uname -a') + '\n' +
+                   'cmdline: ' + tryReadFile('/proc/cmdline') + '\n' +
+                   trySpawn('lsmod');
+        },
     },
     {
         title: 'EndlessOS image',
@@ -219,7 +429,10 @@ let diagnostics = [
     },
     {
         title: 'Memory',
-        content: function() { return trySpawn('free -mh'); },
+        content: function() {
+            return trySpawn('free -mh') + '\n' +
+                   tryReadFile('/proc/meminfo');
+        },
     },
     {
         title: 'Disks',
@@ -248,12 +461,32 @@ let diagnostics = [
         content: function() { return trySpawn('pactl list'); },
     },
     {
+        title: 'Input devices',
+        content: function() { return tryReadFile('/proc/bus/input/devices'); },
+    },
+    {
         title: 'PCI devices',
-        content: function() { return trySpawn('lspci -knn'); },
+        content: function() { return trySpawn('lspci -vnn'); },
     },
     {
         title: 'USB devices',
         content: function() { return trySpawn('lsusb'); },
+    },
+    {
+        title: 'MMC devices',
+        content: function() { return collectMmcDevices(); },
+    },
+    {
+        title: 'I2C devices',
+        content: function() { return collectI2cDevices(); },
+    },
+    {
+        title: 'ALSA devices',
+        content: function() { return tryReadFile('/proc/asound/cards'); },
+    },
+    {
+        title: 'Intel HDA',
+        content: function() { return collectHdaProcInfo() + collectHdaSysInfo(); },
     },
     {
         title: 'Printers',
@@ -301,11 +534,14 @@ function dumpDiagnostics(filename) {
     fullDump += collectEosDevInfo();
 
     diagnostics.forEach(function(diag) {
+        let content = diag.content();
+        if (!content)
+            return;
+
         fullDump += '='.repeat(diag.title.length + 4) + '\n';
         fullDump += '= ' + diag.title + ' =\n';
         fullDump += '='.repeat(diag.title.length + 4) + '\n';
-        let content = diag.content().trim();
-        fullDump += content + '\n\n';
+        fullDump += content.trim() + '\n\n';
     });
 
     if (filename == 'stdout') {
