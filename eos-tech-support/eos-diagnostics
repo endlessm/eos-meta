@@ -196,180 +196,126 @@ function tryReadFile(filename, fallbackMessage) {
     }
 }
 
+let diagnostics = [
+    {
+        title: 'EndlessOS version',
+        content: function() {
+            return trySpawn('uname -a') + '\n' + tryReadFile('/etc/os-release');
+        },
+    },
+    {
+        title: 'EndlessOS image',
+        content: function() {
+            return trySpawn('attr -q -g eos-image-version /sysroot') +
+                   trySpawn('attr -q -g eos-image-version /');
+        },
+    },
+    {
+        title: 'EndlessOS personality',
+        content: function() {
+            return tryReadFile('/etc/EndlessOS/personality.conf',
+                               'No personality file\n');
+        },
+    },
+    {
+        title: 'Uptime',
+        content: function() { return trySpawn('uptime'); },
+    },
+    {
+        title: 'OSTree status',
+        content: function() { return trySpawn('ostree admin status'); },
+    },
+    {
+        title: 'Board information',
+        content: function() { return collectBoardInfo(); },
+    },
+    {
+        title: 'Memory information',
+        content: function() { return trySpawn('free -mh'); },
+    },
+    {
+        title: 'Disk information',
+        content: function() {
+            return trySpawn('mount') + '\n' + trySpawn('df -h') + '\n' +
+                   trySpawn('udisksctl dump');
+        },
+    },
+    {
+        title: 'Network information',
+        content: function() { return trySpawn('ifconfig -a'); },
+    },
+    {
+        title: 'Display information',
+        content: function() {
+            return trySpawn('xrandr -q --verbose') + '\n' +
+                   collectGraphicsRenderer();
+        },
+    },
+    {
+        title: 'Audio information',
+        content: function() {
+            return trySpawn('pactl list');
+        },
+    },
+    {
+        title: 'Device information',
+        content: function() {
+            return 'PCI\n\n' + trySpawn('lspci -knn') + '\n' +
+                   'USB\n\n' + trySpawn('lsusb');
+        },
+    },
+    {
+        title: 'Printers information',
+        content: function() { return collectPrintersInfo(); },
+    },
+    {
+        title: 'Temperature information',
+        content: function() { return collectTemperatureInfo(); },
+    },
+    {
+        title: 'Chromium plugins information',
+        content: function() { return collectChromiumPluginsInfo(); }
+    },
+    {
+        title: 'Codecs information',
+        content: function() {
+            return trySpawn('find /var/lib/codecs') + '\n' +
+                   trySpawn('gst-inspect-1.0 libav') +
+                   trySpawn('gst-inspect-1.0 -b');
+        },
+    },
+    {
+        title: 'Flatpak remote configuration',
+        content: function() {
+            return trySpawn('flatpak remote-list --show-details');
+        },
+    },
+    {
+        title: 'Process list',
+        content: function() { return trySpawn('ps aux'); },
+    },
+    {
+        title: 'Boot timing',
+        content: function() { return trySpawn('systemd-analyze'); },
+    },
+    {
+        title: 'Journal output',
+        content: function() { return trySpawn('journalctl --no-pager'); },
+    },
+];
+
 function dumpDiagnostics(filename) {
     let fullDump = '';
 
     fullDump += collectEosDevInfo();
 
-    fullDump += '=====================\n'
-    fullDump += '= EndlessOS version =\n'
-    fullDump += '=====================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('uname -a');
-    fullDump += '\n';
-    fullDump += tryReadFile('/etc/os-release');
-    fullDump += '\n';
-
-    fullDump += '===================\n'
-    fullDump += '= EndlessOS image =\n'
-    fullDump += '===================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('attr -q -g eos-image-version /sysroot');
-    fullDump += trySpawn('attr -q -g eos-image-version /');
-    fullDump += '\n';
-    fullDump += '\n';
-
-    fullDump += '=========================\n'
-    fullDump += '= EndlessOS personality =\n'
-    fullDump += '=========================\n'
-    fullDump += '\n';
-    fullDump += tryReadFile('/etc/EndlessOS/personality.conf', 'No personality file\n');
-    fullDump += '\n';
-
-    fullDump += '==========\n'
-    fullDump += '= Uptime =\n'
-    fullDump += '==========\n'
-    fullDump += '\n';
-    fullDump += trySpawn('uptime');
-    fullDump += '\n';
-
-    fullDump += '=================\n'
-    fullDump += '= OSTree status =\n'
-    fullDump += '=================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('ostree admin status');
-    fullDump += '\n';
-
-    fullDump += '=====================\n'
-    fullDump += '= Board information =\n'
-    fullDump += '=====================\n'
-    fullDump += '\n';
-    fullDump += collectBoardInfo();
-    fullDump += '\n';
-
-    fullDump += '======================\n'
-    fullDump += '= Memory information =\n'
-    fullDump += '======================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('free -mh');
-    fullDump += '\n';
-
-    fullDump += '====================\n'
-    fullDump += '= Disk information =\n'
-    fullDump += '====================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('mount');
-    fullDump += '\n';
-    fullDump += trySpawn('df -h');
-    fullDump += '\n';
-    fullDump += trySpawn('udisksctl dump');
-    fullDump += '\n';
-
-    fullDump += '=======================\n'
-    fullDump += '= Network information =\n'
-    fullDump += '=======================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('ifconfig -a');
-    fullDump += '\n';
-
-    fullDump += '=======================\n'
-    fullDump += '= Display information =\n'
-    fullDump += '=======================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('xrandr -q --verbose');
-    fullDump += '\n';
-    fullDump += collectGraphicsRenderer();
-    fullDump += '\n';
-
-    fullDump += '=====================\n'
-    fullDump += '= Audio information =\n'
-    fullDump += '=====================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('pactl list');
-    fullDump += '\n';
-
-    fullDump += '======================\n'
-    fullDump += '= Device information =\n'
-    fullDump += '======================\n'
-    fullDump += '\n';
-    fullDump += 'PCI\n\n';
-    fullDump += trySpawn('lspci -knn');
-    fullDump += '\n';
-    fullDump += 'USB\n\n';
-    fullDump += trySpawn('lsusb');
-    fullDump += '\n';
-
-    fullDump += '========================\n'
-    fullDump += '= Printers information =\n'
-    fullDump += '========================\n'
-    fullDump += '\n';
-    fullDump += collectPrintersInfo();
-    fullDump += '\n';
-
-    fullDump += '===========================\n'
-    fullDump += '= Temperature information =\n'
-    fullDump += '===========================\n'
-    fullDump += '\n';
-    fullDump += collectTemperatureInfo();
-    fullDump += '\n';
-
-    fullDump += '================================\n'
-    fullDump += '= Chromium plugins information =\n'
-    fullDump += '================================\n'
-    fullDump += '\n';
-    fullDump += collectChromiumPluginsInfo();
-    fullDump += '\n';
-
-    fullDump += '======================\n'
-    fullDump += '= Codecs information =\n'
-    fullDump += '======================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('find /var/lib/codecs');
-    fullDump += '\n';
-    fullDump += trySpawn('gst-inspect-1.0 libav');
-    fullDump += trySpawn('gst-inspect-1.0 -b');
-    fullDump += '\n';
-
-    fullDump += '================================\n'
-    fullDump += '= Flatpak remote configuration =\n'
-    fullDump += '================================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('flatpak remote-list --show-details');
-    fullDump += '\n';
-
-    fullDump += '==============================\n'
-    fullDump += '= Flatpak installed runtimes =\n'
-    fullDump += '==============================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('flatpak list --runtime --show-details');
-    fullDump += '\n';
-
-    fullDump += '==================================\n'
-    fullDump += '= Flatpak installed applications =\n'
-    fullDump += '==================================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('flatpak list --app --show-details');
-    fullDump += '\n';
-
-    fullDump += '================\n'
-    fullDump += '= Process list =\n'
-    fullDump += '================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('ps aux');
-    fullDump += '\n';
-
-    fullDump += '===============\n'
-    fullDump += '= Boot timing =\n'
-    fullDump += '===============\n'
-    fullDump += '\n';
-    fullDump += trySpawn('systemd-analyze');
-    fullDump += '\n';
-
-    fullDump += '==================\n';
-    fullDump += '= Journal output =\n';
-    fullDump += '==================\n';
-    fullDump += '\n';
-    fullDump += trySpawn('journalctl --no-pager');
+    diagnostics.forEach(function(diag) {
+        fullDump += '='.repeat(diag.title.length + 4) + '\n';
+        fullDump += '= ' + diag.title + ' =\n';
+        fullDump += '='.repeat(diag.title.length + 4) + '\n';
+        let content = diag.content().trim();
+        fullDump += content + '\n\n';
+    });
 
     if (filename == 'stdout') {
         print(fullDump);
