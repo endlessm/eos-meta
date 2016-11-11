@@ -17,7 +17,7 @@ function collectGraphicsRenderer() {
                                              'org.gnome.SessionManager',
                                              '/org/gnome/SessionManager');
 
-    let output = 'Graphics renderer: ';
+    let output = 'Renderer: ';
     if (sessionProxy)
         output += sessionProxy.Renderer;
     else
@@ -28,41 +28,27 @@ function collectGraphicsRenderer() {
 }
 
 function collectBoardInfo() {
-    let table = { 'System vendor': '/sys/devices/virtual/dmi/id/sys_vendor',
-                  'Product name': '/sys/devices/virtual/dmi/id/product_name',
-                  'Product serial': '/sys/devices/virtual/dmi/id/product_uuid',
-                  'Product version': '/sys/devices/virtual/dmi/id/product_version',
-                  'Board vendor': '/sys/devices/virtual/dmi/id/board_vendor',
-                  'Board name': '/sys/devices/virtual/dmi/id/board_name',
-                  'Board version': '/sys/devices/virtual/dmi/id/board_version',
-                  'BIOS vendor': '/sys/devices/virtual/dmi/id/bios_vendor',
-                  'BIOS version': '/sys/devices/virtual/dmi/id/bios_version',
-                  'BIOS date': '/sys/devices/virtual/dmi/id/bios_date' };
-
+    let dmi_info = [ 'sys_vendor', 'product_name', 'product_serial',
+                     'product_uuid', 'product_version', 'board_asset_tag',
+                     'board_name', 'board_serial', 'board_vendor',
+                     'board_version', 'bios_date', 'bios_vendor',
+                     'bios_version', 'chassis_asset_tag', 'chassis_serial',
+                     'chassis_type', 'chassis_vendor', 'chassis_version' ];
     let output = '';
-    let names = Object.keys(table);
-    names.forEach(function(name) {
-        let file = table[name];
-        output += name;
-        output += ': ';
+    dmi_info.forEach(function(name) {
+        let file = '/sys/devices/virtual/dmi/id/' + name;
 
         try {
             let [res, contents] = GLib.file_get_contents(file);
-            output += contents;
+            output += name + ': ' + contents;
         } catch (e) {
-            if (name == 'Product name') {
-                try {
-                    file = '/proc/device-tree/compatible';
-                    let [res, contents] = GLib.file_get_contents(file);
-                    output += contents + '\n';
-                } catch (e) {
-                    output += 'not available\n';
-                }
-            } else {
-                output += 'not available\n';
-            }
         }
     });
+
+    try {
+        let [res, contents] = GLib.file_get_contents('/proc/device-tree/compatible');
+        output += 'compatible: ' + contents;
+    } catch (e) { }
 
     return output;
 }
@@ -199,9 +185,11 @@ function tryReadFile(filename, fallbackMessage) {
 let diagnostics = [
     {
         title: 'EndlessOS version',
-        content: function() {
-            return trySpawn('uname -a') + '\n' + tryReadFile('/etc/os-release');
-        },
+        content: function() { return tryReadFile('/etc/os-release'); },
+    },
+    {
+        title: 'Kernel version',
+        content: function() { return trySpawn('uname -a'); },
     },
     {
         title: 'EndlessOS image',
@@ -226,58 +214,61 @@ let diagnostics = [
         content: function() { return trySpawn('ostree admin status'); },
     },
     {
-        title: 'Board information',
+        title: 'Product identification',
         content: function() { return collectBoardInfo(); },
     },
     {
-        title: 'Memory information',
+        title: 'Memory',
         content: function() { return trySpawn('free -mh'); },
     },
     {
-        title: 'Disk information',
+        title: 'Disks',
+        content: function() { return trySpawn('udisksctl dump'); },
+    },
+    {
+        title: 'Mounts',
         content: function() {
-            return trySpawn('mount') + '\n' + trySpawn('df -h') + '\n' +
-                   trySpawn('udisksctl dump');
+            return trySpawn('mount') + '\n' + trySpawn('df -h');
         },
     },
     {
-        title: 'Network information',
+        title: 'Network interfaces',
         content: function() { return trySpawn('ifconfig -a'); },
     },
     {
-        title: 'Display information',
-        content: function() {
-            return trySpawn('xrandr -q --verbose') + '\n' +
-                   collectGraphicsRenderer();
-        },
+        title: 'Graphics',
+        content: function() { return collectGraphicsRenderer(); },
     },
     {
-        title: 'Audio information',
-        content: function() {
-            return trySpawn('pactl list');
-        },
+        title: 'Display',
+        content: function() { return trySpawn('xrandr -q --verbose'); },
     },
     {
-        title: 'Device information',
-        content: function() {
-            return 'PCI\n\n' + trySpawn('lspci -knn') + '\n' +
-                   'USB\n\n' + trySpawn('lsusb');
-        },
+        title: 'Pulseaudio',
+        content: function() { return trySpawn('pactl list'); },
     },
     {
-        title: 'Printers information',
+        title: 'PCI devices',
+        content: function() { return trySpawn('lspci -knn'); },
+    },
+    {
+        title: 'USB devices',
+        content: function() { return trySpawn('lsusb'); },
+    },
+    {
+        title: 'Printers',
         content: function() { return collectPrintersInfo(); },
     },
     {
-        title: 'Temperature information',
+        title: 'Temperature',
         content: function() { return collectTemperatureInfo(); },
     },
     {
-        title: 'Chromium plugins information',
+        title: 'Chromium plugins',
         content: function() { return collectChromiumPluginsInfo(); }
     },
     {
-        title: 'Codecs information',
+        title: 'Codecs',
         content: function() {
             return trySpawn('find /var/lib/codecs') + '\n' +
                    trySpawn('gst-inspect-1.0 libav') +
@@ -285,13 +276,13 @@ let diagnostics = [
         },
     },
     {
-        title: 'Flatpak remote configuration',
+        title: 'Flatpak remotes',
         content: function() {
             return trySpawn('flatpak remote-list --show-details');
         },
     },
     {
-        title: 'Process list',
+        title: 'Processes',
         content: function() { return trySpawn('ps aux'); },
     },
     {
@@ -299,7 +290,7 @@ let diagnostics = [
         content: function() { return trySpawn('systemd-analyze'); },
     },
     {
-        title: 'Journal output',
+        title: 'Journal',
         content: function() { return trySpawn('journalctl --no-pager'); },
     },
 ];
