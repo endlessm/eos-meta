@@ -3,6 +3,7 @@
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
+const System = imports.system;
 
 function collectGraphicsRenderer() {
     let iface =
@@ -391,10 +392,12 @@ function tryReadFile(filename, fallbackMessage) {
 let diagnostics = [
     {
         title: 'EndlessOS version',
+        hardwareInfo: true,
         content: function() { return tryReadFile('/etc/os-release'); },
     },
     {
         title: 'Kernel',
+        hardwareInfo: true,
         content: function() {
             return trySpawn('uname -a') + '\n' +
                    'cmdline: ' + tryReadFile('/proc/cmdline') + '\n' +
@@ -425,10 +428,12 @@ let diagnostics = [
     },
     {
         title: 'Product identification',
+        hardwareInfo: true,
         content: function() { return collectBoardInfo(); },
     },
     {
         title: 'Memory',
+        hardwareInfo: true,
         content: function() {
             return trySpawn('free -mh') + '\n' +
                    tryReadFile('/proc/meminfo');
@@ -436,6 +441,7 @@ let diagnostics = [
     },
     {
         title: 'Disks',
+        hardwareInfo: true,
         content: function() { return trySpawn('udisksctl dump'); },
     },
     {
@@ -446,6 +452,7 @@ let diagnostics = [
     },
     {
         title: 'Network interfaces',
+        hardwareInfo: true,
         content: function() { return trySpawn('ifconfig -a'); },
     },
     {
@@ -458,6 +465,7 @@ let diagnostics = [
     },
     {
         title: 'Pulseaudio',
+        hardwareInfo: true,
         content: function() {
             return trySpawn('pactl list cards') + '\n' +
                    trySpawn('pactl list sources') + '\n' +
@@ -466,30 +474,37 @@ let diagnostics = [
     },
     {
         title: 'Input devices',
+        hardwareInfo: true,
         content: function() { return tryReadFile('/proc/bus/input/devices'); },
     },
     {
         title: 'PCI devices',
+        hardwareInfo: true,
         content: function() { return trySpawn('lspci -vnn'); },
     },
     {
         title: 'USB devices',
+        hardwareInfo: true,
         content: function() { return trySpawn('lsusb'); },
     },
     {
         title: 'MMC devices',
+        hardwareInfo: true,
         content: function() { return collectMmcDevices(); },
     },
     {
         title: 'I2C devices',
+        hardwareInfo: true,
         content: function() { return collectI2cDevices(); },
     },
     {
         title: 'ALSA devices',
+        hardwareInfo: true,
         content: function() { return tryReadFile('/proc/asound/cards'); },
     },
     {
         title: 'Intel HDA',
+        hardwareInfo: true,
         content: function() { return collectHdaProcInfo() + collectHdaSysInfo(); },
     },
     {
@@ -528,6 +543,7 @@ let diagnostics = [
     },
     {
         title: 'Journal',
+        hardwareInfo: true,
         content: function() { return trySpawn('journalctl --no-pager'); },
     },
 ];
@@ -560,15 +576,87 @@ function dumpDiagnostics(filename) {
     }
 }
 
-let fileArg = ARGV[0];
-let filename;
+function copyAcpiFirmware(outputPath)
+{
+    let dir = Gio.File.new_for_path('/sys/firmware/acpi/tables');
+    let output = Gio.File.new_for_path(outputPath);
+    let fileEnum;
 
-if (fileArg) {
-    filename = fileArg;
-} else {
-    let date = GLib.DateTime.new_now_local();
-    let basename = 'eos-diagnostic-' + date.format('%y%m%d_%H%M%S_UTC%z') + '.txt';
-    filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return;
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let name = info.get_name();
+        if (!name.startsWith('DSDT') && !name.startsWith('SSDT'))
+            continue;
+
+        let target = output.resolve_relative_path('acpi_' + name.toLowerCase());
+        fileEnum.get_child(info).copy(target, 0, null, null);
+    }
 }
 
-dumpDiagnostics(filename);
+function dumpHardwareInfo(filename) {
+    let dir = '/tmp/' + filename;
+    GLib.mkdir_with_parents(dir, parseInt('0700', 8));
+
+    copyAcpiFirmware(dir);
+
+    diagnostics.forEach(function(diag) {
+        if (!diag.hardwareInfo)
+            return;
+
+        let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
+
+        let content = diag.content();
+        if (!content)
+            return;
+
+        content = content.trim() + '\n';
+        GLib.file_set_contents(dir + '/' + name, content);
+    });
+
+    filename += '.tar.xz';
+    let command = 'tar -C ' + dir + ' -cJf ' + filename + ' . ';
+    let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
+    GLib.spawn_command_line_sync('rm -rf ' + dir);
+    if (exitStatus != 0) {
+        print('ERROR: Failed to create archive');
+        return false;
+    }
+
+    print('Wrote ' + filename);
+    return true;
+}
+
+let filename;
+if (ARGV[0] == '-H' || ARGV[0] == '--hardware') {
+    filename = ARGV[1];
+
+    let credentials = new Gio.Credentials();
+    if (credentials.get_unix_user() != 0) {
+        print('ERROR: For hardware info, run eos-diagnostics as root.');
+        System.exit(1);
+    }
+
+    if (!filename) {
+        let date = GLib.DateTime.new_now_local();
+        filename = 'eos-hwinfo-' + date.format('%y%m%d_%H%M%S_UTC%z');
+    }
+
+    if (!dumpHardwareInfo(filename))
+        System.exit(1);
+} else {
+    filename = ARGV[0];
+    if (!filename) {
+        let date = GLib.DateTime.new_now_local();
+        let basename = 'eos-diagnostic-' + date.format('%y%m%d_%H%M%S_UTC%z') + '.txt';
+        filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
+    }
+
+    dumpDiagnostics(filename);
+}
