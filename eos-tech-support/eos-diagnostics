@@ -29,39 +29,39 @@ function collectGraphicsRenderer() {
 
 function collectBoardInfo() {
     let table = { 'System vendor': '/sys/devices/virtual/dmi/id/sys_vendor',
-		  'Product name': '/sys/devices/virtual/dmi/id/product_name',
-		  'Product serial': '/sys/devices/virtual/dmi/id/product_uuid',
-		  'Product version': '/sys/devices/virtual/dmi/id/product_version',
-		  'Board vendor': '/sys/devices/virtual/dmi/id/board_vendor',
-		  'Board name': '/sys/devices/virtual/dmi/id/board_name',
-		  'Board version': '/sys/devices/virtual/dmi/id/board_version',
-		  'BIOS vendor': '/sys/devices/virtual/dmi/id/bios_vendor',
-		  'BIOS version': '/sys/devices/virtual/dmi/id/bios_version',
-		  'BIOS date': '/sys/devices/virtual/dmi/id/bios_date' };
+                  'Product name': '/sys/devices/virtual/dmi/id/product_name',
+                  'Product serial': '/sys/devices/virtual/dmi/id/product_uuid',
+                  'Product version': '/sys/devices/virtual/dmi/id/product_version',
+                  'Board vendor': '/sys/devices/virtual/dmi/id/board_vendor',
+                  'Board name': '/sys/devices/virtual/dmi/id/board_name',
+                  'Board version': '/sys/devices/virtual/dmi/id/board_version',
+                  'BIOS vendor': '/sys/devices/virtual/dmi/id/bios_vendor',
+                  'BIOS version': '/sys/devices/virtual/dmi/id/bios_version',
+                  'BIOS date': '/sys/devices/virtual/dmi/id/bios_date' };
 
     let output = '';
     let names = Object.keys(table);
     names.forEach(function(name) {
-	let file = table[name];
-	output += name;
-	output += ': ';
+        let file = table[name];
+        output += name;
+        output += ': ';
 
-	try {
-	    let [res, contents] = GLib.file_get_contents(file);
-	    output += contents;
-	} catch (e) {
-	    if (name == 'Product name') {
-	        try {
-		    file = '/proc/device-tree/compatible';
-		    let [res, contents] = GLib.file_get_contents(file);
-		    output += contents + '\n';
-		} catch (e) {
-		    output += 'not available\n';
-		}
-	    } else {
-	        output += 'not available\n';
-	    }
-	}
+        try {
+            let [res, contents] = GLib.file_get_contents(file);
+            output += contents;
+        } catch (e) {
+            if (name == 'Product name') {
+                try {
+                    file = '/proc/device-tree/compatible';
+                    let [res, contents] = GLib.file_get_contents(file);
+                    output += contents + '\n';
+                } catch (e) {
+                    output += 'not available\n';
+                }
+            } else {
+                output += 'not available\n';
+            }
+        }
     });
 
     return output;
@@ -117,48 +117,48 @@ function collectPrintersInfo() {
 
 function collectTemperatureInfo() {
     try {
-	let [res, tempInput] = GLib.file_get_contents('/sys/class/thermal/thermal_zone0/temp');
-	let temperature = parseInt(tempInput);
-	let temperatureStr = (temperature / 1000).toString() + '°C';
-	return ((temperature > 0) ? ('+') : ('-')) + temperatureStr + '\n';
+        let [res, tempInput] = GLib.file_get_contents('/sys/class/thermal/thermal_zone0/temp');
+        let temperature = parseInt(tempInput);
+        let temperatureStr = (temperature / 1000).toString() + '°C';
+        return ((temperature > 0) ? ('+') : ('-')) + temperatureStr + '\n';
     } catch (e) {
-	return 'No temperature information available\n';
+        return 'No temperature information available\n';
     }
 }
 
 function collectChromiumPluginsInfo() {
     let oldVersion = null;
     try {
-	let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/VERSION.txt');
-	oldVersion = version + ' (via old updater)\n';
+        let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/VERSION.txt');
+        oldVersion = version + ' (via old updater)\n';
     } catch(e) {
-	oldVersion = null;
+        oldVersion = null;
     }
 
     let flashOutput = 'Flash Version: ';
     let flashPath = Gio.file_new_for_path('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/libpepflashplayer.so');
     if (flashPath.query_exists(null)) {
         try {
-	    let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Flash_VERSION.txt');
-	    flashOutput += version + '\n';
+            let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Flash_VERSION.txt');
+            flashOutput += version + '\n';
         } catch(e) {
             flashOutput += (oldVersion != null) ? oldVersion : 'not available\n';
         }
     } else {
-	flashOutput += 'not installed\n';
+        flashOutput += 'not installed\n';
     }
 
     let widevineOutput = 'Widevine Version: ';
     let widevinePath = Gio.file_new_for_path('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/libwidevinecdm.so');
     if (widevinePath.query_exists(null)) {
         try {
-	    let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Widevine_VERSION.txt');
-	    widevineOutput += version + '\n';
+            let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Widevine_VERSION.txt');
+            widevineOutput += version + '\n';
         } catch(e) {
             widevineOutput += (oldVersion != null) ? oldVersion : 'not available\n';
         }
     } else {
-	widevineOutput += 'not installed\n';
+        widevineOutput += 'not installed\n';
     }
 
     return flashOutput + widevineOutput;
@@ -168,11 +168,11 @@ function collectEosDevInfo() {
     let output = '';
     let dpkgDir = Gio.File.new_for_path('/var/lib/dpkg');
     if (dpkgDir.query_exists(null)) {
-	output += '*************************************************************\n';
-	output += '*                        WARNING                            *\n';
-	output += '* eos-dev-fix or eos-convert-system was run on the system!! *\n';
-	output += '*************************************************************\n';
-	output += '\n';
+        output += '*************************************************************\n';
+        output += '*                        WARNING                            *\n';
+        output += '* eos-dev-fix or eos-convert-system was run on the system!! *\n';
+        output += '*************************************************************\n';
+        output += '\n';
     }
 
     return output;
@@ -180,19 +180,19 @@ function collectEosDevInfo() {
 
 function trySpawn(command) {
     try {
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
-	return stdout.toString();
+        let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
+        return stdout.toString();
     } catch (e) {
-	return '';
+        return '';
     }
 }
 
 function tryReadFile(filename, fallbackMessage) {
     try {
-	let [res, contents] = GLib.file_get_contents(filename);
-	return contents.toString();
+        let [res, contents] = GLib.file_get_contents(filename);
+        return contents.toString();
     } catch (e) {
-	return (fallbackMessage) ? fallbackMessage : '';
+        return (fallbackMessage) ? fallbackMessage : '';
     }
 }
 
