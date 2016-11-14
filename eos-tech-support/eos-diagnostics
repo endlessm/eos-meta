@@ -458,7 +458,11 @@ let diagnostics = [
     },
     {
         title: 'Pulseaudio',
-        content: function() { return trySpawn('pactl list'); },
+        content: function() {
+            return trySpawn('pactl list cards') + '\n' +
+                   trySpawn('pactl list sources') + '\n' +
+                   trySpawn('pactl list sinks');
+        },
     },
     {
         title: 'Input devices',
