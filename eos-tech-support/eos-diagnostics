@@ -3,6 +3,7 @@
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
+const System = imports.system;
 
 function collectGraphicsRenderer() {
     let iface =
@@ -17,7 +18,7 @@ function collectGraphicsRenderer() {
                                              'org.gnome.SessionManager',
                                              '/org/gnome/SessionManager');
 
-    let output = 'Graphics renderer: ';
+    let output = 'Renderer: ';
     if (sessionProxy)
         output += sessionProxy.Renderer;
     else
@@ -28,41 +29,233 @@ function collectGraphicsRenderer() {
 }
 
 function collectBoardInfo() {
-    let table = { 'System vendor': '/sys/devices/virtual/dmi/id/sys_vendor',
-		  'Product name': '/sys/devices/virtual/dmi/id/product_name',
-		  'Product serial': '/sys/devices/virtual/dmi/id/product_uuid',
-		  'Product version': '/sys/devices/virtual/dmi/id/product_version',
-		  'Board vendor': '/sys/devices/virtual/dmi/id/board_vendor',
-		  'Board name': '/sys/devices/virtual/dmi/id/board_name',
-		  'Board version': '/sys/devices/virtual/dmi/id/board_version',
-		  'BIOS vendor': '/sys/devices/virtual/dmi/id/bios_vendor',
-		  'BIOS version': '/sys/devices/virtual/dmi/id/bios_version',
-		  'BIOS date': '/sys/devices/virtual/dmi/id/bios_date' };
-
+    let dmi_info = [ 'sys_vendor', 'product_name', 'product_serial',
+                     'product_uuid', 'product_version', 'board_asset_tag',
+                     'board_name', 'board_serial', 'board_vendor',
+                     'board_version', 'bios_date', 'bios_vendor',
+                     'bios_version', 'chassis_asset_tag', 'chassis_serial',
+                     'chassis_type', 'chassis_vendor', 'chassis_version' ];
     let output = '';
-    let names = Object.keys(table);
-    names.forEach(function(name) {
-	let file = table[name];
-	output += name;
-	output += ': ';
+    dmi_info.forEach(function(name) {
+        let file = '/sys/devices/virtual/dmi/id/' + name;
 
-	try {
-	    let [res, contents] = GLib.file_get_contents(file);
-	    output += contents;
-	} catch (e) {
-	    if (name == 'Product name') {
-	        try {
-		    file = '/proc/device-tree/compatible';
-		    let [res, contents] = GLib.file_get_contents(file);
-		    output += contents + '\n';
-		} catch (e) {
-		    output += 'not available\n';
-		}
-	    } else {
-	        output += 'not available\n';
-	    }
-	}
+        try {
+            let [res, contents] = GLib.file_get_contents(file);
+            output += name + ': ' + contents;
+        } catch (e) {
+        }
     });
+
+    try {
+        let [res, contents] = GLib.file_get_contents('/proc/device-tree/compatible');
+        output += 'compatible: ' + contents;
+    } catch (e) { }
+
+    return output;
+}
+
+function collectMmcDevice(dir, level) {
+    let fileEnum;
+    let output = '';
+    let attrs = ['cid', 'manfid', 'oemid', 'name', 'prv', 'serial', 'date',
+                 'hwrev', 'fwrev', 'csd', 'scr', 'vendor', 'device'];
+    let prefix = ' '.repeat(level);
+    let path = dir.get_path();
+
+    let subsys = dir.resolve_relative_path('subsystem');
+    if (!subsys.query_exists(null))
+        return '';
+
+    output += prefix + dir.get_basename() + '\n';
+
+    let contents = tryReadFile(path + '/firmware_node/path');
+    if (contents)
+        output += prefix + ' firmware_path: ' + contents;
+
+    try {
+        let driver = GLib.file_read_link(path + '/device/driver');
+        output += prefix + ' driver: ' + GLib.path_get_basename(driver) + '\n';
+    } catch (e) { }
+
+    try {
+        let driver = GLib.file_read_link(path + '/driver');
+        output += prefix + ' driver: ' + GLib.path_get_basename(driver) + '\n';
+    } catch (e) { }
+
+    for (var i = 0; i < attrs.length; i++) {
+        let attrPath = dir.resolve_relative_path(attrs[i]).get_path();
+        let contents = tryReadFile(attrPath);
+        if (!contents)
+            continue;
+        contents = contents.trim();
+        output += prefix + ' ' + attrs[i] + ': ' + contents + '\n';
+    }
+
+    output += '\n';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name,standard::type,standard::is-symlink',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let fileType = info.get_file_type('standard::type');
+        if (info.get_is_symlink() || fileType != Gio.FileType.DIRECTORY)
+            continue;
+        output += collectMmcDevice(fileEnum.get_child(info), level + 1);
+    }
+
+    return output;
+}
+
+function collectMmcDevices() {
+    let dir = Gio.File.new_for_path('/sys/class/mmc_host');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    // Recurse through MMC device info
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        output += collectMmcDevice(fileEnum.get_child(info), 0);
+    }
+
+    return output;
+}
+
+function collectI2cDevices() {
+    let dir = Gio.File.new_for_path('/sys/bus/i2c/devices');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    // This directory mixes i2c hosts and devices. Rather than try to
+    // parse them into a tree, we just have our loop iterations able to
+    // print useful info about both entry types.
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let devDir = fileEnum.get_child(info).get_path();
+        output += info.get_name() + '\n';
+
+        output += '  name: ' + tryReadFile(devDir + '/name');
+
+        let contents = tryReadFile(devDir + '/firmware_node/path');
+        if (contents)
+            output += '  firmware_path: ' + contents;
+
+        try {
+            let driver = GLib.file_read_link(devDir + '/device/driver');
+            output += '  driver: ' + GLib.path_get_basename(driver) + '\n';
+        } catch (e) { }
+
+        try {
+            let driver = GLib.file_read_link(devDir + '/driver');
+            output += '  driver: ' + GLib.path_get_basename(driver) + '\n';
+        } catch (e) { }
+
+        output += '\n';
+    }
+
+    return output;
+}
+
+function collectHdaProcCodecInfo(dir) {
+    let output = '';
+    let fileEnum;
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let name = info.get_name();
+        if (!name.startsWith('codec#'))
+            continue;
+
+        output += dir.get_basename() + ' ' + name + ':\n';
+        output += tryReadFile(fileEnum.get_child(info).get_path());
+        output += '\n';
+    }
+
+    return output;
+}
+
+function collectHdaProcInfo() {
+    let dir = Gio.File.new_for_path('/proc/asound');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let name = info.get_name();
+        if (name == 'cards' || !name.startsWith('card'))
+            continue;
+
+        output += collectHdaProcCodecInfo(fileEnum.get_child(info));
+    }
+
+    return output;
+}
+
+function collectHdaSysInfo() {
+    let dir = Gio.File.new_for_path('/sys/class/sound');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let dev = info.get_name();
+        let devDir = fileEnum.get_child(info).get_path();
+
+        let initPins = tryReadFile(devDir + '/init_pin_configs');
+        let driverPins = tryReadFile(devDir + '/driver_pin_configs');
+        if (!initPins)
+            continue;
+
+        output += dev + ':\n';
+        output += 'vendor: ' + tryReadFile(devDir + '/vendor_id')
+        output += 'subsystem: ' + tryReadFile(devDir + '/subsystem_id')
+        output += 'init_pin_configs:\n' + initPins.trim() + '\n';
+        if (driverPins)
+            output += 'driver_pin_configs:\n' + driverPins.trim() + '\n';
+
+        output += '\n';
+    }
 
     return output;
 }
@@ -117,48 +310,48 @@ function collectPrintersInfo() {
 
 function collectTemperatureInfo() {
     try {
-	let [res, tempInput] = GLib.file_get_contents('/sys/class/thermal/thermal_zone0/temp');
-	let temperature = parseInt(tempInput);
-	let temperatureStr = (temperature / 1000).toString() + '°C';
-	return ((temperature > 0) ? ('+') : ('-')) + temperatureStr + '\n';
+        let [res, tempInput] = GLib.file_get_contents('/sys/class/thermal/thermal_zone0/temp');
+        let temperature = parseInt(tempInput);
+        let temperatureStr = (temperature / 1000).toString() + '°C';
+        return ((temperature > 0) ? ('+') : ('-')) + temperatureStr + '\n';
     } catch (e) {
-	return 'No temperature information available\n';
+        return 'No temperature information available\n';
     }
 }
 
 function collectChromiumPluginsInfo() {
     let oldVersion = null;
     try {
-	let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/VERSION.txt');
-	oldVersion = version + ' (via old updater)\n';
+        let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/VERSION.txt');
+        oldVersion = version + ' (via old updater)\n';
     } catch(e) {
-	oldVersion = null;
+        oldVersion = null;
     }
 
     let flashOutput = 'Flash Version: ';
     let flashPath = Gio.file_new_for_path('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/libpepflashplayer.so');
     if (flashPath.query_exists(null)) {
         try {
-	    let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Flash_VERSION.txt');
-	    flashOutput += version + '\n';
+            let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Flash_VERSION.txt');
+            flashOutput += version + '\n';
         } catch(e) {
             flashOutput += (oldVersion != null) ? oldVersion : 'not available\n';
         }
     } else {
-	flashOutput += 'not installed\n';
+        flashOutput += 'not installed\n';
     }
 
     let widevineOutput = 'Widevine Version: ';
     let widevinePath = Gio.file_new_for_path('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/libwidevinecdm.so');
     if (widevinePath.query_exists(null)) {
         try {
-	    let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Widevine_VERSION.txt');
-	    widevineOutput += version + '\n';
+            let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Widevine_VERSION.txt');
+            widevineOutput += version + '\n';
         } catch(e) {
             widevineOutput += (oldVersion != null) ? oldVersion : 'not available\n';
         }
     } else {
-	widevineOutput += 'not installed\n';
+        widevineOutput += 'not installed\n';
     }
 
     return flashOutput + widevineOutput;
@@ -168,11 +361,11 @@ function collectEosDevInfo() {
     let output = '';
     let dpkgDir = Gio.File.new_for_path('/var/lib/dpkg');
     if (dpkgDir.query_exists(null)) {
-	output += '*************************************************************\n';
-	output += '*                        WARNING                            *\n';
-	output += '* eos-dev-fix or eos-convert-system was run on the system!! *\n';
-	output += '*************************************************************\n';
-	output += '\n';
+        output += '*************************************************************\n';
+        output += '*                        WARNING                            *\n';
+        output += '* eos-dev-fix or eos-convert-system was run on the system!! *\n';
+        output += '*************************************************************\n';
+        output += '\n';
     }
 
     return output;
@@ -180,196 +373,199 @@ function collectEosDevInfo() {
 
 function trySpawn(command) {
     try {
-	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
-	return stdout;
+        let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
+        return stdout.toString();
     } catch (e) {
-	return '';
+        return '';
     }
 }
 
 function tryReadFile(filename, fallbackMessage) {
     try {
-	let [res, contents] = GLib.file_get_contents(filename);
-	return contents;
+        let [res, contents] = GLib.file_get_contents(filename);
+        return contents.toString();
     } catch (e) {
-	return (fallbackMessage) ? fallbackMessage : '';
+        return (fallbackMessage) ? fallbackMessage : '';
     }
 }
+
+let diagnostics = [
+    {
+        title: 'EndlessOS version',
+        hardwareInfo: true,
+        content: function() { return tryReadFile('/etc/os-release'); },
+    },
+    {
+        title: 'Kernel',
+        hardwareInfo: true,
+        content: function() {
+            return trySpawn('uname -a') + '\n' +
+                   'cmdline: ' + tryReadFile('/proc/cmdline') + '\n' +
+                   trySpawn('lsmod');
+        },
+    },
+    {
+        title: 'EndlessOS image',
+        content: function() {
+            return trySpawn('attr -q -g eos-image-version /sysroot') +
+                   trySpawn('attr -q -g eos-image-version /');
+        },
+    },
+    {
+        title: 'EndlessOS personality',
+        content: function() {
+            return tryReadFile('/etc/EndlessOS/personality.conf',
+                               'No personality file\n');
+        },
+    },
+    {
+        title: 'Uptime',
+        content: function() { return trySpawn('uptime'); },
+    },
+    {
+        title: 'OSTree status',
+        content: function() { return trySpawn('ostree admin status'); },
+    },
+    {
+        title: 'Product identification',
+        hardwareInfo: true,
+        content: function() { return collectBoardInfo(); },
+    },
+    {
+        title: 'Memory',
+        hardwareInfo: true,
+        content: function() {
+            return trySpawn('free -mh') + '\n' +
+                   tryReadFile('/proc/meminfo');
+        },
+    },
+    {
+        title: 'Disks',
+        hardwareInfo: true,
+        content: function() { return trySpawn('udisksctl dump'); },
+    },
+    {
+        title: 'Mounts',
+        content: function() {
+            return trySpawn('mount') + '\n' + trySpawn('df -h');
+        },
+    },
+    {
+        title: 'Network interfaces',
+        hardwareInfo: true,
+        content: function() { return trySpawn('ifconfig -a'); },
+    },
+    {
+        title: 'Graphics',
+        content: function() { return collectGraphicsRenderer(); },
+    },
+    {
+        title: 'Display',
+        content: function() { return trySpawn('xrandr -q --verbose'); },
+    },
+    {
+        title: 'Pulseaudio',
+        hardwareInfo: true,
+        content: function() {
+            return trySpawn('pactl list cards') + '\n' +
+                   trySpawn('pactl list sources') + '\n' +
+                   trySpawn('pactl list sinks');
+        },
+    },
+    {
+        title: 'Input devices',
+        hardwareInfo: true,
+        content: function() { return tryReadFile('/proc/bus/input/devices'); },
+    },
+    {
+        title: 'PCI devices',
+        hardwareInfo: true,
+        content: function() { return trySpawn('lspci -vnn'); },
+    },
+    {
+        title: 'USB devices',
+        hardwareInfo: true,
+        content: function() {
+            return trySpawn('lsusb') + '\n' +
+                   tryReadFile('/sys/kernel/debug/usb/devices');
+        },
+    },
+    {
+        title: 'MMC devices',
+        hardwareInfo: true,
+        content: function() { return collectMmcDevices(); },
+    },
+    {
+        title: 'I2C devices',
+        hardwareInfo: true,
+        content: function() { return collectI2cDevices(); },
+    },
+    {
+        title: 'ALSA devices',
+        hardwareInfo: true,
+        content: function() { return tryReadFile('/proc/asound/cards'); },
+    },
+    {
+        title: 'Intel HDA',
+        hardwareInfo: true,
+        content: function() { return collectHdaProcInfo() + collectHdaSysInfo(); },
+    },
+    {
+        title: 'Printers',
+        content: function() { return collectPrintersInfo(); },
+    },
+    {
+        title: 'Temperature',
+        content: function() { return collectTemperatureInfo(); },
+    },
+    {
+        title: 'Chromium plugins',
+        content: function() { return collectChromiumPluginsInfo(); }
+    },
+    {
+        title: 'Codecs',
+        content: function() {
+            return trySpawn('find /var/lib/codecs') + '\n' +
+                   trySpawn('gst-inspect-1.0 libav') +
+                   trySpawn('gst-inspect-1.0 -b');
+        },
+    },
+    {
+        title: 'Flatpak remotes',
+        content: function() {
+            return trySpawn('flatpak remote-list --show-details');
+        },
+    },
+    {
+        title: 'Processes',
+        content: function() { return trySpawn('ps aux'); },
+    },
+    {
+        title: 'Boot timing',
+        content: function() { return trySpawn('systemd-analyze'); },
+    },
+    {
+        title: 'Journal',
+        hardwareInfo: true,
+        content: function() { return trySpawn('journalctl --no-pager'); },
+    },
+];
 
 function dumpDiagnostics(filename) {
     let fullDump = '';
 
     fullDump += collectEosDevInfo();
 
-    fullDump += '=====================\n'
-    fullDump += '= EndlessOS version =\n'
-    fullDump += '=====================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('uname -a');
-    fullDump += '\n';
-    fullDump += tryReadFile('/etc/os-release');
-    fullDump += '\n';
+    diagnostics.forEach(function(diag) {
+        let content = diag.content();
+        if (!content)
+            return;
 
-    fullDump += '===================\n'
-    fullDump += '= EndlessOS image =\n'
-    fullDump += '===================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('attr -q -g eos-image-version /sysroot');
-    fullDump += trySpawn('attr -q -g eos-image-version /');
-    fullDump += '\n';
-    fullDump += '\n';
-
-    fullDump += '=========================\n'
-    fullDump += '= EndlessOS personality =\n'
-    fullDump += '=========================\n'
-    fullDump += '\n';
-    fullDump += tryReadFile('/etc/EndlessOS/personality.conf', 'No personality file\n');
-    fullDump += '\n';
-
-    fullDump += '==========\n'
-    fullDump += '= Uptime =\n'
-    fullDump += '==========\n'
-    fullDump += '\n';
-    fullDump += trySpawn('uptime');
-    fullDump += '\n';
-
-    fullDump += '=================\n'
-    fullDump += '= OSTree status =\n'
-    fullDump += '=================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('ostree admin status');
-    fullDump += '\n';
-
-    fullDump += '=====================\n'
-    fullDump += '= Board information =\n'
-    fullDump += '=====================\n'
-    fullDump += '\n';
-    fullDump += collectBoardInfo();
-    fullDump += '\n';
-
-    fullDump += '======================\n'
-    fullDump += '= Memory information =\n'
-    fullDump += '======================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('free -mh');
-    fullDump += '\n';
-
-    fullDump += '====================\n'
-    fullDump += '= Disk information =\n'
-    fullDump += '====================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('mount');
-    fullDump += '\n';
-    fullDump += trySpawn('df -h');
-    fullDump += '\n';
-    fullDump += trySpawn('udisksctl dump');
-    fullDump += '\n';
-
-    fullDump += '=======================\n'
-    fullDump += '= Network information =\n'
-    fullDump += '=======================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('ifconfig -a');
-    fullDump += '\n';
-
-    fullDump += '=======================\n'
-    fullDump += '= Display information =\n'
-    fullDump += '=======================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('xrandr -q --verbose');
-    fullDump += '\n';
-    fullDump += collectGraphicsRenderer();
-    fullDump += '\n';
-
-    fullDump += '=====================\n'
-    fullDump += '= Audio information =\n'
-    fullDump += '=====================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('pactl list');
-    fullDump += '\n';
-
-    fullDump += '======================\n'
-    fullDump += '= Device information =\n'
-    fullDump += '======================\n'
-    fullDump += '\n';
-    fullDump += 'PCI\n\n';
-    fullDump += trySpawn('lspci -knn');
-    fullDump += '\n';
-    fullDump += 'USB\n\n';
-    fullDump += trySpawn('lsusb');
-    fullDump += '\n';
-
-    fullDump += '========================\n'
-    fullDump += '= Printers information =\n'
-    fullDump += '========================\n'
-    fullDump += '\n';
-    fullDump += collectPrintersInfo();
-    fullDump += '\n';
-
-    fullDump += '===========================\n'
-    fullDump += '= Temperature information =\n'
-    fullDump += '===========================\n'
-    fullDump += '\n';
-    fullDump += collectTemperatureInfo();
-    fullDump += '\n';
-
-    fullDump += '================================\n'
-    fullDump += '= Chromium plugins information =\n'
-    fullDump += '================================\n'
-    fullDump += '\n';
-    fullDump += collectChromiumPluginsInfo();
-    fullDump += '\n';
-
-    fullDump += '======================\n'
-    fullDump += '= Codecs information =\n'
-    fullDump += '======================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('find /var/lib/codecs');
-    fullDump += '\n';
-    fullDump += trySpawn('gst-inspect-1.0 libav');
-    fullDump += trySpawn('gst-inspect-1.0 -b');
-    fullDump += '\n';
-
-    fullDump += '================================\n'
-    fullDump += '= Flatpak remote configuration =\n'
-    fullDump += '================================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('flatpak remote-list --show-details');
-    fullDump += '\n';
-
-    fullDump += '==============================\n'
-    fullDump += '= Flatpak installed runtimes =\n'
-    fullDump += '==============================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('flatpak list --runtime --show-details');
-    fullDump += '\n';
-
-    fullDump += '==================================\n'
-    fullDump += '= Flatpak installed applications =\n'
-    fullDump += '==================================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('flatpak list --app --show-details');
-    fullDump += '\n';
-
-    fullDump += '================\n'
-    fullDump += '= Process list =\n'
-    fullDump += '================\n'
-    fullDump += '\n';
-    fullDump += trySpawn('ps aux');
-    fullDump += '\n';
-
-    fullDump += '===============\n'
-    fullDump += '= Boot timing =\n'
-    fullDump += '===============\n'
-    fullDump += '\n';
-    fullDump += trySpawn('systemd-analyze');
-    fullDump += '\n';
-
-    fullDump += '==================\n';
-    fullDump += '= Journal output =\n';
-    fullDump += '==================\n';
-    fullDump += '\n';
-    fullDump += trySpawn('journalctl --no-pager');
+        fullDump += '='.repeat(diag.title.length + 4) + '\n';
+        fullDump += '= ' + diag.title + ' =\n';
+        fullDump += '='.repeat(diag.title.length + 4) + '\n';
+        fullDump += content.trim() + '\n\n';
+    });
 
     if (filename == 'stdout') {
         print(fullDump);
@@ -383,15 +579,87 @@ function dumpDiagnostics(filename) {
     }
 }
 
-let fileArg = ARGV[0];
-let filename;
+function copyAcpiFirmware(outputPath)
+{
+    let dir = Gio.File.new_for_path('/sys/firmware/acpi/tables');
+    let output = Gio.File.new_for_path(outputPath);
+    let fileEnum;
 
-if (fileArg) {
-    filename = fileArg;
-} else {
-    let date = GLib.DateTime.new_now_local();
-    let basename = 'eos-diagnostic-' + date.format('%y%m%d_%H%M%S_UTC%z') + '.txt';
-    filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return;
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let name = info.get_name();
+        if (!name.startsWith('DSDT') && !name.startsWith('SSDT'))
+            continue;
+
+        let target = output.resolve_relative_path('acpi_' + name.toLowerCase());
+        fileEnum.get_child(info).copy(target, 0, null, null);
+    }
 }
 
-dumpDiagnostics(filename);
+function dumpHardwareInfo(filename) {
+    let dir = '/tmp/' + filename;
+    GLib.mkdir_with_parents(dir, parseInt('0700', 8));
+
+    copyAcpiFirmware(dir);
+
+    diagnostics.forEach(function(diag) {
+        if (!diag.hardwareInfo)
+            return;
+
+        let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
+
+        let content = diag.content();
+        if (!content)
+            return;
+
+        content = content.trim() + '\n';
+        GLib.file_set_contents(dir + '/' + name, content);
+    });
+
+    filename += '.tar.xz';
+    let command = 'tar -C ' + dir + ' -cJf ' + filename + ' . ';
+    let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
+    GLib.spawn_command_line_sync('rm -rf ' + dir);
+    if (exitStatus != 0) {
+        print('ERROR: Failed to create archive');
+        return false;
+    }
+
+    print('Wrote ' + filename);
+    return true;
+}
+
+let filename;
+if (ARGV[0] == '-H' || ARGV[0] == '--hardware') {
+    filename = ARGV[1];
+
+    let credentials = new Gio.Credentials();
+    if (credentials.get_unix_user() != 0) {
+        print('ERROR: For hardware info, run eos-diagnostics as root.');
+        System.exit(1);
+    }
+
+    if (!filename) {
+        let date = GLib.DateTime.new_now_local();
+        filename = 'eos-hwinfo-' + date.format('%y%m%d_%H%M%S_UTC%z');
+    }
+
+    if (!dumpHardwareInfo(filename))
+        System.exit(1);
+} else {
+    filename = ARGV[0];
+    if (!filename) {
+        let date = GLib.DateTime.new_now_local();
+        let basename = 'eos-diagnostic-' + date.format('%y%m%d_%H%M%S_UTC%z') + '.txt';
+        filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
+    }
+
+    dumpDiagnostics(filename);
+}
