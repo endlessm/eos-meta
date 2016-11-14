@@ -181,7 +181,7 @@ function collectEosDevInfo() {
 function trySpawn(command) {
     try {
 	let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
-	return stdout;
+	return stdout.toString();
     } catch (e) {
 	return '';
     }
@@ -190,7 +190,7 @@ function trySpawn(command) {
 function tryReadFile(filename, fallbackMessage) {
     try {
 	let [res, contents] = GLib.file_get_contents(filename);
-	return contents;
+	return contents.toString();
     } catch (e) {
 	return (fallbackMessage) ? fallbackMessage : '';
     }
