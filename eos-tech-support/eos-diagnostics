@@ -485,7 +485,10 @@ let diagnostics = [
     {
         title: 'USB devices',
         hardwareInfo: true,
-        content: function() { return trySpawn('lsusb'); },
+        content: function() {
+            return trySpawn('lsusb') + '\n' +
+                   tryReadFile('/sys/kernel/debug/usb/devices');
+        },
     },
     {
         title: 'MMC devices',
