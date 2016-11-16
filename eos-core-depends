@@ -29,11 +29,7 @@ eos-composite-mode
 eos-event-recorder-daemon
 eos-exploration-center
 eos-factory-tools
-# Updater currently only built for i386, but could be amd64, too
-eos-flashplugin-updater [i386]
 eos-gates
-# Updater currently only built for i386, but could be amd64, too
-eos-google-talkplugin-updater [i386]
 eos-keyring
 eos-knowledge-0
 eos-language-pack-ar
