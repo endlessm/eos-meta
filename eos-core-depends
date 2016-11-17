@@ -22,6 +22,7 @@ eos-codecs-manager
 eos-event-recorder-daemon
 eos-exploration-center
 eos-gates
+eos-google-chrome-helper [amd64]
 eos-installer
 eos-kalite-system-helper
 eos-language-pack-ar
