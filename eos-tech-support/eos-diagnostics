@@ -432,6 +432,11 @@ let diagnostics = [
         content: function() { return collectBoardInfo(); },
     },
     {
+        title: 'CPU',
+        hardwareInfo: true,
+        content: function() { return tryReadFile('/proc/cpuinfo'); },
+    },
+    {
         title: 'Memory',
         hardwareInfo: true,
         content: function() {
