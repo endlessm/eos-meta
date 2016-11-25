@@ -10,7 +10,7 @@ eval set -- "$ARGS"
 usage() {
     cat <<EOF
 Usage:
-   $0 [--no-act] DEVICE
+   $0 [--gap] [--no-act] DEVICE
 
 Uninstalls GRUB from an Endless OS dual-boot machine, restoring the normal
 Windows boot setup.
