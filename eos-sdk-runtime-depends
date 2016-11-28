@@ -6,6 +6,7 @@ build-essential
 cmake
 diffutils
 eos-knowledge-0-dev
+libeos-knowledge-content-0-dev
 eos-knowledge-db-build
 eos-node-modules-dev
 eos-platform-runtime
