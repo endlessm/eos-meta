@@ -9,33 +9,78 @@ if [ "$USERID" != "0" ]; then
 fi
 
 MOUNT=`mktemp -d`
+LOOPBACK=
 
 cleanup() {
     set +e
-    if mount | grep $MOUNT; then
-        umount $MOUNT
+    if mount | grep --quiet $MOUNT; then
+        umount "$MOUNT"
+
+        if [ -n "$LOOPBACK" ]; then
+            losetup -d "$LOOPBACK"
+            udevadm settle
+
+            umount "$MOUNT"
+        fi
     fi
     rmdir $MOUNT
 }
 trap cleanup EXIT
 
-mkdir -p $MOUNT
+list_users() {
+    local DEVICE=$1
+    local PHYSICAL_DEVICE=$2
 
-DEVICES=`blkid -t LABEL=ostree | awk -F ":" '{print $1}'`
-
-echo
-
-for DEVICE in $DEVICES
-do
     mount $DEVICE $MOUNT
 
     # FIXME A more robust approach would be the following:
     # - read /usr/etc/login.defs and extract UID_MIN
     # - read /etc/passwd and get all users with uid >= UID_MIN
-    echo Users on $DEVICE:
+    echo Users on $PHYSICAL_DEVICE:
     ls $MOUNT/home
     echo
 
     umount $MOUNT
-done
+}
 
+list_dualboot_users() {
+    local PHYSICAL_DEVICE=${1:?}
+
+    mount $NAME $MOUNT
+    local ENDLESS_IMG="$MOUNT/endless/endless.img"
+
+    if [ -e "$ENDLESS_IMG" ] && [ ! -e "$MOUNT/endless/live" ]; then
+        # Time for a loopback mount!
+        LOOPBACK=$(losetup --find --show "$ENDLESS_IMG")
+        partprobe "$LOOPBACK"
+
+        # Find the ostree partition
+        local DEVICE=$(lsblk --raw --paths -o LABEL,NAME "$LOOPBACK" |
+                 awk '/^ostree / { print $2 }')
+        if [ -z "$DEVICE" ]; then
+            echo "Cannot find ostree partition in $ENDLESS_IMG on $PHYSICAL_DEVICE" >&2
+            exit 1
+        fi
+
+        list_users $DEVICE $PHYSICAL_DEVICE
+        losetup -d "$LOOPBACK"
+        LOOPBACK=
+    fi
+
+    umount $MOUNT
+}
+
+# Basic Data partition types for MBR and GPT partition tables
+BD_MBR="0x7"
+BD_GPT="EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
+
+echo
+DEVICES=$(lsblk --raw --paths --noheadings -o NAME,PARTTYPE,LABEL)
+while read NAME PARTTYPE LABEL; do
+    if [ "${LABEL}" == "ostree" ]; then
+        list_users $NAME $NAME
+    elif [ "${PARTTYPE}" == "${BD_MBR}" ] || \
+         [ "${PARTTYPE^^}" == "${BD_GPT}" ]; then
+        list_dualboot_users $NAME
+    fi
+done <<< "$DEVICES"
