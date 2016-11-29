@@ -26,6 +26,7 @@ file
 fonts-dejavu
 geoclue-2.0
 gettext-base
+gir1.2-flatpak-1.0
 gir1.2-ostree-1.0
 gnome-session
 gnupg
@@ -58,6 +59,8 @@ ostree
 p7zip-full
 parted
 policykit-1
+python-gi
+python3-gi
 pulseaudio
 pulseaudio-module-bluetooth
 pulseaudio-module-x11
