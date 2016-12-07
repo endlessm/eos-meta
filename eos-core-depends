@@ -101,7 +101,7 @@ ibus-unikey
 imagescan
 libreoffice
 nautilus
-obexd-client
+bluez-obexd
 openprinting-ppds
 openssh-server
 printer-driver-all
