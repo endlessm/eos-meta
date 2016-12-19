@@ -68,7 +68,11 @@ function collectMmcDevice(dir, level) {
 
     output += prefix + dir.get_basename() + '\n';
 
-    let contents = tryReadFile(path + '/firmware_node/path');
+    let contents = tryReadFile(path + '/device/firmware_node/path');
+    if (contents)
+        output += prefix + ' firmware_path: ' + contents;
+
+    contents = tryReadFile(path + '/firmware_node/path');
     if (contents)
         output += prefix + ' firmware_path: ' + contents;
 
