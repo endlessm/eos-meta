@@ -350,3 +350,4 @@ application/x-ms-dos-executable=com.endlessm.Gates.Windows.desktop
 application/x-deb=com.endlessm.Gates.LinuxPackage.desktop
 application/x-rpm=com.endlessm.Gates.LinuxPackage.desktop
 application/x-source-rpm=com.endlessm.Gates.LinuxPackage.desktop
+text/x-processing=org.processing.App.desktop
