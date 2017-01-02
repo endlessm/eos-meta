@@ -58,7 +58,7 @@ function collectMmcDevice(dir, level) {
     let fileEnum;
     let output = '';
     let attrs = ['cid', 'manfid', 'oemid', 'name', 'prv', 'serial', 'date',
-                 'hwrev', 'fwrev', 'csd', 'scr', 'vendor', 'device'];
+                 'hwrev', 'fwrev', 'csd', 'scr', 'class', 'vendor', 'device'];
     let prefix = ' '.repeat(level);
     let path = dir.get_path();
 
