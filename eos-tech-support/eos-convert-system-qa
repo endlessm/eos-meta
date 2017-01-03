@@ -104,7 +104,7 @@ if $OSTREE || $APPS; then
         apps_repo=${apps_url##*/}
         new_apps_url="https://${OSTREE_USER}:${OSTREE_PASSWORD}@${OSTREE_HOST}/${OSTREE_DEV_ROOT}/${apps_repo}"
 
-        echo "Setting flatpak apps URL to $new_runtime_url"
+        echo "Setting flatpak apps URL to $new_apps_url"
         flatpak remote-modify eos-apps --url="$new_apps_url"
     fi
 
