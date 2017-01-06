@@ -58,7 +58,7 @@ function collectMmcDevice(dir, level) {
     let fileEnum;
     let output = '';
     let attrs = ['cid', 'manfid', 'oemid', 'name', 'prv', 'serial', 'date',
-                 'hwrev', 'fwrev', 'csd', 'scr', 'vendor', 'device'];
+                 'hwrev', 'fwrev', 'csd', 'scr', 'class', 'vendor', 'device'];
     let prefix = ' '.repeat(level);
     let path = dir.get_path();
 
@@ -68,7 +68,11 @@ function collectMmcDevice(dir, level) {
 
     output += prefix + dir.get_basename() + '\n';
 
-    let contents = tryReadFile(path + '/firmware_node/path');
+    let contents = tryReadFile(path + '/device/firmware_node/path');
+    if (contents)
+        output += prefix + ' firmware_path: ' + contents;
+
+    contents = tryReadFile(path + '/firmware_node/path');
     if (contents)
         output += prefix + ' firmware_path: ' + contents;
 
