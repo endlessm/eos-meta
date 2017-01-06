@@ -117,6 +117,9 @@ smbclient
 strace
 system-config-printer-gnome
 systemd-coredump
+telepathy-idle
+telepathy-logger
+telepathy-mission-control-5
 totem
 tracker
 ttf-ancient-fonts
