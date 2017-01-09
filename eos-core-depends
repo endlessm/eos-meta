@@ -30,14 +30,17 @@ eos-installer
 eos-kalite-system-helper
 eos-language-pack-ar
 eos-language-pack-bn
+eos-language-pack-de
 eos-language-pack-en
 eos-language-pack-es
 eos-language-pack-fr
 eos-language-pack-id
 eos-language-pack-pt-br
+eos-language-pack-ro
 eos-language-pack-th
 eos-language-pack-vi
 eos-language-pack-zh-cn
+eos-language-pack-zh-tw
 eos-media
 eos-metrics-instrumentation
 eos-phone-home
