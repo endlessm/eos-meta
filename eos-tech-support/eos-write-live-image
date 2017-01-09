@@ -340,6 +340,7 @@ if [ "$ISO" ]; then
 	    --sort-weight 1 /endless \
 	    --grub2-mbr ${DIR_IMAGES_ENDLESS}/grub/i386-pc/iso/boot_hybrid.img \
 	    -append_partition 2 0xef ${DIR_IMAGES_ENDLESS}/efi.img \
+	    -partition_offset 16 \
 	    -b endless/grub/i386-pc/iso/eltorito.img \
 	    -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
 	    -eltorito-alt-boot \
