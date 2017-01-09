@@ -164,6 +164,13 @@ Description: EndlessOS Bengali Language Pack
  This is a collection of Bengali language packs for the EndlessOS operating
  system.
 
+Package: eos-language-pack-de
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS German Language Pack
+ This is a collection of German language packs for the EndlessOS operating
+ system.
+
 Package: eos-language-pack-en
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
@@ -206,6 +213,13 @@ Description: EndlessOS Brazilian Portuguese Language Pack
  This is a collection of Brazilian Portuguese language packs for the EndlessOS
  operating system.
 
+Package: eos-language-pack-ro
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Romanian Language Pack
+ This is a collection of Romanian language packs for the EndlessOS operating
+ system.
+
 Package: eos-language-pack-th
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
@@ -223,9 +237,16 @@ Description: EndlessOS Vietnamese Language Pack
 Package: eos-language-pack-zh-cn
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
-Description: EndlessOS Mainland Chinese Language Pack
- This is a collection of Mainland Chinese language packs for the EndlessOS
- operating system.
+Description: EndlessOS simplified Chinese (mainland China) Language Pack
+ This is a collection of simplfied Chinese (mainland China) language packs
+ for the EndlessOS operating system.
+
+Package: eos-language-pack-zh-tw
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS traditional Chinese (Taiwan) Language Pack
+ This is a collection of traditional Chinese (Taiwan) language packs
+ for the EndlessOS operating system.
 
 Package: eos-tech-support
 Architecture: all
