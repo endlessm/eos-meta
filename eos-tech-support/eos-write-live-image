@@ -321,25 +321,32 @@ if [ "$ISO" ]; then
     mkdosfs ${DIR_IMAGES_ENDLESS}/efi.img
     mcopy -s -i ${DIR_IMAGES_ENDLESS}/efi.img ${DIR_EFI}/EFI '::/'
 
-    # Generate the ISO image
+    # Unzip the ISO bootzip content
     unzip -q -d "${DIR_IMAGES_ENDLESS}/grub/i386-pc/" "${BOOT_ZIP}" "iso/*"
+
+    # Generate the ISO image.
+    # Parameters found using https://dev.lovelyhq.com/libburnia/libisoburn/raw/master/frontend/grub-mkrescue-sed.sh
+    #
+    # export MKRESCUE_SED_MODE=mbr_only
+    # export MKRESCUE_SED_PROTECTIVE=no
+    # export MKRESCUE_SED_DEBUG=yes
+    #
+    # grub-mkrescue -o output.iso minimal_directory --xorriso=grub-mkrescue-sed.sh
+
     xorriso -as mkisofs \
-            -graft-points \
-            -b endless/grub/i386-pc/iso/eltorito.img \
-            -no-emul-boot \
-            -boot-load-size 4 \
-            -boot-info-table \
-            --grub2-boot-info \
-            --grub2-mbr ${DIR_IMAGES_ENDLESS}/grub/i386-pc/iso/boot_hybrid.img \
-            --efi-boot endless/efi.img \
-            -efi-boot-part \
-            --efi-boot-image \
-            --protective-msdos-label \
-            -o ${OUTPUT} \
-            -r \
-            -iso-level 4 \
-            ${DIR_IMAGES} \
-            --sort-weight 0 / --sort-weight 1 /endless
+	    -o ${OUTPUT} \
+	    -r -graft-points -no-pad \
+	    --sort-weight 0 / \
+	    --sort-weight 1 /endless \
+	    --grub2-mbr ${DIR_IMAGES_ENDLESS}/grub/i386-pc/iso/boot_hybrid.img \
+	    -append_partition 2 0xef ${DIR_IMAGES_ENDLESS}/efi.img \
+	    -b endless/grub/i386-pc/iso/eltorito.img \
+	    -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
+	    -eltorito-alt-boot \
+	    -e --interval:appended_partition_2:all:: \
+	    -no-emul-boot \
+	    -iso-level 3 \
+	    ${DIR_IMAGES}
 fi
 
 echo
