@@ -107,9 +107,6 @@ while true; do
         -i|--iso)
             shift
             ISO=true
-            MBR=false
-            NTFS=false
-            WRITABLE=false
             ;;
         -f|--force)
             shift
