@@ -153,6 +153,7 @@ if [ "$ISO" ]; then
         [mcopy]='mtools'
         [mkisofs]='genisoimage'
         [grub-mkimage]='grub-common'
+        [mksquashfs]='squashfs-tools'
     )
 else
     if [ "$NTFS" ]; then
@@ -310,6 +311,12 @@ echo
 echo "Finalizing image"
 
 if [ "$ISO" ]; then
+
+    # Converting to squashfs
+    mksquashfs "${DIR_IMAGES_ENDLESS}/endless.img" "${DIR_IMAGES_ENDLESS}/endless.squash"
+    rm -f "${DIR_IMAGES_ENDLESS}/endless.img"
+
+    # Preparing for ESP
     DIR_EFI_SIZE=$(du -s ${DIR_EFI} | cut -f1)
     ESP_SIZE=$(( (${DIR_EFI_SIZE} + 1024) / 1024 * 1024 ))
 
