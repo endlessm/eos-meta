@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+# vim: fileencoding=utf-8 sts=4 sw=4 et
+import argparse
+import codecs
+import distutils.version
+import gzip
+import json
+import os
+import re
+import sys
+import transmissionrpc
+import urllib.request
+
+INTERNAL_BASE_URL = "http://images.endlessm-sf.com"
+PUBLIC_BASE_URL = "https://d1anzknqnc1kmb.cloudfront.net"
+
+def log(*args):
+    print(*args, file=sys.stderr)
+    sys.stderr.write('\n')
+    sys.stderr.flush()
+
+def is_endless_img(img, product):
+    # product-branch-arch-platform.version.personality.img.{g|x}z
+    # eg eos-eos3.0-amd64-amd64.161224-191151.pt_BR.img.xz
+    re_filename = re.compile(r"""
+        ^%s                                 # product
+        -(?P<branch>[^-]+)                  # branch
+        -(?P<arch>[^-]+)                    # arch
+        -(?P<platform>[^-]+)                # platform
+        \.(?P<version>[0-9.-]+)             # version
+        \.(?P<personality>[^-]+)            # personality
+        \.(?P<asset>img)                    # image
+        \.(?P<compression>gz|xz)            # compression ext
+        $""" % (product), re.VERBOSE)
+    m_filename = re_filename.match(img)
+
+    return m_filename is not None
+
+def basename(name):
+    return name.split('/')[-1]
+
+def main():
+    p = argparse.ArgumentParser(
+        description='Add latest Endless OS torrents to a Transmission Daemon')
+    p.add_argument('--host',
+                   help='Transmission RPC host (default: localhost)',
+                   default='localhost')
+    p.add_argument('--port', type=int,
+                   help='Transmission RPC port (default: 9091)',
+                   default=9091)
+    p.add_argument('-u', '--user', '--username',
+                   help='Transmission RPC username',
+                   default=None)
+    p.add_argument('-p', '--password', '--pass',
+                   help='Transmission RPC password',
+                   default=None)
+    p.add_argument('-d', '--delete',
+                   action='store_true',
+                   help='Delete old torrents rather than suspending them')
+    p.add_argument('-g', '--get', type=(lambda x: x.split(',')),
+                   help='Comma-separated list of image personalities to get (default: all)')
+    p.add_argument('-v', '--version',
+                   help='Image version (default: newest)')
+    p.add_argument('--product',
+                   help='Product (eg: eosinstaller; default: eos)',
+                   default='eos')
+    p.add_argument('-i', '--internal',
+                   action='store_true',
+                   help='Fetch images from the Endless internal network')
+
+    args = p.parse_args()
+    base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
+
+    # dictionary of eos-image-name-bla.img.xz -> http://torrent/url
+    desired_torrents = fetch_torrents(args, base)
+
+    client = transmissionrpc.Client(address=args.host,
+                                    port=args.port,
+                                    user=args.user,
+                                    password=args.password)
+    start_torrents = []
+    stop_torrents = []
+
+    for torrent in client.get_torrents():
+        # skip torrents which aren't for the selected product
+        files = torrent.files()
+        names = (basename(f['name']) for f in files.values())
+        images = list(i for i in names if is_endless_img(i, args.product))
+        if len(images) == 0:
+            continue
+        image = images[0]
+
+        # match any existing desired torrents
+        if image in desired_torrents.keys():
+            name = desired_torrents[image]
+            del desired_torrents[image]
+            
+            if torrent.status == 'stopped':
+                log ('will re-start', basename(name))
+                start_torrents += [torrent.id]
+            else:
+                log ('already have', basename(name))
+
+            continue
+
+        if args.delete or torrent.status != 'stopped':
+            if args.delete:
+                log ('will delete %s %s (%s)' %
+                    (torrent.name, image, torrent.torrentFile))
+            else:
+                log ('will stop %s %s (%s)' %
+                    (torrent.name, image, torrent.torrentFile))
+            stop_torrents += [torrent.id]
+  
+    if stop_torrents:
+        if args.delete:
+            client.remove_torrent(stop_torrents, delete_data=True)
+        else:
+            client.stop_torrent(stop_torrents)
+
+    if start_torrents:
+        client.start_torrent(start_torrents)
+
+    for url in desired_torrents.values():
+        print ('adding', basename(url))
+        client.add_torrent(url)
+
+def fetch_torrents(args, base):
+    manifest_url = '{base}/releases-{product}-3.json.gz'.format(
+        base=base, product=args.product)
+    req = urllib.request.Request(manifest_url)
+    with urllib.request.urlopen(req) as conn:
+        with gzip.GzipFile(mode='r', fileobj=conn) as manifest_fp:
+            manifest = json.load(codecs.getreader('utf8')(manifest_fp))
+
+    images = list(manifest['images'].values())
+    images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
+    if args.version is not None:
+        for selected in images:
+            if selected['version'] == args.version:
+                break
+        else:
+            log("Image version", repr(args.version), "not found")
+            log("Known versions:", *[i['version'] for i in images])
+            sys.exit(1)
+    else:
+        selected = images[-1]
+
+    personalities = selected['personality_images']
+    torrents = {}
+    
+    for k,v in personalities.items():
+        if args.get:
+            if k not in args.get:
+                continue
+
+        try:
+            img = basename(v['full']['file'])
+            torrent = v['full']['torrents']['full']
+            torrents[img] = torrent
+        except KeyError:
+            log("No torrent for personality", k)
+
+    if not torrents:
+        log("No torrents found!")
+        log("Known personalities:", *sorted(personalities.keys()))
+        sys.exit(1)
+
+    return torrents
+
+if __name__ == '__main__':
+    main()
