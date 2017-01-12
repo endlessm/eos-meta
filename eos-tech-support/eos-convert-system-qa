@@ -93,7 +93,7 @@ if $OSTREE || $APPS; then
 
     # Change the Flatpak runtime and apps server URLs.
     if $APPS; then
-        if [ -d /var/endless-extra/flatpak/repo ];
+        if [ -d /var/endless-extra/flatpak/repo ]; then
             flatpak_repo=/var/endless-extra/flatpak/repo
         else
             flatpak_repo=/var/lib/flatpak/repo
