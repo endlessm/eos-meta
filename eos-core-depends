@@ -110,6 +110,7 @@ bluez-obexd
 openprinting-ppds
 openssh-server
 printer-driver-all
+python-eos-data-distribution
 python3-showmehow
 rhythmbox (>= 2.99.1)
 rtkit
