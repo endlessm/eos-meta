@@ -34,6 +34,7 @@ kde-games-core-declarative
 kde-runtime
 kdeedu-kvtml-data
 khelpcenter4
+mali400-drivers-meson8 [armhf]
 libalut0
 libasound2
 libatkmm-1.6-1
