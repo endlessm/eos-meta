@@ -9,6 +9,7 @@ import os
 import shlex
 import subprocess
 import sys
+import urllib.parse
 import urllib.request
 
 INTERNAL_BASE_URL = "http://images.endlessm-sf.com"
@@ -29,6 +30,12 @@ def check_call(*args):
     subprocess.check_call(args, stdout=sys.stderr)
 
 
+def url_dirname(url):
+    raw_path = urllib.parse.urlparse(url).path
+    path = urllib.parse.unquote(raw_path)
+    return os.path.dirname(path.lstrip('/'))
+
+
 def ensure_keyring(destdir=''):
     if os.path.isfile(KEYRING_SYSTEM_PATH):
         return KEYRING_SYSTEM_PATH
@@ -43,14 +50,23 @@ def ensure_keyring(destdir=''):
     return keyring
 
 
-def download_and_verify(base, meta, what='image', destdir=''):
+def download_and_verify(base, meta, what='image', destdir='',
+                        mirror=False):
     image_url = '{}/{}'.format(base, meta['file'])
     signature_url = '{}/{}'.format(base, meta['signature'])
 
-    image = os.path.join(destdir, os.path.basename(image_url))
-    signature = os.path.join(destdir, os.path.basename(signature_url))
+    image_dir = signature_dir = ''
+    if mirror:
+        image_dir = url_dirname(image_url)
+        signature_dir = url_dirname(signature_url)
+    image = os.path.join(destdir, image_dir, os.path.basename(image_url))
+    signature = os.path.join(destdir, signature_dir,
+                             os.path.basename(signature_url))
 
     log("Downloading compressed", what, "from", image_url)
+    full_image_dir = os.path.dirname(image)
+    if full_image_dir:
+        os.makedirs(full_image_dir, exist_ok=True)
     check_call("wget", "--continue", "-O", image, image_url)
 
     if meta.get('extracted_size'):
@@ -58,12 +74,22 @@ def download_and_verify(base, meta, what='image', destdir=''):
             f.write(str(meta['extracted_size']))
 
     log("Downloading compressed", what, "signature from", signature_url)
+    full_signature_dir = os.path.dirname(signature)
+    if full_signature_dir:
+        os.makedirs(full_signature_dir, exist_ok=True)
     check_call("wget", "--continue", "-O", signature, signature_url)
 
     if meta.get('extracted_signature'):
         url = '{}/{}'.format(base, meta['extracted_signature'])
-        ext_signature = os.path.join(destdir, os.path.basename(url))
+        ext_sig_dir = ''
+        if mirror:
+            ext_sig_dir = url_dirname(url)
+        ext_signature = os.path.join(destdir, ext_sig_dir,
+                                     os.path.basename(url))
         log("Downloading uncompressed", what, "signature from", url)
+        full_ext_sig_dir = os.path.dirname(ext_signature)
+        if full_ext_sig_dir:
+            os.makedirs(full_ext_sig_dir, exist_ok=True)
         check_call("wget", "--continue", "-O", ext_signature, url)
 
     keyring = ensure_keyring(destdir)
@@ -81,10 +107,15 @@ def main():
     p.add_argument('-o', '--outdir',
                    help='Output directory (default: current directory)',
                    default='')
-    p.add_argument('-v', '--version',
+    m = p.add_mutually_exclusive_group()
+    m.add_argument('-m', '--mirror',
+                   action='store_true',
+                   help='Mirror all versions and personalities')
+    m.add_argument('-v', '--version',
                    help='Image version (default: newest)')
     p.add_argument('-p', '--personality',
-                   help='Image personality (default: base)',
+                   help='Image personality (default: base, '
+                        'ignored when mirroring)',
                    default='base')
     g = p.add_mutually_exclusive_group()
     g.add_argument('-r', '--product',
@@ -132,31 +163,52 @@ def fetch_image(args, base):
 
     images = list(manifest['images'].values())
     images.sort(key=lambda i: distutils.version.StrictVersion(i['version']))
-    if args.version is not None:
-        for selected in images:
-            if selected['version'] == args.version:
+    if args.mirror:
+        selected = images
+    elif args.version is not None:
+        for img in images:
+            if img['version'] == args.version:
+                selected = [img]
                 break
         else:
             log("Image version", repr(args.version), "not found")
             log("Known versions:", *[i['version'] for i in images])
             sys.exit(1)
     else:
-        selected = images[-1]
+        selected = [images[-1]]
 
-    personalities = selected['personality_images']
-    try:
-        personality = personalities[args.personality]
-    except KeyError:
-        log("Personality", repr(args.personality), "not found")
-        log("Known personalities:", *sorted(personalities.keys()))
-        sys.exit(1)
+    for img in selected:
+        personalities = img['personality_images']
+        if not args.mirror and args.personality not in personalities:
+            log("Personality", repr(args.personality), "not found")
+            log("Known personalities:", *sorted(personalities.keys()))
+            sys.exit(1)
 
-    meta = personality['full']
-    if 'boot' in personality and personality['boot']['file']:
-        download_and_verify(base, personality['boot'], what='bootloader',
-                            destdir=args.outdir)
+        for name, personality in sorted(personalities.items()):
+            if args.mirror:
+                for meta in sorted(personality):
+                    kwargs = {'destdir': args.outdir, 'mirror': True}
+                    if meta == 'boot':
+                        kwargs['what'] = 'bootloader'
+                    print(download_and_verify(base, personality[meta],
+                                              **kwargs))
+            elif name == args.personality:
+                meta = personality['full']
+                if 'boot' in personality and personality['boot']['file']:
+                    download_and_verify(base, personality['boot'],
+                                        what='bootloader', destdir=args.outdir)
 
-    print(download_and_verify(base, meta, destdir=args.outdir))
+                print(download_and_verify(base, meta, destdir=args.outdir))
+
+    # Write out the manifest when mirroring after all images downloaded
+    if args.mirror:
+        out_manifest = os.path.join(args.outdir,
+                                    'releases-{}-3.json'.format(args.product))
+        out_manifest_gz = out_manifest + '.gz'
+        with open(out_manifest, 'w') as f:
+            json.dump(manifest, f, sort_keys=True)
+        with gzip.open(out_manifest_gz, 'wt') as f:
+            json.dump(manifest, f, sort_keys=True, indent=4)
 
 
 if __name__ == '__main__':
