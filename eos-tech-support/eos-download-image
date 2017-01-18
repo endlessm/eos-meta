@@ -29,11 +29,13 @@ def check_call(*args):
     subprocess.check_call(args, stdout=sys.stderr)
 
 
-def ensure_keyring():
+def ensure_keyring(destdir=''):
     if os.path.isfile(KEYRING_SYSTEM_PATH):
         return KEYRING_SYSTEM_PATH
 
-    keyring = os.path.abspath(KEYRING_FILENAME)
+    # The absolute path is needed so that gpgv doesn't try to use a
+    # keyring from the gnupg homedir
+    keyring = os.path.abspath(os.path.join(destdir, KEYRING_FILENAME))
     if not os.path.isfile(keyring):
         log("Fetching Endless keyring")
         check_call("wget", "-O", keyring, KEYRING_URL)
@@ -41,12 +43,12 @@ def ensure_keyring():
     return keyring
 
 
-def download_and_verify(base, meta, what='image'):
+def download_and_verify(base, meta, what='image', destdir=''):
     image_url = '{}/{}'.format(base, meta['file'])
     signature_url = '{}/{}'.format(base, meta['signature'])
 
-    image = os.path.basename(image_url)
-    signature = os.path.basename(signature_url)
+    image = os.path.join(destdir, os.path.basename(image_url))
+    signature = os.path.join(destdir, os.path.basename(signature_url))
 
     log("Downloading compressed", what, "from", image_url)
     check_call("wget", "--continue", "-O", image, image_url)
@@ -60,11 +62,11 @@ def download_and_verify(base, meta, what='image'):
 
     if meta.get('extracted_signature'):
         url = '{}/{}'.format(base, meta['extracted_signature'])
-        ext_signature = os.path.basename(url)
+        ext_signature = os.path.join(destdir, os.path.basename(url))
         log("Downloading uncompressed", what, "signature from", url)
         check_call("wget", "--continue", "-O", ext_signature, url)
 
-    keyring = ensure_keyring()
+    keyring = ensure_keyring(destdir)
 
     log("Verifying")
     check_call("gpgv", "--keyring", keyring, signature, image)
@@ -76,6 +78,9 @@ def download_and_verify(base, meta, what='image'):
 def main():
     p = argparse.ArgumentParser(
         description='Fetches and verifies an image (installer or regular OS)')
+    p.add_argument('-o', '--outdir',
+                   help='Output directory (default: current directory)',
+                   default='')
     p.add_argument('-v', '--version',
                    help='Image version (default: newest)')
     p.add_argument('-p', '--personality',
@@ -96,17 +101,24 @@ def main():
     args = p.parse_args()
     base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
 
+    # Create the output directory if necessary
+    if args.outdir:
+        os.makedirs(args.outdir, exist_ok=True)
+
     if args.windows_tool:
-        fetch_windows_tool(base)
+        fetch_windows_tool(args, base)
     else:
         fetch_image(args, base)
 
 
-def fetch_windows_tool(base):
+def fetch_windows_tool(args, base):
     filename = 'endless-installer.exe'
     url = '{}/endless-installer/{}'.format(base, filename)
     log("Fetching Windows Installer")
-    check_call("wget", "--timestamping", url)
+    # --timestamping is not compatible with -O, so provide only the
+    # output prefix
+    check_call("wget", "--timestamping", "--directory-prefix",
+               args.outdir, url)
     print(filename)
 
 
@@ -141,9 +153,10 @@ def fetch_image(args, base):
 
     meta = personality['full']
     if 'boot' in personality and personality['boot']['file']:
-        download_and_verify(base, personality['boot'], what='bootloader')
+        download_and_verify(base, personality['boot'], what='bootloader',
+                            destdir=args.outdir)
 
-    print(download_and_verify(base, meta))
+    print(download_and_verify(base, meta, destdir=args.outdir))
 
 
 if __name__ == '__main__':
