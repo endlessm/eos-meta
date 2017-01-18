@@ -46,28 +46,28 @@ def download_and_verify(base, meta, what='image'):
     signature_url = '{}/{}'.format(base, meta['signature'])
 
     image = os.path.basename(image_url)
+    signature = os.path.basename(signature_url)
 
     log("Downloading compressed", what, "from", image_url)
-    check_call("wget", "--continue", image_url)
+    check_call("wget", "--continue", "-O", image, image_url)
 
     if meta.get('extracted_size'):
         with open(image + '.size', 'w') as f:
             f.write(str(meta['extracted_size']))
 
     log("Downloading compressed", what, "from", signature_url)
-    check_call("wget", "--continue", signature_url)
+    check_call("wget", "--continue", "-O", signature, signature_url)
 
     if meta.get('extracted_signature'):
         url = '{}/{}'.format(base, meta['extracted_signature'])
+        ext_signature = os.path.basename(url)
         log("Downloading uncompressed", what, "signature from", url)
-        check_call("wget", "--continue", url)
+        check_call("wget", "--continue", "-O", ext_signature, url)
 
     keyring = ensure_keyring()
 
     log("Verifying")
-    check_call("gpgv", "--keyring", keyring,
-               os.path.basename(signature_url),
-               image)
+    check_call("gpgv", "--keyring", keyring, signature, image)
 
     log("Download okay.")
     return image
