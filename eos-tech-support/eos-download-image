@@ -94,6 +94,10 @@ def main():
                    help='Fetch images from the Endless internal network')
 
     args = p.parse_args()
+
+    if args.product == 'fnde' and args.personality == 'base':
+        args.personality = 'fnde_aluno'
+
     base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
 
     if args.windows_tool:
