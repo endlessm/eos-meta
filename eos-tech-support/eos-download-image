@@ -25,7 +25,11 @@ def log(*args):
 
 
 def check_call(*args):
-    log('$ ' + ' '.join(map(shlex.quote, args)))
+    if hasattr(shlex, 'quote'):
+        qargs = map(shlex.quote, args)
+    else:
+        qargs = args
+    log('$ ' + ' '.join(qargs))
     subprocess.check_call(args, stdout=sys.stderr)
 
 
