@@ -315,8 +315,27 @@ fi
 if [ ! "$WRITABLE" ]; then
     cp "${BOOT_ZIP}" "${BOOT_ZIP}.asc" "${EXTRACTED_SIGNATURE}" \
         "$DIR_IMAGES_ENDLESS/"
-    echo "$(basename "${OS_IMAGE%.?z}")" > "${DIR_IMAGES_ENDLESS}/live"
+    OS_IMAGE_UNCOMPRESSED="$(basename "${OS_IMAGE%.?z}")"
+    echo "$OS_IMAGE_UNCOMPRESSED" > "${DIR_IMAGES_ENDLESS}/live"
     cp "$WINDOWS_TOOL" "$DIR_IMAGES/"
+
+    # Work around a bug in eos-installer, which only shows images whose
+    # personality is 'base' or a valid locale. Delete this block once
+    # 3.1.1 is released.
+    if [[ "${OS_IMAGE_UNCOMPRESSED}" == fnde-eos3.1-*.17011*.fnde_* ]]; then
+       for i in "$DIR_IMAGES_ENDLESS"/*; do
+          j=${i/fnde_aluno/base}
+          j=${j/fnde_escola/pt_BR}
+          if [ "$i" != "$j" ]; then
+             mv $i $j
+          fi
+       done
+
+       j=${OS_IMAGE_UNCOMPRESSED}
+       j=${j/fnde_aluno/base}
+       j=${j/fnde_escola/pt_BR}
+       echo "$j" > "${DIR_IMAGES_ENDLESS}/live"
+    fi
 fi
 
 "$EOS_WRITE_IMAGE" --removable "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
