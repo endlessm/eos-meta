@@ -570,6 +570,11 @@ let diagnostics = [
         hardwareInfo: true,
         content: function() { return trySpawn('journalctl --no-pager'); },
     },
+    {
+        title: 'Coredump',
+        hardwareInfo: true,
+        content: function() { return trySpawn('coredumpctl list'); },
+    },
 ];
 
 function dumpDiagnostics(filename) {
@@ -624,6 +629,28 @@ function copyAcpiFirmware(outputPath)
     }
 }
 
+function copyCoredumps(outputPath)
+{
+    let dir = Gio.File.new_for_path('/var/lib/systemd/coredump');
+    let output = Gio.File.new_for_path(outputPath);
+    let fileEnum;
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return;
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let name = info.get_name();
+
+        let target = output.resolve_relative_path('coredump_' + name.toLowerCase());
+        fileEnum.get_child(info).copy(target, 0, null, null);
+    }
+}
+
 function dumpToArchive(filename, contentsFunc) {
     let dir = '/tmp/' + filename;
     GLib.mkdir_with_parents(dir, parseInt('0700', 8));
@@ -646,6 +673,7 @@ function dumpToArchive(filename, contentsFunc) {
 function dumpHardwareInfo(filename) {
     return dumpToArchive(filename, function(dir) {
         copyAcpiFirmware(dir);
+        copyCoredumps(dir);
 
         diagnostics.forEach(function(diag) {
             if (!diag.hardwareInfo)
