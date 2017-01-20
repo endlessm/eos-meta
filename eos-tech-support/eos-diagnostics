@@ -574,7 +574,12 @@ let diagnostics = [
         title: 'Journal',
         hardwareInfo: true,
         coredumpInfo: true,
-        content: function() { return trySpawn('journalctl --no-pager'); },
+        content: function(verboseFlag) {
+            if (verboseFlag)
+                return trySpawn('journalctl --no-pager --output verbose');
+            else
+                return trySpawn('journalctl --no-pager');
+        },
     },
     {
         title: 'Coredump',
@@ -588,13 +593,13 @@ let diagnostics = [
     },
 ];
 
-function dumpDiagnostics(filename) {
+function dumpDiagnostics(filename, verboseFlag) {
     let fullDump = '';
 
     fullDump += collectEosDevInfo();
 
     diagnostics.forEach(function(diag) {
-        let content = diag.content();
+        let content = diag.content(verboseFlag);
         if (!content)
             return;
 
@@ -681,7 +686,7 @@ function dumpToArchive(filename, contentsFunc) {
     return true;
 }
 
-function dumpHardwareInfo(filename) {
+function dumpHardwareInfo(filename, verboseFlag) {
     return dumpToArchive(filename, function(dir) {
         copyAcpiFirmware(dir);
 
@@ -691,7 +696,7 @@ function dumpHardwareInfo(filename) {
 
             let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
 
-            let content = diag.content();
+            let content = diag.content(verboseFlag);
             if (!content)
                 return;
 
@@ -701,7 +706,7 @@ function dumpHardwareInfo(filename) {
     });
 }
 
-function dumpCoredumps(filename) {
+function dumpCoredumps(filename, verboseFlag) {
     if (!isCoredumpdEnabled())
         print('WARNING: It looks like systemd-coredump is not enabled. Output will not contain any coredumps.');
 
@@ -714,7 +719,7 @@ function dumpCoredumps(filename) {
 
             let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
 
-            let content = diag.content();
+            let content = diag.content(verboseFlag);
             if (!content)
                 return;
 
@@ -733,12 +738,15 @@ function buildFilename(prefix, extension) {
 let filename = null;
 let hardwareFlag = false;
 let coredumpsFlag = false;
+let verboseFlag = false;
 
 ARGV.forEach(function(arg) {
     if (arg == '-H' || arg == '--hardware')
         hardwareFlag = true;
     else if (arg == '-C' || arg == '--coredumps')
         coredumpsFlag = true;
+    else if (arg == '-v' || arg == '--verbose')
+        verboseFlag = true;
     else
         filename = arg;
 });
@@ -759,13 +767,14 @@ if (hardwareFlag || coredumpsFlag) {
 
 /* Output hardware info? */
 if (hardwareFlag) {
-    if (!dumpHardwareInfo((!filename) ? buildFilename('eos-hwinfo', '') : filename))
+    if (!dumpHardwareInfo((!filename) ? buildFilename('eos-hwinfo', '') : filename, verboseFlag))
         System.exit(1);
 }
 
 /* Output coredumps? */
 if (coredumpsFlag) {
-    if (!dumpCoredumps((!filename) ? buildFilename('eos-coredumps', '') : filename))
+    // Force verbose output so we get the full journal logs
+    if (!dumpCoredumps((!filename) ? buildFilename('eos-coredumps', '') : filename, true))
         System.exit(1);
 }
 
@@ -775,5 +784,5 @@ if (!hardwareFlag && !coredumpsFlag) {
         filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
     }
 
-    dumpDiagnostics(filename);
+    dumpDiagnostics(filename, verboseFlag);
 }
