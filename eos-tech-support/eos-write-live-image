@@ -338,7 +338,7 @@ if [ ! "$WRITABLE" ]; then
     fi
 fi
 
-"$EOS_WRITE_IMAGE" --removable "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
+"$EOS_WRITE_IMAGE" "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
 
 echo
 echo "Finalizing image"

@@ -21,7 +21,8 @@ Options:
    -f,--force   don't ask to proceed with writing
    --sparse     use dd sparse conversion option
    --debug      turn on debugging messages
-   --removable  device is removable (remove fallback.efi)
+   --removable  device is removable (remove fallback.efi);
+                not supported if DEVICE is '-'
    -h,--help    show this message
 EOF
 }
@@ -141,6 +142,10 @@ cat_image() {
 }
 
 if [ "$DEVICE" == "-" ]; then
+    if [ "$REMOVABLE" ]; then
+        echo "--removable not supported when writing to stdout" >&2
+        exit 1
+    fi
     cat_image
 else
     if [ ! -b "$DEVICE" ]; then
