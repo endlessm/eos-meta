@@ -395,6 +395,7 @@ if [ "$ISO" ]; then
 	    -e --interval:appended_partition_2:all:: \
 	    -no-emul-boot \
 	    -iso-level 3 \
+	    -joliet -joliet-long \
 	    ${DIR_IMAGES}
 fi
 
