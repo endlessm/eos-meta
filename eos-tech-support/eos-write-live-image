@@ -250,8 +250,12 @@ echo
 echo "Preparing $OUTPUT..."
 
 if [ "$ISO" ]; then
-    DIR_EFI="$(mktemp -d -t efi_dir.XXXXXX)"
-    DIR_IMAGES="$(mktemp -d -t iso9660_dir.XXXXXX)"
+    # Don't override an explicit $TMPDIR, but default to /var/tmp because /tmp
+    # is typically a tmpfs which is probably too small to hold the uncompressed
+    # image and squashfs image.
+    ISO_TMPDIR=${TMPDIR:-/var/tmp}
+    DIR_EFI="$(mktemp -d -t efi_dir.XXXXXX -p "$ISO_TMPDIR")"
+    DIR_IMAGES="$(mktemp -d -t iso9660_dir.XXXXXX -p "$ISO_TMPDIR")"
 else
     if [ "$MBR" ]; then
         sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
