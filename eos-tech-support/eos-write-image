@@ -171,13 +171,12 @@ else
     blkdiscard "$DEVICE" &>/dev/null || true
     cat_image | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
 
+    # Probe new partitions
+    partprobe
+    udevadm settle
+
     # If removable device, delete $ESP/EFI/BOOT/fallback.efi
     if [ "$REMOVABLE" ]; then
-
-        # Probe new partitions
-        partprobe
-        udevadm settle
-
         # Assume ESP is the first partition
         case "$DEVICE" in
             /dev/mmcblk?)
