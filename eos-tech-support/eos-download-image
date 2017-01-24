@@ -59,7 +59,7 @@ def download_and_verify(base, meta, what='image'):
         with open(image + '.size', 'w') as f:
             f.write(str(meta['extracted_size']))
 
-    log("Downloading compressed", what, "from", signature_url)
+    log("Downloading compressed", what, "signature from", signature_url)
     check_call("wget", "--continue", "-O", signature, signature_url)
 
     if meta.get('extracted_signature'):
