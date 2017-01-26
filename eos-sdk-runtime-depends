@@ -1,4 +1,5 @@
 # Metapackage for the SDK runtime
+appstream-util
 autoconf
 automake
 bison
