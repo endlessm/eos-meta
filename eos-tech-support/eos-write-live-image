@@ -45,7 +45,7 @@ Options:
 
 ISO 9660-related options:
    -i,--iso                Write an ISO 9660 disk image to OUTPUT
-   -L,--label LABEL        ISO volume id
+   -L,--label LABEL        ISO volume id and Autorun.inf label
 
 Developer options (you probably don't want to use these):
    -n,--ntfs               Format the image partition as NTFS, not exFAT
@@ -348,6 +348,18 @@ if [ ! "$WRITABLE" ]; then
         "$DIR_IMAGES_ENDLESS/"
     echo "$OS_IMAGE_UNCOMPRESSED_BASENAME" > "${DIR_IMAGES_ENDLESS}/live"
     cp "$WINDOWS_TOOL" "$DIR_IMAGES/"
+    WINDOWS_TOOL_BASENAME="$(basename "$WINDOWS_TOOL")"
+    iconv -f utf-8 -t utf-16 <<AUTORUN_INF > "${DIR_IMAGES}/autorun.inf"
+[AutoRun]
+label=${LABEL}
+icon=${WINDOWS_TOOL_BASENAME}
+open=${WINDOWS_TOOL_BASENAME}
+
+[Content]
+MusicFiles=false
+PictureFiles=false
+VideoFiles=false
+AUTORUN_INF
 
     # Work around a bug in eos-installer, which only shows images whose
     # personality is 'base' or a valid locale. Delete this block once
