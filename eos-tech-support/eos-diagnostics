@@ -375,6 +375,11 @@ function collectEosDevInfo() {
     return output;
 }
 
+function isCoredumpdEnabled() {
+    let pattern = tryReadFile('/proc/sys/kernel/core_pattern', '');
+    return (pattern.indexOf('systemd-coredump') >= 0);
+}
+
 function trySpawn(command) {
     try {
         let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
@@ -568,12 +573,18 @@ let diagnostics = [
     {
         title: 'Journal',
         hardwareInfo: true,
+        coredumpInfo: true,
         content: function() { return trySpawn('journalctl --no-pager'); },
     },
     {
         title: 'Coredump',
-        hardwareInfo: true,
-        content: function() { return trySpawn('coredumpctl list'); },
+        coredumpInfo: true,
+        content: function() {
+            if (isCoredumpdEnabled())
+                return trySpawn('coredumpctl list');
+            else
+                return 'systemd-coredump not enabled';
+        },
     },
 ];
 
@@ -673,7 +684,6 @@ function dumpToArchive(filename, contentsFunc) {
 function dumpHardwareInfo(filename) {
     return dumpToArchive(filename, function(dir) {
         copyAcpiFirmware(dir);
-        copyCoredumps(dir);
 
         diagnostics.forEach(function(diag) {
             if (!diag.hardwareInfo)
@@ -691,28 +701,77 @@ function dumpHardwareInfo(filename) {
     });
 }
 
-let filename;
-if (ARGV[0] == '-H' || ARGV[0] == '--hardware') {
-    filename = ARGV[1];
+function dumpCoredumps(filename) {
+    if (!isCoredumpdEnabled())
+        print('WARNING: It looks like systemd-coredump is not enabled. Output will not contain any coredumps.');
 
+    return dumpToArchive(filename, function(dir) {
+        copyCoredumps(dir);
+
+        diagnostics.forEach(function(diag) {
+            if (!diag.coredumpInfo)
+                return;
+
+            let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
+
+            let content = diag.content();
+            if (!content)
+                return;
+
+            content = content.trim() + '\n';
+            GLib.file_set_contents(dir + '/' + name, content);
+        });
+    });
+}
+
+function buildFilename(prefix, extension) {
+    let date = GLib.DateTime.new_now_local();
+    return prefix + '-' + date.format('%y%m%d_%H%M%S_UTC%z') + extension;
+}
+
+/* Parse command line arguments. */
+let filename = null;
+let hardwareFlag = false;
+let coredumpsFlag = false;
+
+ARGV.forEach(function(arg) {
+    if (arg == '-H' || arg == '--hardware')
+        hardwareFlag = true;
+    else if (arg == '-C' || arg == '--coredumps')
+        coredumpsFlag = true;
+    else
+        filename = arg;
+});
+
+if (hardwareFlag && coredumpsFlag && filename) {
+    print('ERROR: If both --hardware and --coredumps are set, filename cannot be provided.');
+    System.exit(1);
+}
+
+/* Got the right privileges? */
+if (hardwareFlag || coredumpsFlag) {
     let credentials = new Gio.Credentials();
     if (credentials.get_unix_user() != 0) {
-        print('ERROR: For hardware info, run eos-diagnostics as root.');
+        print('ERROR: For hardware info or coredumps, run eos-diagnostics as root.');
         System.exit(1);
     }
+}
 
-    if (!filename) {
-        let date = GLib.DateTime.new_now_local();
-        filename = 'eos-hwinfo-' + date.format('%y%m%d_%H%M%S_UTC%z');
-    }
-
-    if (!dumpHardwareInfo(filename))
+/* Output hardware info? */
+if (hardwareFlag) {
+    if (!dumpHardwareInfo((!filename) ? buildFilename('eos-hwinfo', '') : filename))
         System.exit(1);
-} else {
-    filename = ARGV[0];
+}
+
+/* Output coredumps? */
+if (coredumpsFlag) {
+    if (!dumpCoredumps((!filename) ? buildFilename('eos-coredumps', '') : filename))
+        System.exit(1);
+}
+
+if (!hardwareFlag && !coredumpsFlag) {
     if (!filename) {
-        let date = GLib.DateTime.new_now_local();
-        let basename = 'eos-diagnostic-' + date.format('%y%m%d_%H%M%S_UTC%z') + '.txt';
+        let basename = buildFilename('eos-diagnostic', '.txt');
         filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
     }
 
