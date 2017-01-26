@@ -19,7 +19,7 @@ if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o o:x:lp:r:nmwifh -l "os-image:,windows-tool:,latest,personality:,product:,ntfs,mbr,writable,iso,force,help" -n "$0" -- "$@")
+ARGS=$(getopt -o o:x:lp:r:nmwifh -l "os-image:,windows-tool:,latest,personality:,product:,ntfs,mbr,writable,iso,force,debug,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -45,6 +45,7 @@ Options:
 Developer options (you probably don't want to use these):
    -n,--ntfs               Format the image partition as NTFS, not exFAT
    -m,--mbr                Format DEVICE as MBR, not GPT
+   --debug                 Enable debugging output
 EOF
 }
 
@@ -125,6 +126,10 @@ while true; do
         -f|--force)
             shift
             FORCE=true
+            ;;
+        --debug)
+            shift
+            set -x
             ;;
         -h|--help)
             usage
