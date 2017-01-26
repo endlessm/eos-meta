@@ -624,25 +624,11 @@ function copyAcpiFirmware(outputPath)
     }
 }
 
-function dumpHardwareInfo(filename) {
+function dumpToArchive(filename, contentsFunc) {
     let dir = '/tmp/' + filename;
     GLib.mkdir_with_parents(dir, parseInt('0700', 8));
 
-    copyAcpiFirmware(dir);
-
-    diagnostics.forEach(function(diag) {
-        if (!diag.hardwareInfo)
-            return;
-
-        let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
-
-        let content = diag.content();
-        if (!content)
-            return;
-
-        content = content.trim() + '\n';
-        GLib.file_set_contents(dir + '/' + name, content);
-    });
+    contentsFunc(dir);
 
     filename += '.tar.xz';
     let command = 'tar -C ' + dir + ' -cJf ' + filename + ' . ';
@@ -655,6 +641,26 @@ function dumpHardwareInfo(filename) {
 
     print('Wrote ' + filename);
     return true;
+}
+
+function dumpHardwareInfo(filename) {
+    return dumpToArchive(filename, function(dir) {
+        copyAcpiFirmware(dir);
+
+        diagnostics.forEach(function(diag) {
+            if (!diag.hardwareInfo)
+                return;
+
+            let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
+
+            let content = diag.content();
+            if (!content)
+                return;
+
+            content = content.trim() + '\n';
+            GLib.file_set_contents(dir + '/' + name, content);
+        });
+    });
 }
 
 let filename;
