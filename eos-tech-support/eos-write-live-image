@@ -19,7 +19,9 @@ if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o o:x:lp:r:nmwifh -l "os-image:,windows-tool:,latest,personality:,product:,ntfs,mbr,writable,iso,force,debug,help" -n "$0" -- "$@")
+ARGS=$(getopt -o o:x:lp:r:nmwiL:fh \
+    -l "os-image:,windows-tool:,latest,personality:,product:,ntfs,mbr,writable,iso,label:,force,debug,help" \
+    -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -38,9 +40,12 @@ Options:
    -r,--product            Fetch a different product (default: eos)
    -w,--writable           Allow image to be modified when run (which
                            prevents installing it later)
-   -i,--iso                Write an ISO image
    -f,--force              don't ask to proceed before writing
    -h,--help               Show this message
+
+ISO 9660-related options:
+   -i,--iso                Write an ISO 9660 disk image to OUTPUT
+   -L,--label LABEL        ISO volume id and Autorun.inf label
 
 Developer options (you probably don't want to use these):
    -n,--ntfs               Format the image partition as NTFS, not exFAT
@@ -81,6 +86,7 @@ WRITABLE=
 FORCE=
 PERSONALITY=base
 PRODUCT=eos
+LABEL=
 while true; do
     case "$1" in
         -o|--os-image)
@@ -122,6 +128,11 @@ while true; do
         -i|--iso)
             shift
             ISO=true
+            ;;
+        -L|--label)
+            shift
+            LABEL="$1"
+            shift
             ;;
         -f|--force)
             shift
@@ -234,10 +245,17 @@ fi
 if [ ! -z "$FETCH_LATEST" ]; then
     if [ -z "$OS_IMAGE" ]; then
         OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --personality "${PERSONALITY}" --product "${PRODUCT}")
+        if [ -z "$LABEL" ]; then
+           LABEL="Endless OS ${PERSONALITY}"
+        fi
     fi
     if [ -z "$WINDOWS_TOOL" ]; then
         WINDOWS_TOOL=$($EOS_DOWNLOAD_IMAGE --windows-tool)
     fi
+fi
+
+if [ -z "$LABEL" ]; then
+    LABEL="Endless OS"
 fi
 
 check_exists "$OS_IMAGE" "image"
@@ -330,6 +348,18 @@ if [ ! "$WRITABLE" ]; then
         "$DIR_IMAGES_ENDLESS/"
     echo "$OS_IMAGE_UNCOMPRESSED_BASENAME" > "${DIR_IMAGES_ENDLESS}/live"
     cp "$WINDOWS_TOOL" "$DIR_IMAGES/"
+    WINDOWS_TOOL_BASENAME="$(basename "$WINDOWS_TOOL")"
+    iconv -f utf-8 -t utf-16 <<AUTORUN_INF > "${DIR_IMAGES}/autorun.inf"
+[AutoRun]
+label=${LABEL}
+icon=${WINDOWS_TOOL_BASENAME}
+open=${WINDOWS_TOOL_BASENAME}
+
+[Content]
+MusicFiles=false
+PictureFiles=false
+VideoFiles=false
+AUTORUN_INF
 
     # Work around a bug in eos-installer, which only shows images whose
     # personality is 'base' or a valid locale. Delete this block once
@@ -373,6 +403,8 @@ if [ "$ISO" ]; then
     # Unzip the ISO bootzip content
     unzip -q -d "${DIR_IMAGES_ENDLESS}/grub/i386-pc/" "${BOOT_ZIP}" "iso/*"
 
+    VOLID=$(echo -n "$LABEL" | tr -cs '[A-Za-z0-9_.]' '-')
+
     # Generate the ISO image.
     # Parameters found using https://dev.lovelyhq.com/libburnia/libisoburn/raw/master/frontend/grub-mkrescue-sed.sh
     #
@@ -394,7 +426,10 @@ if [ "$ISO" ]; then
 	    -eltorito-alt-boot \
 	    -e --interval:appended_partition_2:all:: \
 	    -no-emul-boot \
-	    -iso-level 3 \
+	    -iso-level 4 \
+	    -joliet -joliet-long \
+	    -volid "$VOLID" \
+	    -publisher 'Endless Computers' \
 	    ${DIR_IMAGES}
 fi
 
