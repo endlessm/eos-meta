@@ -153,8 +153,13 @@ while true; do
     esac
 done
 
-if [ $# -lt 1 ] ; then
-    echo "Missing OUTPUT" >&2
+if [ $# -ne 1 ] ; then
+    if [ $# -lt 1 ] ; then
+        echo "Error: missing OUTPUT" >&2
+    else
+        echo "Error: extra arguments after OUTPUT" >&2
+    fi
+    echo >&2
     usage >&2
     exit 1
 fi
@@ -214,8 +219,13 @@ if [ "$ISO" ]; then
     OUTPUT_DIR=$(dirname "$OUTPUT")
     mkdir -p "$OUTPUT_DIR"  &>/dev/null
 else
+    if [ ! -e "$OUTPUT" ]; then
+        echo "$OUTPUT does not exist... aborting!" >&2
+        exit 1
+    fi
+
     if [ ! -b "$OUTPUT" ]; then
-        echo "$OUTPUT does not exist or is not a block device... aborting!" >&2
+        echo "$OUTPUT is not a block device... aborting!" >&2
         exit 1
     fi
 
