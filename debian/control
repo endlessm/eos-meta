@@ -252,7 +252,13 @@ Package: eos-tech-support
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}
 Description: EndlessOS Technical Support Tools
- This is a collection technical support tools that are installed by default
+ This is a collection of technical support tools that are installed by default
  with the EndlessOS operating system.  They are not required as part of the
  normal user experience but are relatively small and helpful for advanced
  troubleshooting.
+
+Package: eos-tech-support-iso
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Create Endless OS ISO Images
+ Tools needed to create ISO images which are not needed in end-user images.

@@ -1,7 +1,9 @@
 bash-completion
 eos-image-keyring
+file
 iw
 lshw
 pv
 screen
 traceroute
+unzip

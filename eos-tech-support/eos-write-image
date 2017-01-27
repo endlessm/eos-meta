@@ -21,7 +21,8 @@ Options:
    -f,--force   don't ask to proceed with writing
    --sparse     use dd sparse conversion option
    --debug      turn on debugging messages
-   --removable  device is removable (remove fallback.efi)
+   --removable  device is removable (remove fallback.efi);
+                not supported if DEVICE is '-'
    -h,--help    show this message
 EOF
 }
@@ -141,6 +142,10 @@ cat_image() {
 }
 
 if [ "$DEVICE" == "-" ]; then
+    if [ "$REMOVABLE" ]; then
+        echo "--removable not supported when writing to stdout" >&2
+        exit 1
+    fi
     cat_image
 else
     if [ ! -b "$DEVICE" ]; then
@@ -166,13 +171,12 @@ else
     blkdiscard "$DEVICE" &>/dev/null || true
     cat_image | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
 
+    # Probe new partitions
+    partprobe
+    udevadm settle
+
     # If removable device, delete $ESP/EFI/BOOT/fallback.efi
     if [ "$REMOVABLE" ]; then
-
-        # Probe new partitions
-        partprobe
-        udevadm settle
-
         # Assume ESP is the first partition
         case "$DEVICE" in
             /dev/mmcblk?)
