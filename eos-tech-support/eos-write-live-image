@@ -403,7 +403,7 @@ if [ "$ISO" ]; then
     # Unzip the ISO bootzip content
     unzip -q -d "${DIR_IMAGES_ENDLESS}/grub/i386-pc/" "${BOOT_ZIP}" "iso/*"
 
-    VOLID=$(echo -n "$LABEL" | tr -cs '[A-Za-z0-9_.]' '-')
+    VOLID=$(echo -n "$LABEL" | tr -cs '[A-Za-z0-9_]' '-')
 
     # Generate the ISO image.
     # Parameters found using https://dev.lovelyhq.com/libburnia/libisoburn/raw/master/frontend/grub-mkrescue-sed.sh
