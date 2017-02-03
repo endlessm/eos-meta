@@ -380,7 +380,15 @@ AUTORUN_INF
     fi
 fi
 
-"$EOS_WRITE_IMAGE" "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
+# attempt to avoid copy if input image is already compressed but fall back
+# gracefully if the image and tmpdir turn out to be different devices
+if [ "$OS_IMAGE" == "$OS_IMAGE_UNCOMPRESSED" ]; then
+    ln "$OS_IMAGE" "${DIR_IMAGES_ENDLESS}/endless.img" 2>/dev/null || true
+fi
+
+if [ ! -e "${DIR_IMAGES_ENDLESS}/endless.img" ]; then
+    "$EOS_WRITE_IMAGE" "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
+fi
 
 echo
 echo "Finalizing image"
