@@ -170,7 +170,7 @@ def fetch_image(args, base):
             manifest = json.load(codecs.getreader('utf8')(manifest_fp))
 
     images = list(manifest['images'].values())
-    images.sort(key=lambda i: distutils.version.StrictVersion(i['version']))
+    images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
     if args.mirror:
         selected = images
     elif args.version is not None:
