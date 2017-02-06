@@ -25,9 +25,13 @@ ARGS=$(getopt -o o:x:lp:r:nmwiL:fh \
 eval set -- "$ARGS"
 
 usage() {
+    local SELF="$(basename "$0")"
     cat <<EOF
 Usage:
-   $0 [options] OUTPUT
+    $SELF [options] OUTPUT
+
+    # equivalent to $SELF --latest --os-image IMAGE OUTPUT
+    $SELF IMAGE OUTPUT
 
 Arguments:
     OUTPUT                 Device path (e.g. '/dev/sdb') or ISO image
@@ -152,6 +156,13 @@ while true; do
             ;;
     esac
 done
+
+# Be consistent with eos-write-image IMAGE DEVICE
+if [ $# -eq 2 ] && [ -z "$OS_IMAGE" ]; then
+    OS_IMAGE="$1"
+    FETCH_LATEST=true
+    shift
+fi
 
 if [ $# -ne 1 ] ; then
     if [ $# -lt 1 ] ; then
