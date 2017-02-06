@@ -221,6 +221,21 @@ for command in "${!dependencies[@]}"; do
     fi
 done
 
+if [ -z "$FETCH_LATEST" ]; then
+    if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
+        echo "--os-image and --windows-tool are required if --latest is not specified" >&2
+        usage >&2
+        exit 2
+    fi
+fi
+
+echo "Summary:"
+echo
+echo "       Endless OS image: ${OS_IMAGE:-latest $PRODUCT $PERSONALITY image}"
+echo "  Installer for Windows: ${WINDOWS_TOOL:-latest release}"
+echo "                 Target: ${OUTPUT}"
+echo
+
 if [ "$ISO" ]; then
     if [ -f "$OUTPUT" ] && [ ! "$FORCE" ]; then
         echo "$OUTPUT already exists... aborting!" >&2
@@ -252,14 +267,6 @@ else
         if [[ ! "$response" =~ ^(yes|y)$ ]]; then
             exit 1
         fi
-    fi
-fi
-
-if [ -z "$FETCH_LATEST" ]; then
-    if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
-        echo "--os-image and --windows-tool are required if --latest is not specified" >&2
-        usage >&2
-        exit 2
     fi
 fi
 
