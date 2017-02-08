@@ -74,11 +74,13 @@ for command in "${!dependencies[@]}"; do
     fi
 done
 
-if [ $# -lt 2 ] ; then
+if [ $# -lt 2 ] || [ $# -gt 3 ] ; then
     if [ $# -eq 0 ]; then
         echo "Error: missing IMAGE and DEVICE arguments" >&2
+    elif [ $# -eq 1 ]; then
+        echo "Error: missing DEVICE argument" >&2
     else
-        echo "Error: missing DEVICE arguments" >&2
+        echo "Error: extra arguments after IMAGE DEVICE BLOCK_SIZE" >&2
     fi
     echo >&2
     usage >&2
@@ -148,8 +150,13 @@ if [ "$DEVICE" == "-" ]; then
     fi
     cat_image
 else
+    if [ ! -e "$DEVICE" ]; then
+        echo "$DEVICE does not exist... aborting!" >&2
+        exit 1
+    fi
+
     if [ ! -b "$DEVICE" ]; then
-        echo "$DEVICE not found or is not a block device" >&2
+        echo "$DEVICE is not a block device... aborting!" >&2
         exit 1
     fi
 

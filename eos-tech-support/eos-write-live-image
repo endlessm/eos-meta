@@ -25,9 +25,13 @@ ARGS=$(getopt -o o:x:lp:r:nmwiL:fh \
 eval set -- "$ARGS"
 
 usage() {
+    local SELF="$(basename "$0")"
     cat <<EOF
 Usage:
-   $0 [options] OUTPUT
+    $SELF [options] OUTPUT
+
+    # equivalent to $SELF --latest --os-image IMAGE OUTPUT
+    $SELF IMAGE OUTPUT
 
 Arguments:
     OUTPUT                 Device path (e.g. '/dev/sdb') or ISO image
@@ -153,8 +157,20 @@ while true; do
     esac
 done
 
-if [ $# -lt 1 ] ; then
-    echo "Missing OUTPUT" >&2
+# Be consistent with eos-write-image IMAGE DEVICE
+if [ $# -eq 2 ] && [ -z "$OS_IMAGE" ]; then
+    OS_IMAGE="$1"
+    FETCH_LATEST=true
+    shift
+fi
+
+if [ $# -ne 1 ] ; then
+    if [ $# -lt 1 ] ; then
+        echo "Error: missing OUTPUT" >&2
+    else
+        echo "Error: extra arguments after OUTPUT" >&2
+    fi
+    echo >&2
     usage >&2
     exit 1
 fi
@@ -205,6 +221,21 @@ for command in "${!dependencies[@]}"; do
     fi
 done
 
+if [ -z "$FETCH_LATEST" ]; then
+    if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
+        echo "--os-image and --windows-tool are required if --latest is not specified" >&2
+        usage >&2
+        exit 2
+    fi
+fi
+
+echo "Summary:"
+echo
+echo "       Endless OS image: ${OS_IMAGE:-latest $PRODUCT $PERSONALITY image}"
+echo "  Installer for Windows: ${WINDOWS_TOOL:-latest release}"
+echo "                 Target: ${OUTPUT}"
+echo
+
 if [ "$ISO" ]; then
     if [ -f "$OUTPUT" ] && [ ! "$FORCE" ]; then
         echo "$OUTPUT already exists... aborting!" >&2
@@ -214,8 +245,13 @@ if [ "$ISO" ]; then
     OUTPUT_DIR=$(dirname "$OUTPUT")
     mkdir -p "$OUTPUT_DIR"  &>/dev/null
 else
+    if [ ! -e "$OUTPUT" ]; then
+        echo "$OUTPUT does not exist... aborting!" >&2
+        exit 1
+    fi
+
     if [ ! -b "$OUTPUT" ]; then
-        echo "$OUTPUT does not exist or is not a block device... aborting!" >&2
+        echo "$OUTPUT is not a block device... aborting!" >&2
         exit 1
     fi
 
@@ -231,14 +267,6 @@ else
         if [[ ! "$response" =~ ^(yes|y)$ ]]; then
             exit 1
         fi
-    fi
-fi
-
-if [ -z "$FETCH_LATEST" ]; then
-    if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
-        echo "--os-image and --windows-tool are required if --latest is not specified" >&2
-        usage >&2
-        exit 2
     fi
 fi
 
