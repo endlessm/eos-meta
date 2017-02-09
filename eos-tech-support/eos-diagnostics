@@ -546,6 +546,18 @@ let diagnostics = [
         },
     },
     {
+        title: 'Flatpak runtimes',
+        content: function() {
+            return trySpawn('flatpak list --runtime --show-details');
+        },
+    },
+    {
+        title: 'Flatpak applications',
+        content: function() {
+            return trySpawn('flatpak list --app --show-details');
+        },
+    },
+    {
         title: 'Processes',
         content: function() { return trySpawn('ps aux'); },
     },
