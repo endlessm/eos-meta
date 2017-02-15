@@ -348,7 +348,6 @@ EFI_PARTITIONS
     fi
 
     # Give udisks a chance to notice the new partitions
-    partprobe
     udevadm settle
 
     if [ ! "$MBR" ]; then
