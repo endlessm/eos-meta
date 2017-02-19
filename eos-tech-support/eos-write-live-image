@@ -423,7 +423,7 @@ echo "Finalizing image"
 if [ "$ISO" ]; then
 
     # Converting to squashfs
-    mksquashfs "${DIR_IMAGES_ENDLESS}/endless.img" "${DIR_IMAGES_ENDLESS}/endless.squash" -no-fragments
+    mksquashfs "${DIR_IMAGES_ENDLESS}/endless.img" "${DIR_IMAGES_ENDLESS}/endless.squash"
     rm -f "${DIR_IMAGES_ENDLESS}/endless.img"
 
     # Preparing for ESP
