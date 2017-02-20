@@ -20,7 +20,7 @@ if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
 fi
 
 ARGS=$(getopt -o o:x:lp:r:nmwiL:fh \
-    -l "os-image:,windows-tool:,latest,personality:,product:,ntfs,mbr,writable,iso,label:,force,debug,help" \
+    -l "os-image:,windows-tool:,latest,personality:,product:,ntfs,mbr,writable,iso,label:,delete-os-image,force,debug,help" \
     -n "$0" -- "$@")
 eval set -- "$ARGS"
 
@@ -37,7 +37,7 @@ Arguments:
     OUTPUT                 Device path (e.g. '/dev/sdb') or ISO image
 
 Options:
-   -o,--os-image PATH      Path to Endless OS image
+   -o,--os-image IMAGE     Path to Endless OS image
    -x,--windows-tool PATH  Path to Endless OS installer tool for Windows
    -l,--latest             Fetch latest OS image and/or Windows tool
    -p,--personality        Fetch a different personality (default: base)
@@ -50,6 +50,7 @@ Options:
 ISO 9660-related options:
    -i,--iso                Write an ISO 9660 disk image to OUTPUT
    -L,--label LABEL        ISO volume id and Autorun.inf label
+   --delete-os-image       Delete IMAGE after creating SquashFS wrapper
 
 Developer options (you probably don't want to use these):
    -n,--ntfs               Format the image partition as NTFS, not exFAT
@@ -91,6 +92,7 @@ FORCE=
 PERSONALITY=base
 PRODUCT=eos
 LABEL=
+DELETE_OS_IMAGE=
 while true; do
     case "$1" in
         -o|--os-image)
@@ -137,6 +139,10 @@ while true; do
             shift
             LABEL="$1"
             shift
+            ;;
+        --delete-os-image):
+            shift
+            DELETE_OS_IMAGE=true
             ;;
         -f|--force)
             shift
@@ -425,6 +431,10 @@ if [ "$ISO" ]; then
     # Converting to squashfs
     mksquashfs "${DIR_IMAGES_ENDLESS}/endless.img" "${DIR_IMAGES_ENDLESS}/endless.squash" -no-fragments
     rm -f "${DIR_IMAGES_ENDLESS}/endless.img"
+
+    if [ "$DELETE_OS_IMAGE" ]; then
+        rm -f "$OS_IMAGE"
+    fi
 
     # Preparing for ESP
     DIR_EFI_SIZE=$(du -s ${DIR_EFI} | cut -f1)
