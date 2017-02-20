@@ -105,6 +105,7 @@ ibus-unikey
 # Needed to support some Epson scanners
 imagescan
 libreoffice
+libnss-resolve
 nautilus
 bluez-obexd
 openprinting-ppds
