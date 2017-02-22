@@ -465,13 +465,13 @@ if [ "$ISO" ]; then
 	    -r -graft-points -no-pad \
 	    --sort-weight 0 / \
 	    --sort-weight 1 /endless \
-	    --grub2-mbr ${DIR_IMAGES_ENDLESS}/grub/i386-pc/iso/boot_hybrid.img \
-	    -append_partition 2 0xef ${DIR_IMAGES_ENDLESS}/efi.img \
 	    -b endless/grub/i386-pc/iso/eltorito.img \
 	    -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
+	    --grub2-mbr ${DIR_IMAGES_ENDLESS}/grub/i386-pc/iso/boot_hybrid.img \
 	    -eltorito-alt-boot \
 	    -e --interval:appended_partition_2:all:: \
 	    -no-emul-boot \
+	    -append_partition 2 0xef ${DIR_IMAGES_ENDLESS}/efi.img \
 	    -iso-level 4 \
 	    -joliet -joliet-long \
 	    -volid "$VOLID" \
