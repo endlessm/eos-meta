@@ -476,6 +476,9 @@ if [ "$ISO" ]; then
 	    -volid "$VOLID" \
 	    -publisher 'Endless Computers' \
 	    ${DIR_IMAGES}
+
+    # Change partition type from 0x83 to 0x00
+    printf "\x00" | dd of=${OUTPUT} bs=1 count=1 seek=450 conv=notrunc
 fi
 
 echo
