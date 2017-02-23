@@ -375,6 +375,11 @@ function collectEosDevInfo() {
     return output;
 }
 
+function isCoredumpdEnabled() {
+    let pattern = tryReadFile('/proc/sys/kernel/core_pattern', '');
+    return (pattern.indexOf('systemd-coredump') >= 0);
+}
+
 function trySpawn(command) {
     try {
         let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
@@ -568,17 +573,33 @@ let diagnostics = [
     {
         title: 'Journal',
         hardwareInfo: true,
-        content: function() { return trySpawn('journalctl --no-pager'); },
+        coredumpInfo: true,
+        content: function(verboseFlag) {
+            if (verboseFlag)
+                return trySpawn('journalctl --no-pager --output verbose');
+            else
+                return trySpawn('journalctl --no-pager');
+        },
+    },
+    {
+        title: 'Coredump',
+        coredumpInfo: true,
+        content: function() {
+            if (isCoredumpdEnabled())
+                return trySpawn('coredumpctl list');
+            else
+                return 'systemd-coredump not enabled';
+        },
     },
 ];
 
-function dumpDiagnostics(filename) {
+function dumpDiagnostics(filename, verboseFlag) {
     let fullDump = '';
 
     fullDump += collectEosDevInfo();
 
     diagnostics.forEach(function(diag) {
-        let content = diag.content();
+        let content = diag.content(verboseFlag);
         if (!content)
             return;
 
@@ -624,25 +645,33 @@ function copyAcpiFirmware(outputPath)
     }
 }
 
-function dumpHardwareInfo(filename) {
+function copyCoredumps(outputPath)
+{
+    let dir = Gio.File.new_for_path('/var/lib/systemd/coredump');
+    let output = Gio.File.new_for_path(outputPath);
+    let fileEnum;
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return;
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let name = info.get_name();
+
+        let target = output.resolve_relative_path('coredump_' + name.toLowerCase());
+        fileEnum.get_child(info).copy(target, 0, null, null);
+    }
+}
+
+function dumpToArchive(filename, contentsFunc) {
     let dir = '/tmp/' + filename;
     GLib.mkdir_with_parents(dir, parseInt('0700', 8));
 
-    copyAcpiFirmware(dir);
-
-    diagnostics.forEach(function(diag) {
-        if (!diag.hardwareInfo)
-            return;
-
-        let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
-
-        let content = diag.content();
-        if (!content)
-            return;
-
-        content = content.trim() + '\n';
-        GLib.file_set_contents(dir + '/' + name, content);
-    });
+    contentsFunc(dir);
 
     filename += '.tar.xz';
     let command = 'tar -C ' + dir + ' -cJf ' + filename + ' . ';
@@ -657,30 +686,103 @@ function dumpHardwareInfo(filename) {
     return true;
 }
 
-let filename;
-if (ARGV[0] == '-H' || ARGV[0] == '--hardware') {
-    filename = ARGV[1];
+function dumpHardwareInfo(filename, verboseFlag) {
+    return dumpToArchive(filename, function(dir) {
+        copyAcpiFirmware(dir);
 
+        diagnostics.forEach(function(diag) {
+            if (!diag.hardwareInfo)
+                return;
+
+            let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
+
+            let content = diag.content(verboseFlag);
+            if (!content)
+                return;
+
+            content = content.trim() + '\n';
+            GLib.file_set_contents(dir + '/' + name, content);
+        });
+    });
+}
+
+function dumpCoredumps(filename, verboseFlag) {
+    if (!isCoredumpdEnabled())
+        print('WARNING: It looks like systemd-coredump is not enabled. Output will not contain any coredumps.');
+
+    return dumpToArchive(filename, function(dir) {
+        copyCoredumps(dir);
+
+        diagnostics.forEach(function(diag) {
+            if (!diag.coredumpInfo)
+                return;
+
+            let name = diag.title.toLowerCase().replace(' ', '_') + '.txt';
+
+            let content = diag.content(verboseFlag);
+            if (!content)
+                return;
+
+            content = content.trim() + '\n';
+            GLib.file_set_contents(dir + '/' + name, content);
+        });
+    });
+}
+
+function buildFilename(prefix, extension) {
+    let date = GLib.DateTime.new_now_local();
+    return prefix + '-' + date.format('%y%m%d_%H%M%S_UTC%z') + extension;
+}
+
+/* Parse command line arguments. */
+let filename = null;
+let hardwareFlag = false;
+let coredumpsFlag = false;
+let verboseFlag = false;
+
+ARGV.forEach(function(arg) {
+    if (arg == '-H' || arg == '--hardware')
+        hardwareFlag = true;
+    else if (arg == '-C' || arg == '--coredumps')
+        coredumpsFlag = true;
+    else if (arg == '-v' || arg == '--verbose')
+        verboseFlag = true;
+    else
+        filename = arg;
+});
+
+if (hardwareFlag && coredumpsFlag && filename) {
+    print('ERROR: If both --hardware and --coredumps are set, filename cannot be provided.');
+    System.exit(1);
+}
+
+/* Got the right privileges? */
+if (hardwareFlag || coredumpsFlag) {
     let credentials = new Gio.Credentials();
     if (credentials.get_unix_user() != 0) {
-        print('ERROR: For hardware info, run eos-diagnostics as root.');
+        print('ERROR: For hardware info or coredumps, run eos-diagnostics as root.');
         System.exit(1);
     }
+}
 
-    if (!filename) {
-        let date = GLib.DateTime.new_now_local();
-        filename = 'eos-hwinfo-' + date.format('%y%m%d_%H%M%S_UTC%z');
-    }
-
-    if (!dumpHardwareInfo(filename))
+/* Output hardware info? */
+if (hardwareFlag) {
+    if (!dumpHardwareInfo((!filename) ? buildFilename('eos-hwinfo', '') : filename, verboseFlag))
         System.exit(1);
-} else {
-    filename = ARGV[0];
+}
+
+/* Output coredumps? */
+if (coredumpsFlag) {
+    // Force verbose output so we get the full journal logs
+    if (!dumpCoredumps((!filename) ? buildFilename('eos-coredumps', '') : filename, true))
+        System.exit(1);
+}
+
+if (!hardwareFlag && !coredumpsFlag) {
     if (!filename) {
-        let date = GLib.DateTime.new_now_local();
-        let basename = 'eos-diagnostic-' + date.format('%y%m%d_%H%M%S_UTC%z') + '.txt';
+        let basename = buildFilename('eos-diagnostic', '.txt');
         filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
     }
 
-    dumpDiagnostics(filename);
+    dumpDiagnostics(filename, verboseFlag);
 }
