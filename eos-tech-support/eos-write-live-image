@@ -472,7 +472,7 @@ if [ "$ISO" ]; then
 	    -e --interval:appended_partition_2:all:: \
 	    -no-emul-boot \
 	    -append_partition 2 0xef ${DIR_ESP}/efi.img \
-	    -iso-level 4 \
+	    -iso-level 3 \
 	    -joliet -joliet-long \
 	    -volid "$VOLID" \
 	    -publisher 'Endless Computers' \
