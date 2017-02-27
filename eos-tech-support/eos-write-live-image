@@ -317,6 +317,7 @@ if [ "$ISO" ]; then
     ISO_TMPDIR=${TMPDIR:-/var/tmp}
     DIR_EFI="$(mktemp -d -t efi_dir.XXXXXX -p "$ISO_TMPDIR")"
     DIR_IMAGES="$(mktemp -d -t iso9660_dir.XXXXXX -p "$ISO_TMPDIR")"
+    DIR_ESP="$(mktemp -d -t esp_dir.XXXXXX -p "$ISO_TMPDIR")"
 else
     if [ "$MBR" ]; then
         sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
@@ -441,9 +442,9 @@ if [ "$ISO" ]; then
     ESP_SIZE=$(( (${DIR_EFI_SIZE} + 1024) / 1024 * 1024 ))
 
     # Create ESP and copy the EFI content
-    truncate -s ${ESP_SIZE}K ${DIR_IMAGES_ENDLESS}/efi.img
-    mkdosfs ${DIR_IMAGES_ENDLESS}/efi.img
-    mcopy -s -i ${DIR_IMAGES_ENDLESS}/efi.img ${DIR_EFI}/EFI '::/'
+    truncate -s ${ESP_SIZE}K ${DIR_ESP}/efi.img
+    mkdosfs ${DIR_ESP}/efi.img
+    mcopy -s -i ${DIR_ESP}/efi.img ${DIR_EFI}/EFI '::/'
 
     # Unzip the ISO bootzip content
     unzip -q -d "${DIR_IMAGES_ENDLESS}/grub/i386-pc/" "${BOOT_ZIP}" "iso/*"
@@ -470,7 +471,7 @@ if [ "$ISO" ]; then
 	    -eltorito-alt-boot \
 	    -e --interval:appended_partition_2:all:: \
 	    -no-emul-boot \
-	    -append_partition 2 0xef ${DIR_IMAGES_ENDLESS}/efi.img \
+	    -append_partition 2 0xef ${DIR_ESP}/efi.img \
 	    -iso-level 4 \
 	    -joliet -joliet-long \
 	    -volid "$VOLID" \
@@ -487,6 +488,7 @@ echo "Cleaning up"
 if [ "$ISO" ]; then
     rm -fr ${DIR_EFI}
     rm -fr ${DIR_IMAGES}
+    rm -fr ${DIR_ESP}
 else
     udisks_unmount "$DEVICE_IMAGES"
     if [ ! "$MBR" ]; then
