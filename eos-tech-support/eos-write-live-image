@@ -314,10 +314,13 @@ if [ "$ISO" ]; then
     # Don't override an explicit $TMPDIR, but default to /var/tmp because /tmp
     # is typically a tmpfs which is probably too small to hold the uncompressed
     # image and squashfs image.
-    ISO_TMPDIR=${TMPDIR:-/var/tmp}
-    DIR_EFI="$(mktemp -d -t efi_dir.XXXXXX -p "$ISO_TMPDIR")"
-    DIR_IMAGES="$(mktemp -d -t iso9660_dir.XXXXXX -p "$ISO_TMPDIR")"
-    DIR_ESP="$(mktemp -d -t esp_dir.XXXXXX -p "$ISO_TMPDIR")"
+    ISO_TMPDIR="$(mktemp -d -t eos-iso.XXXXXX -p "${TMPDIR:-/var/tmp}")"
+    DIR_EFI="$ISO_TMPDIR/efi"
+    DIR_IMAGES="$ISO_TMPDIR/images"
+    DIR_ESP="$ISO_TMPDIR/esp"
+
+    # Just to be sure
+    mkdir "$DIR_EFI" "$DIR_IMAGES" "$DIR_ESP"
 else
     if [ "$MBR" ]; then
         sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
@@ -486,9 +489,7 @@ echo
 echo "Cleaning up"
 
 if [ "$ISO" ]; then
-    rm -fr ${DIR_EFI}
-    rm -fr ${DIR_IMAGES}
-    rm -fr ${DIR_ESP}
+    rm -fr ${ISO_TMPDIR}
 else
     udisks_unmount "$DEVICE_IMAGES"
     if [ ! "$MBR" ]; then
