@@ -314,9 +314,13 @@ if [ "$ISO" ]; then
     # Don't override an explicit $TMPDIR, but default to /var/tmp because /tmp
     # is typically a tmpfs which is probably too small to hold the uncompressed
     # image and squashfs image.
-    ISO_TMPDIR=${TMPDIR:-/var/tmp}
-    DIR_EFI="$(mktemp -d -t efi_dir.XXXXXX -p "$ISO_TMPDIR")"
-    DIR_IMAGES="$(mktemp -d -t iso9660_dir.XXXXXX -p "$ISO_TMPDIR")"
+    ISO_TMPDIR="$(mktemp -d -t eos-iso.XXXXXX -p "${TMPDIR:-/var/tmp}")"
+    DIR_EFI="$ISO_TMPDIR/efi"
+    DIR_IMAGES="$ISO_TMPDIR/images"
+    DIR_ESP="$ISO_TMPDIR/esp"
+
+    # Just to be sure
+    mkdir "$DIR_EFI" "$DIR_IMAGES" "$DIR_ESP"
 else
     if [ "$MBR" ]; then
         sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
@@ -441,9 +445,9 @@ if [ "$ISO" ]; then
     ESP_SIZE=$(( (${DIR_EFI_SIZE} + 1024) / 1024 * 1024 ))
 
     # Create ESP and copy the EFI content
-    truncate -s ${ESP_SIZE}K ${DIR_IMAGES_ENDLESS}/efi.img
-    mkdosfs ${DIR_IMAGES_ENDLESS}/efi.img
-    mcopy -s -i ${DIR_IMAGES_ENDLESS}/efi.img ${DIR_EFI}/EFI '::/'
+    truncate -s ${ESP_SIZE}K ${DIR_ESP}/efi.img
+    mkdosfs ${DIR_ESP}/efi.img
+    mcopy -s -i ${DIR_ESP}/efi.img ${DIR_EFI}/EFI '::/'
 
     # Unzip the ISO bootzip content
     unzip -q -d "${DIR_IMAGES_ENDLESS}/grub/i386-pc/" "${BOOT_ZIP}" "iso/*"
@@ -453,7 +457,7 @@ if [ "$ISO" ]; then
     # Generate the ISO image.
     # Parameters found using https://dev.lovelyhq.com/libburnia/libisoburn/raw/master/frontend/grub-mkrescue-sed.sh
     #
-    # export MKRESCUE_SED_MODE=mbr_only_copy
+    # export MKRESCUE_SED_MODE=mbr_only
     # export MKRESCUE_SED_PROTECTIVE=no
     # export MKRESCUE_SED_DEBUG=yes
     #
@@ -468,9 +472,10 @@ if [ "$ISO" ]; then
 	    -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info \
 	    --grub2-mbr ${DIR_IMAGES_ENDLESS}/grub/i386-pc/iso/boot_hybrid.img \
 	    -eltorito-alt-boot \
-	    --efi-boot /endless/efi.img -no-pad \
-	    -append_partition 2 0xef ${DIR_IMAGES_ENDLESS}/efi.img \
-	    -iso-level 4 \
+	    -e --interval:appended_partition_2:all:: \
+	    -no-emul-boot \
+	    -append_partition 2 0xef ${DIR_ESP}/efi.img \
+	    -iso-level 3 \
 	    -joliet -joliet-long \
 	    -volid "$VOLID" \
 	    -publisher 'Endless Computers' \
@@ -484,8 +489,7 @@ echo
 echo "Cleaning up"
 
 if [ "$ISO" ]; then
-    rm -fr ${DIR_EFI}
-    rm -fr ${DIR_IMAGES}
+    rm -fr ${ISO_TMPDIR}
 else
     udisks_unmount "$DEVICE_IMAGES"
     if [ ! "$MBR" ]; then
