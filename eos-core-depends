@@ -29,6 +29,7 @@ eos-gates
 eos-google-chrome-helper [amd64]
 eos-installer
 eos-kalite-system-helper
+eos-kalite-tools
 eos-language-pack-ar
 eos-language-pack-bn
 eos-language-pack-de
