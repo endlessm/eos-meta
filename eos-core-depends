@@ -20,6 +20,7 @@ cups
 debconf-i18n
 eog
 eos-acknowledgements
+eos-browser-tools
 eos-chrome-plugin-updater
 eos-codecs-manager
 eos-event-recorder-daemon
