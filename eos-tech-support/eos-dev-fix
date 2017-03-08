@@ -37,12 +37,12 @@ if [ $(readlink -f ${OSTREE_DEPLOY_BOOTED}) != \
 fi
 
 # Disable upgrade timer
-systemctl stop eos-autoupdater.timer
-systemctl disable eos-autoupdater.timer
+systemctl disable --now eos-autoupdater.timer
+systemctl stop eos-autoupdater.service
 
 # Unsure if these are necessary after stopping the timer, but better to be
 # sure.
-systemctl stop eos-autoupdater.service
+systemctl stop eos-updater.service
 
 echo -e "\nAutomatic upgrades have been stopped," \
   "your system can no longer be upgraded using ostree beyond this point!"
