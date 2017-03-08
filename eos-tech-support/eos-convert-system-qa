@@ -135,11 +135,10 @@ if $OSTREE || $APPS; then
         # Make sure the autoupdater doesn't start the updater after it's
         # killed below.
         echo "Stopping running eos-autoupdater."
-        systemctl stop eos-autoupdater.timer
-        systemctl stop eos-autoupdater.service
+        systemctl stop eos-autoupdater.timer eos-autoupdater.service
 
         echo "Killing eos-updater."
-        killall eos-updater &>/dev/null
+        systemctl stop eos-updater.service
 
         echo "Configuring OSTree for Staging."
         # HACK! HACK! HACK! ostree admin set-origin is horribly broken
@@ -154,8 +153,17 @@ if $OSTREE || $APPS; then
             --set=branches="${new_branch};"
 
         # Check for an update every time the updater runs
-        # rather than once every two weeks
-	sed -i 's/IntervalDays=14/IntervalDays=0/' /etc/eos-updater.conf
+        # rather than once every two weeks. eos-updater.conf is the old
+        # location of the config file.
+        sed -i 's/IntervalDays=14/IntervalDays=0/' /etc/eos-updater/eos-autoupdater.conf 2>/dev/null || true
+        sed -i 's/IntervalDays=14/IntervalDays=0/' /etc/eos-updater.conf 2>/dev/null || true
+
+        if [ ! -f /etc/eos-updater/eos-autoupdater.conf ] && [ ! -f /etc/eos-updater.conf ]; then
+            mkdir -p /etc/eos-updater
+            cp /usr/share/eos-updater/eos-autoupdater.conf /etc/eos-updater
+
+            sed -i 's/IntervalDays=14/IntervalDays=0/' /etc/eos-updater/eos-autoupdater.conf
+        fi
     fi
 fi
 
