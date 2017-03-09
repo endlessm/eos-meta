@@ -10,12 +10,12 @@ echo "Configuring Metrics System for Dev"
 source eos-select-metrics-env 'dev'
 
 # Disable upgrade timer
-systemctl stop eos-autoupdater.timer
-systemctl disable eos-autoupdater.timer
+systemctl disable --now eos-autoupdater.timer
+systemctl stop eos-autoupdater.service
 
 # Unsure if these are necessary after stopping the timer, but better to be
 # sure.
-systemctl stop eos-autoupdater.service
+systemctl stop eos-updater.service
 
 # 4th element in mountinfo is the "root" within a mounted filesystem, 5th is
 # where it's mounted. Hence dig out where our root is coming from, so we're
