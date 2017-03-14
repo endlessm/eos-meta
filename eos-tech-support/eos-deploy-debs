@@ -1,0 +1,140 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# Copyright © 2017 Endless Mobile, Inc.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+
+# eos-deploy-debs — Deploy .deb files to a non-converted Endless OS system
+#
+# Assumptions:
+#  - Remote machine has passwordless sudo set up
+#  - Packages being installed just need their files put in the right place,
+#    without any scripts being executed
+
+import argparse
+import os
+import shlex
+import subprocess
+import sys
+
+
+class DebDeployer:
+    def __init__(self, args):
+        self.args = args
+
+    def __to_shell(self, cmd, shell=False):
+        """Convert cmd into a shell-like command string."""
+        if shell:
+            return cmd
+        else:
+            return ' '.join((shlex.quote(x) for x in cmd))
+
+    def __ssh(self, cmd, shell=False, as_root=False):
+        """Run the given cmd on self.args.hostname via SSH. If as_root is True,
+        use sudo on the remote host.
+        """
+        user = ['sudo', '-A'] if as_root else []
+        cmd = ['ssh', self.args.hostname] + user + \
+              [self.__to_shell(cmd, shell)]
+
+        print('# {}'.format(cmd))
+
+        subprocess.check_call(cmd)
+
+    def __capture_ssh(self, cmd, shell=False, as_root=False):
+        """Like self.__ssh(), but return the output."""
+        user = ['sudo', '-A'] if as_root else []
+        cmd = ['ssh', self.args.hostname] + user + \
+              [self.__to_shell(cmd, shell)]
+
+        print('# {}'.format(cmd))
+
+        return subprocess.check_output(cmd, universal_newlines=True)
+
+    def __do(self, cmd, shell=False):
+        """Run cmd locally."""
+        print('# {}'.format(cmd))
+
+        subprocess.check_call(cmd, shell=shell)
+
+    def main(self):
+        # Unlock the ostree (this fails if it’s already unlocked).
+        try:
+            self.__ssh(['ostree', 'admin', 'unlock'], as_root=True)
+        except subprocess.CalledProcessError:
+            pass
+
+        # Copy the .deb files across and unpack them into a temporary
+        # directory.
+        remote_working_dir = self.__capture_ssh(
+            ['mktemp', '-d', '/var/tmp/eos-deploy-debs.XXXXXXXX']).strip()
+        remote_install_dir = os.path.join(remote_working_dir, 'install')
+        self.__ssh(['mkdir', remote_install_dir], as_root=True)
+
+        print('# Using working directory: ' + remote_working_dir)
+
+        self.__do(['scp'] + self.args.deb_files +
+                  [self.args.hostname + ':' + remote_working_dir])
+
+        for deb_file in self.args.deb_files:
+            remote_deb_path = os.path.join(remote_working_dir,
+                                           os.path.basename(deb_file))
+            self.__ssh(['dpkg', '-x', remote_deb_path, remote_install_dir],
+                       as_root=True)
+
+        # Copy from the install directory.
+        print('# Deploying from {} to /'.format(remote_install_dir))
+
+        self.__ssh(['rsync', '-avK', remote_install_dir + '/', '/'],
+                   as_root=True)
+
+        # This is typically necessary.
+        self.__ssh(['systemctl', 'daemon-reload'], as_root=True)
+        self.__ssh(['systemctl', 'preset-all'], as_root=True)
+
+        default_target = self.__capture_ssh(['systemctl', 'get-default'],
+                                            as_root=True).strip()
+        start_targets = ['sockets.target', 'paths.target', default_target]
+        self.__ssh(['systemctl', 'start'] + start_targets, as_root=True)
+
+        # Clean up.
+        self.__ssh(['rm', '-rf', remote_working_dir], as_root=True)
+
+        return 0
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Deploy .deb files to a non-converted Endless OS system '
+                    'over SSH. This will create a temporary overlay using '
+                    '`ostree admin unlock`, which will keep the .debs '
+                    'deployed until the OS is rebooted. This deploys files '
+                    'and performs some level of resetting of systemd status, '
+                    'but does not fully install the packages by running '
+                    'preinst and postinst scripts (for example).')
+    parser.add_argument('hostname', metavar='HOSTNAME', type=str,
+                        help='address of the computer to deploy to')
+    parser.add_argument('deb_files', metavar='DEB-FILE', type=str, nargs='+',
+                        help='.deb files to deploy')
+
+    args = parser.parse_args()
+
+    sys.exit(DebDeployer(args).main())
+
+
+if __name__ == '__main__':
+    main()
