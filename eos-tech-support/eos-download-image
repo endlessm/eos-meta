@@ -20,6 +20,10 @@ KEYRING_FILENAME = "eos-image-keyring.gpg"
 KEYRING_URL = PUBLIC_BASE_URL + "/" + KEYRING_FILENAME
 KEYRING_SYSTEM_PATH = "/usr/share/keyrings/eos-image-keyring.gpg"
 
+# CloudFront limits the maximum file size to 20 GB
+# http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html
+CDN_MAX_SIZE = 20 * 2 ** 30
+
 
 def log(*args):
     sys.stderr.write('\n')
@@ -53,12 +57,16 @@ else:
         pass
 
 
-def download(session, src, dest):
+def download(session, src, dest, src_size=None, src_mtime=None):
     """Download a file using a Requests Session
 
     This acts like wget --continue or rsync where the sizes and
     modification times of the source and destination files are
     considered.
+
+    This handles the case where the file is larger than the CDN allows
+    by using a provided size and splitting up the requests across
+    ranges.
     """
     # By default, requests sets Accept-Encoding to gzip, deflate, but we
     # want raw bytes
@@ -70,6 +78,13 @@ def download(session, src, dest):
     if resp.status_code == 200:
         src_mtime = dateutil.parser.parse(resp.headers['Last-Modified'])
         src_size = int(resp.headers['Content-Length'])
+    elif resp.status_code == 403:
+        # Assume this is CloudFront returning a 403 for a file exceeding
+        # the maximum limit. In that case, the caller must supply the
+        # size and mtime. If this is a real error, it will be hit below
+        # when doing the real download request.
+        if src_size is None or src_mtime is None:
+            resp.raise_for_status()
     else:
         resp.raise_for_status()
 
@@ -104,6 +119,20 @@ def download(session, src, dest):
         progress(dest, 100)
         return
 
+    # Break the download up into ranges if it exceeds the CDN maximum
+    # size.
+    ranges = []
+    start_byte = dest_size
+    remaining = src_size - dest_size
+    while remaining > 0:
+        if remaining > CDN_MAX_SIZE:
+            req_size = CDN_MAX_SIZE
+        else:
+            req_size = remaining
+        ranges.append((start_byte, start_byte + req_size - 1))
+        remaining -= req_size
+        start_byte += req_size
+
     # Start the actual downloading
     with open(dest, 'ab') as f:
         # Make sure that the file size still matches what was used for
@@ -114,13 +143,15 @@ def download(session, src, dest):
 
         received = dest_size
         progress(dest, int(100 * received / src_size))
-        resp = session.get(src, headers=headers, stream=True)
-        if resp.status_code not in (200, 206):
-            resp.raise_for_status()
-        for chunk in resp.iter_content(chunk_size=8192):
-            received += len(chunk)
-            f.write(chunk)
-            progress(dest, int(100 * received / src_size))
+        for start, stop in ranges:
+            headers['Range'] = 'bytes={}-{}'.format(start, stop)
+            resp = session.get(src, headers=headers, stream=True)
+            if resp.status_code not in (200, 206):
+                resp.raise_for_status()
+            for chunk in resp.iter_content(chunk_size=8192):
+                received += len(chunk)
+                f.write(chunk)
+                progress(dest, int(100 * received / src_size))
 
 
 def ensure_keyring(session, destdir=''):
@@ -140,6 +171,8 @@ def ensure_keyring(session, destdir=''):
 def download_and_verify(session, base, meta, what='image', destdir='',
                         mirror=False):
     image_url = '{}/{}'.format(base, meta['file'])
+    image_size = meta['compressed_size']
+    image_mtime = dateutil.parser.parse(meta['last_modified'])
     signature_url = '{}/{}'.format(base, meta['signature'])
 
     image_dir = signature_dir = ''
@@ -154,7 +187,8 @@ def download_and_verify(session, base, meta, what='image', destdir='',
     full_image_dir = os.path.dirname(image)
     if full_image_dir:
         os.makedirs(full_image_dir, exist_ok=True)
-    download(session, image_url, image)
+    download(session, image_url, image, src_size=image_size,
+             src_mtime=image_mtime)
 
     if meta.get('extracted_size'):
         with open(image + '.size', 'w') as f:
