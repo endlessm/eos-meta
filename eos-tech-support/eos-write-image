@@ -14,6 +14,7 @@ Usage:
    $0 [options] IMAGE DEVICE [BLOCK_SIZE]
 Arguments:
    IMAGE        raw or zipped image file (.img, .img.gz or .img.xz)
+                or ISO9660 image file (.iso)
    DEVICE       device name (e.g., '/dev/sdb' or '/dev/mmcblk0')
                 or '-' to write uncompressed image to stdout
    BLOCK_SIZE   block size in bytes (default = '1M')
@@ -120,10 +121,11 @@ if ! which pv >/dev/null 2>&1; then
 fi
 
 cat_image() {
-    if file --mime-type "$IMAGE" | grep -q xz$; then
+    MIME_TYPE="$(file --mime-type "$IMAGE")"
+    if echo "$MIME_TYPE" | grep -q xz$; then
         # Image is xzipped, xz has its own rate meter
         xzcat -v "$IMAGE"
-    elif file --mime-type "$IMAGE" | grep -q gzip$; then
+    elif echo "$MIME_TYPE" | grep -q gzip$; then
         # Image is gzipped
         # The following would calculate the original size
         # of the unzipped file if less than 4G:
@@ -140,6 +142,11 @@ cat_image() {
         # We can show progress as percentage of total image size
         IMAGE_SIZE=$(ls -l "$IMAGE" | awk '{ print $5 }')
         dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE}
+
+        # ISO images do not need to be mangled
+        if echo "$MIME_TYPE" | grep -q x-iso9660-image$; then
+            REMOVABLE=
+        fi
     fi
 }
 
