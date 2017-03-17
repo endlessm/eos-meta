@@ -255,6 +255,8 @@ def main():
                    default='base')
     g.add_argument('-v', '--version',
                    help='Image version (default: newest)')
+    g.add_argument('-I', '--iso', action='store_true',
+                   help='Fetch an ISO image, not a raw disk image')
 
     args = p.parse_args()
 
@@ -295,6 +297,9 @@ def fetch_manifest(session, args, base):
 
 
 def fetch_image(session, args, base):
+    '''Downloads a single OS image, and its signatures. If args.iso is True,
+    fetches the ISO; if not, fetches the full raw image, plus the
+    corresponding bootloader bundle.'''
     _manifest, images = fetch_manifest(session, args, base)
 
     if args.version is not None:
@@ -315,12 +320,21 @@ def fetch_image(session, args, base):
         sys.exit(1)
 
     personality = personalities[args.personality]
-    meta = personality['full']
-    if 'boot' in personality and personality['boot']['file']:
-        download_and_verify(session, base, personality['boot'],
-                            what='boot', destdir=args.outdir)
+    if args.iso:
+        what = 'iso'
+    else:
+        what = 'full'
+        if 'boot' in personality and personality['boot']['file']:
+            download_and_verify(session, base, personality['boot'],
+                                what='boot', destdir=args.outdir)
 
-    print(download_and_verify(session, base, meta, what='full',
+    if what not in personality:
+        log(what, "image not found for", args.product, img['version'],
+            args.personality)
+        sys.exit(1)
+
+    meta = personality[what]
+    print(download_and_verify(session, base, meta, what=what,
                               destdir=args.outdir))
 
 
