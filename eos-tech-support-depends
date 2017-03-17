@@ -4,6 +4,8 @@ file
 iw
 lshw
 pv
+python3-dateutil
+python3-requests
 screen
 traceroute
 unzip
