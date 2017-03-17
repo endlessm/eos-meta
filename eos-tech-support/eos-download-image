@@ -13,7 +13,6 @@ import shlex
 import subprocess
 import sys
 import urllib.parse
-import urllib.request
 
 INTERNAL_BASE_URL = "http://images.endlessm-sf.com"
 PUBLIC_BASE_URL = "https://d1anzknqnc1kmb.cloudfront.net"
@@ -244,12 +243,9 @@ def fetch_windows_tool(session, args, base):
 
 
 def fetch_image(session, args, base):
-    manifest_url = '{base}/releases-{product}-3.json.gz'.format(
+    manifest_url = '{base}/releases-{product}-3.json'.format(
         base=base, product=args.product)
-    req = urllib.request.Request(manifest_url)
-    with urllib.request.urlopen(req) as conn:
-        with gzip.GzipFile(mode='r', fileobj=conn) as manifest_fp:
-            manifest = json.load(codecs.getreader('utf8')(manifest_fp))
+    manifest = session.get(manifest_url).json()
 
     images = list(manifest['images'].values())
     images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
