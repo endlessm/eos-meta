@@ -270,6 +270,8 @@ def main():
     with requests.sessions.session() as session:
         if args.windows_tool:
             fetch_windows_tool(session, args, base)
+        elif args.mirror:
+            mirror_images(session, args, base)
         else:
             fetch_image(session, args, base)
 
@@ -282,63 +284,68 @@ def fetch_windows_tool(session, args, base):
     download(session, url, dest)
 
 
-def fetch_image(session, args, base):
+def fetch_manifest(session, args, base):
     manifest_url = '{base}/releases-{product}-3.json'.format(
         base=base, product=args.product)
     manifest = session.get(manifest_url).json()
 
     images = list(manifest['images'].values())
     images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
-    if args.mirror:
-        selected = images
-    elif args.version is not None:
+    return manifest, images
+
+
+def fetch_image(session, args, base):
+    _manifest, images = fetch_manifest(session, args, base)
+
+    if args.version is not None:
         for img in images:
             if img['version'] == args.version:
-                selected = [img]
                 break
         else:
             log("Image version", repr(args.version), "not found")
             log("Known versions:", *[i['version'] for i in images])
             sys.exit(1)
     else:
-        selected = [images[-1]]
+        img = images[-1]
 
-    for img in selected:
+    personalities = img['personality_images']
+    if args.personality not in personalities:
+        log("Personality", repr(args.personality), "not found")
+        log("Known personalities:", *sorted(personalities.keys()))
+        sys.exit(1)
+
+    personality = personalities[args.personality]
+    meta = personality['full']
+    if 'boot' in personality and personality['boot']['file']:
+        download_and_verify(session, base, personality['boot'],
+                            what='bootloader', destdir=args.outdir)
+
+    print(download_and_verify(session, base, meta, destdir=args.outdir))
+
+
+def mirror_images(session, args, base):
+    '''Mirror all images for the given product.'''
+    manifest, images = fetch_manifest(session, args, base)
+
+    for img in images:
         personalities = img['personality_images']
-        if not args.mirror and args.personality not in personalities:
-            log("Personality", repr(args.personality), "not found")
-            log("Known personalities:", *sorted(personalities.keys()))
-            sys.exit(1)
 
-        for name, personality in sorted(personalities.items()):
-            if args.mirror:
-                for meta in sorted(personality):
-                    kwargs = {'destdir': args.outdir, 'mirror': True}
-                    if meta == 'boot':
-                        kwargs['what'] = 'bootloader'
-                    print(download_and_verify(session, base,
-                                              personality[meta],
-                                              **kwargs))
-            elif name == args.personality:
-                meta = personality['full']
-                if 'boot' in personality and personality['boot']['file']:
-                    download_and_verify(session, base,
-                                        personality['boot'],
-                                        what='bootloader',
-                                        destdir=args.outdir)
-
-                print(download_and_verify(session, base, meta,
-                                          destdir=args.outdir))
+        for _name, personality in sorted(personalities.items()):
+            for meta in sorted(personality):
+                kwargs = {'destdir': args.outdir, 'mirror': True}
+                if meta == 'boot':
+                    kwargs['what'] = 'bootloader'
+                print(download_and_verify(session, base, personality[meta],
+                                          **kwargs))
 
     # Write out the manifest when mirroring after all images downloaded
-    if args.mirror:
-        out_manifest = os.path.join(args.outdir,
-                                    'releases-{}-3.json'.format(args.product))
-        out_manifest_gz = out_manifest + '.gz'
-        with open(out_manifest, 'w') as f:
-            json.dump(manifest, f, sort_keys=True)
-        with gzip.open(out_manifest_gz, 'wt') as f:
-            json.dump(manifest, f, sort_keys=True, indent=4)
+    out_manifest = os.path.join(args.outdir,
+                                'releases-{}-3.json'.format(args.product))
+    out_manifest_gz = out_manifest + '.gz'
+    with open(out_manifest, 'w') as f:
+        json.dump(manifest, f, sort_keys=True)
+    with gzip.open(out_manifest_gz, 'wt') as f:
+        json.dump(manifest, f, sort_keys=True, indent=4)
 
 
 if __name__ == '__main__':
