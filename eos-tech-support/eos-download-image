@@ -223,31 +223,38 @@ def download_and_verify(session, base, meta, what='image', destdir='',
 
 def main():
     p = argparse.ArgumentParser(
-        description='Fetches and verifies an image (installer or regular OS)')
+        description='Fetches and verifies an Endless OS image; '
+                    'fetches the Endless Installer for Windows; '
+                    'or mirrors an entire Endless OS product')
     p.add_argument('-o', '--outdir',
                    help='Output directory (default: current directory)',
                    default='')
+    p.add_argument('-r', '--product',
+                   help='Product (eg: eosinstaller; default: eos)',
+                   default='eos')
+    p.add_argument('-i', '--internal',
+                   action='store_true',
+                   help='Fetch images from the Endless internal network')
+
+    # Mode
     m = p.add_mutually_exclusive_group()
     m.add_argument('-m', '--mirror',
                    action='store_true',
                    help='Mirror all versions and personalities')
-    m.add_argument('-v', '--version',
-                   help='Image version (default: newest)')
-    p.add_argument('-p', '--personality',
-                   help='Image personality (default: base, '
-                        'ignored when mirroring)',
-                   default='base')
-    g = p.add_mutually_exclusive_group()
-    g.add_argument('-r', '--product',
-                   help='Product (eg: eosinstaller; default: eos)',
-                   default='eos')
-    g.add_argument('-w', '--windows-tool',
+    m.add_argument('-w', '--windows-tool',
                    action='store_true',
                    help='Fetch the Windows USB creator/installer, '
                         'not an Endless OS image')
-    p.add_argument('-i', '--internal',
-                   action='store_true',
-                   help='Fetch images from the Endless internal network')
+
+    # Which image? NB. product is not part of this group, because it *is*
+    # valid together with --mirror
+    g = p.add_argument_group(title='image selection (ignored with '
+                                   '--mirror or --windows-tool)')
+    g.add_argument('-p', '--personality',
+                   help='Image personality (default: base)',
+                   default='base')
+    g.add_argument('-v', '--version',
+                   help='Image version (default: newest)')
 
     args = p.parse_args()
 
