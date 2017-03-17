@@ -167,7 +167,7 @@ def ensure_keyring(session, destdir=''):
     return keyring
 
 
-def download_and_verify(session, base, meta, what='image', destdir='',
+def download_and_verify(session, base, meta, what, destdir='',
                         mirror=False):
     image_url = '{}/{}'.format(base, meta['file'])
     image_size = meta['compressed_size']
@@ -182,7 +182,7 @@ def download_and_verify(session, base, meta, what='image', destdir='',
     signature = os.path.join(destdir, signature_dir,
                              os.path.basename(signature_url))
 
-    log("Downloading compressed", what, "from", image_url)
+    log("Downloading", what, "image from", image_url)
     full_image_dir = os.path.dirname(image)
     if full_image_dir:
         os.makedirs(full_image_dir, exist_ok=True)
@@ -193,7 +193,7 @@ def download_and_verify(session, base, meta, what='image', destdir='',
         with open(image + '.size', 'w') as f:
             f.write(str(meta['extracted_size']))
 
-    log("Downloading compressed", what, "signature from", signature_url)
+    log("Downloading", what, "image signature from", signature_url)
     full_signature_dir = os.path.dirname(signature)
     if full_signature_dir:
         os.makedirs(full_signature_dir, exist_ok=True)
@@ -206,7 +206,7 @@ def download_and_verify(session, base, meta, what='image', destdir='',
             ext_sig_dir = url_dirname(url)
         ext_signature = os.path.join(destdir, ext_sig_dir,
                                      os.path.basename(url))
-        log("Downloading uncompressed", what, "signature from", url)
+        log("Downloading uncompressed", what, "image signature from", url)
         full_ext_sig_dir = os.path.dirname(ext_signature)
         if full_ext_sig_dir:
             os.makedirs(full_ext_sig_dir, exist_ok=True)
@@ -318,9 +318,10 @@ def fetch_image(session, args, base):
     meta = personality['full']
     if 'boot' in personality and personality['boot']['file']:
         download_and_verify(session, base, personality['boot'],
-                            what='bootloader', destdir=args.outdir)
+                            what='boot', destdir=args.outdir)
 
-    print(download_and_verify(session, base, meta, destdir=args.outdir))
+    print(download_and_verify(session, base, meta, what='full',
+                              destdir=args.outdir))
 
 
 def mirror_images(session, args, base):
@@ -332,11 +333,9 @@ def mirror_images(session, args, base):
 
         for _name, personality in sorted(personalities.items()):
             for meta in sorted(personality):
-                kwargs = {'destdir': args.outdir, 'mirror': True}
-                if meta == 'boot':
-                    kwargs['what'] = 'bootloader'
                 print(download_and_verify(session, base, personality[meta],
-                                          **kwargs))
+                                          what=meta,
+                                          destdir=args.outdir, mirror=True))
 
     # Write out the manifest when mirroring after all images downloaded
     out_manifest = os.path.join(args.outdir,
