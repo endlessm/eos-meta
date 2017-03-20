@@ -56,282 +56,315 @@ else:
         pass
 
 
-def download(session, src, dest, src_size=None, src_mtime=None):
-    """Download a file using a Requests Session
+class EosDownloadImage(object):
+    def download(self, src, dest, src_size=None, src_mtime=None):
+        """Download a file using a Requests Session
 
-    This acts like wget --continue or rsync where the sizes and
-    modification times of the source and destination files are
-    considered.
+        This acts like wget --continue or rsync where the sizes and
+        modification times of the source and destination files are
+        considered.
 
-    This handles the case where the file is larger than the CDN allows
-    by using a provided size and splitting up the requests across
-    ranges.
-    """
-    # By default, requests sets Accept-Encoding to gzip, deflate, but we
-    # want raw bytes
-    headers = requests.utils.default_headers()
-    headers['Accept-Encoding'] = 'identity'
+        This handles the case where the file is larger than the CDN allows
+        by using a provided size and splitting up the requests across
+        ranges.
+        """
+        # By default, requests sets Accept-Encoding to gzip, deflate, but we
+        # want raw bytes
+        headers = requests.utils.default_headers()
+        headers['Accept-Encoding'] = 'identity'
 
-    # Make a HEAD request to get the size and mtime
-    resp = session.head(src, headers=headers)
-    if resp.status_code == 200:
-        src_mtime = dateutil.parser.parse(resp.headers['Last-Modified'])
-        src_size = int(resp.headers['Content-Length'])
-    elif resp.status_code == 403:
-        # Assume this is CloudFront returning a 403 for a file exceeding
-        # the maximum limit. In that case, the caller must supply the
-        # size and mtime. If this is a real error, it will be hit below
-        # when doing the real download request.
-        if src_size is None or src_mtime is None:
-            resp.raise_for_status()
-    else:
-        resp.raise_for_status()
-
-    # Check the status of an existing download
-    dest_size = 0
-    if os.path.exists(dest):
-        dest_stat = os.stat(dest)
-        dest_mtime = datetime.datetime.fromtimestamp(dest_stat.st_mtime,
-                                                     datetime.timezone.utc)
-        dest_size = dest_stat.st_size
-
-        # Is the existing file outdated? Strip off microseconds since
-        # one or the other is likely to not support it
-        src_mtime = src_mtime.replace(microsecond=0)
-        dest_mtime = dest_mtime.replace(microsecond=0)
-        outdated = dest_mtime < src_mtime
-
-        # Is the times and sizes match, the file is already downloaded.
-        # Delete an outdated file or one that's larger then the source.
-        # Assume that a smaller file is a partial download.
-        if not outdated and dest_size == src_size:
-            return
-        elif outdated or dest_size > src_size:
-            os.unlink(dest)
-            dest_size = 0
-
-    # Special case - empty file. Don't bother downloading since it
-    # breaks the progress calculations below.
-    if src_size == 0:
-        with open(dest, 'w'):
-            pass
-        progress(dest, 100)
-        return
-
-    # Break the download up into ranges if it exceeds the CDN maximum
-    # size.
-    ranges = []
-    start_byte = dest_size
-    remaining = src_size - dest_size
-    while remaining > 0:
-        if remaining > CDN_MAX_SIZE:
-            req_size = CDN_MAX_SIZE
-        else:
-            req_size = remaining
-        ranges.append((start_byte, start_byte + req_size - 1))
-        remaining -= req_size
-        start_byte += req_size
-
-    # Start the actual downloading
-    with open(dest, 'ab') as f:
-        # Make sure that the file size still matches what was used for
-        # the calculations
-        if f.tell() != dest_size:
-            log('File', dest, 'modified outside', __file__)
-            exit(1)
-
-        received = dest_size
-        progress(dest, int(100 * received / src_size))
-        for start, stop in ranges:
-            headers['Range'] = 'bytes={}-{}'.format(start, stop)
-            resp = session.get(src, headers=headers, stream=True)
-            if resp.status_code not in (200, 206):
+        # Make a HEAD request to get the size and mtime
+        resp = self.session.head(src, headers=headers)
+        if resp.status_code == 200:
+            src_mtime = dateutil.parser.parse(resp.headers['Last-Modified'])
+            src_size = int(resp.headers['Content-Length'])
+        elif resp.status_code == 403:
+            # Assume this is CloudFront returning a 403 for a file exceeding
+            # the maximum limit. In that case, the caller must supply the
+            # size and mtime. If this is a real error, it will be hit below
+            # when doing the real download request.
+            if src_size is None or src_mtime is None:
                 resp.raise_for_status()
-            for chunk in resp.iter_content(chunk_size=8192):
-                received += len(chunk)
-                f.write(chunk)
-                progress(dest, int(100 * received / src_size))
-
-
-def ensure_keyring(session, destdir=''):
-    if os.path.isfile(KEYRING_SYSTEM_PATH):
-        return KEYRING_SYSTEM_PATH
-
-    # The absolute path is needed so that gpgv doesn't try to use a
-    # keyring from the gnupg homedir
-    keyring = os.path.abspath(os.path.join(destdir, KEYRING_FILENAME))
-    if not os.path.isfile(keyring):
-        log("Fetching Endless keyring")
-        download(session, KEYRING_URL, keyring)
-
-    return keyring
-
-
-def download_and_verify(session, base, meta, what='image', destdir='',
-                        mirror=False):
-    image_url = '{}/{}'.format(base, meta['file'])
-    image_size = meta['compressed_size']
-    image_mtime = dateutil.parser.parse(meta['last_modified'])
-    signature_url = '{}/{}'.format(base, meta['signature'])
-
-    image_dir = signature_dir = ''
-    if mirror:
-        image_dir = url_dirname(image_url)
-        signature_dir = url_dirname(signature_url)
-    image = os.path.join(destdir, image_dir, os.path.basename(image_url))
-    signature = os.path.join(destdir, signature_dir,
-                             os.path.basename(signature_url))
-
-    log("Downloading compressed", what, "from", image_url)
-    full_image_dir = os.path.dirname(image)
-    if full_image_dir:
-        os.makedirs(full_image_dir, exist_ok=True)
-    download(session, image_url, image, src_size=image_size,
-             src_mtime=image_mtime)
-
-    if meta.get('extracted_size'):
-        with open(image + '.size', 'w') as f:
-            f.write(str(meta['extracted_size']))
-
-    log("Downloading compressed", what, "signature from", signature_url)
-    full_signature_dir = os.path.dirname(signature)
-    if full_signature_dir:
-        os.makedirs(full_signature_dir, exist_ok=True)
-    download(session, signature_url, signature)
-
-    if meta.get('extracted_signature'):
-        url = '{}/{}'.format(base, meta['extracted_signature'])
-        ext_sig_dir = ''
-        if mirror:
-            ext_sig_dir = url_dirname(url)
-        ext_signature = os.path.join(destdir, ext_sig_dir,
-                                     os.path.basename(url))
-        log("Downloading uncompressed", what, "signature from", url)
-        full_ext_sig_dir = os.path.dirname(ext_signature)
-        if full_ext_sig_dir:
-            os.makedirs(full_ext_sig_dir, exist_ok=True)
-        download(session, url, ext_signature)
-
-    keyring = ensure_keyring(destdir)
-
-    log("Verifying")
-    check_call("gpgv", "--keyring", keyring, signature, image)
-
-    log("Download okay.")
-    return image
-
-
-def main():
-    p = argparse.ArgumentParser(
-        description='Fetches and verifies an image (installer or regular OS)')
-    p.add_argument('-o', '--outdir',
-                   help='Output directory (default: current directory)',
-                   default='')
-    m = p.add_mutually_exclusive_group()
-    m.add_argument('-m', '--mirror',
-                   action='store_true',
-                   help='Mirror all versions and personalities')
-    m.add_argument('-v', '--version',
-                   help='Image version (default: newest)')
-    p.add_argument('-p', '--personality',
-                   help='Image personality (default: base, '
-                        'ignored when mirroring)',
-                   default='base')
-    g = p.add_mutually_exclusive_group()
-    g.add_argument('-r', '--product',
-                   help='Product (eg: eosinstaller; default: eos)',
-                   default='eos')
-    g.add_argument('-w', '--windows-tool',
-                   action='store_true',
-                   help='Fetch the Windows USB creator/installer, '
-                        'not an Endless OS image')
-    p.add_argument('-i', '--internal',
-                   action='store_true',
-                   help='Fetch images from the Endless internal network')
-
-    args = p.parse_args()
-
-    if args.product == 'fnde' and args.personality == 'base':
-        args.personality = 'fnde_aluno'
-
-    base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
-
-    # Create the output directory if necessary
-    if args.outdir:
-        os.makedirs(args.outdir, exist_ok=True)
-
-    with requests.sessions.session() as session:
-        if args.windows_tool:
-            fetch_windows_tool(session, args, base)
         else:
-            fetch_image(session, args, base)
+            resp.raise_for_status()
 
+        # Check the status of an existing download
+        dest_size = 0
+        if os.path.exists(dest):
+            dest_stat = os.stat(dest)
+            dest_mtime = datetime.datetime.fromtimestamp(dest_stat.st_mtime,
+                                                         datetime.timezone.utc)
+            dest_size = dest_stat.st_size
 
-def fetch_windows_tool(session, args, base):
-    filename = 'endless-installer.exe'
-    url = '{}/endless-installer/{}'.format(base, filename)
-    dest = os.path.join(args.outdir, filename)
-    log("Fetching Windows Installer")
-    download(session, url, dest)
+            # Is the existing file outdated? Strip off microseconds since
+            # one or the other is likely to not support it
+            src_mtime = src_mtime.replace(microsecond=0)
+            dest_mtime = dest_mtime.replace(microsecond=0)
+            outdated = dest_mtime < src_mtime
 
+            # Is the times and sizes match, the file is already downloaded.
+            # Delete an outdated file or one that's larger then the source.
+            # Assume that a smaller file is a partial download.
+            if not outdated and dest_size == src_size:
+                return
+            elif outdated or dest_size > src_size:
+                os.unlink(dest)
+                dest_size = 0
 
-def fetch_image(session, args, base):
-    manifest_url = '{base}/releases-{product}-3.json'.format(
-        base=base, product=args.product)
-    manifest = session.get(manifest_url).json()
+        # Special case - empty file. Don't bother downloading since it
+        # breaks the progress calculations below.
+        if src_size == 0:
+            with open(dest, 'w'):
+                pass
+            progress(dest, 100)
+            return
 
-    images = list(manifest['images'].values())
-    images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
-    if args.mirror:
-        selected = images
-    elif args.version is not None:
-        for img in images:
-            if img['version'] == args.version:
-                selected = [img]
-                break
+        # Break the download up into ranges if it exceeds the CDN maximum
+        # size.
+        ranges = []
+        start_byte = dest_size
+        remaining = src_size - dest_size
+        while remaining > 0:
+            if remaining > CDN_MAX_SIZE:
+                req_size = CDN_MAX_SIZE
+            else:
+                req_size = remaining
+            ranges.append((start_byte, start_byte + req_size - 1))
+            remaining -= req_size
+            start_byte += req_size
+
+        # Start the actual downloading
+        with open(dest, 'ab') as f:
+            # Make sure that the file size still matches what was used for
+            # the calculations
+            if f.tell() != dest_size:
+                log('File', dest, 'modified outside', __file__)
+                exit(1)
+
+            received = dest_size
+            progress(dest, int(100 * received / src_size))
+            for start, stop in ranges:
+                headers['Range'] = 'bytes={}-{}'.format(start, stop)
+                resp = self.session.get(src, headers=headers, stream=True)
+                if resp.status_code not in (200, 206):
+                    resp.raise_for_status()
+                for chunk in resp.iter_content(chunk_size=8192):
+                    received += len(chunk)
+                    f.write(chunk)
+                    progress(dest, int(100 * received / src_size))
+
+    def ensure_keyring(self):
+        if os.path.isfile(KEYRING_SYSTEM_PATH):
+            return KEYRING_SYSTEM_PATH
+
+        # The absolute path is needed so that gpgv doesn't try to use a
+        # keyring from the gnupg homedir
+        keyring = os.path.abspath(os.path.join(
+            self.args.outdir, KEYRING_FILENAME))
+        if not os.path.isfile(keyring):
+            log("Fetching Endless keyring")
+            self.download(KEYRING_URL, keyring)
+
+        return keyring
+
+    def download_and_verify(self, meta, what):
+        destdir = self.args.outdir
+        image_url = '{}/{}'.format(self.base, meta['file'])
+        image_size = meta['compressed_size']
+        image_mtime = dateutil.parser.parse(meta['last_modified'])
+        signature_url = '{}/{}'.format(self.base, meta['signature'])
+
+        image_dir = signature_dir = ''
+        if self.args.mirror:
+            image_dir = url_dirname(image_url)
+            signature_dir = url_dirname(signature_url)
+        image = os.path.join(destdir, image_dir, os.path.basename(image_url))
+        signature = os.path.join(destdir, signature_dir,
+                                 os.path.basename(signature_url))
+
+        log("Downloading", what, "image from", image_url)
+        full_image_dir = os.path.dirname(image)
+        if full_image_dir:
+            os.makedirs(full_image_dir, exist_ok=True)
+        self.download(image_url, image, src_size=image_size,
+                      src_mtime=image_mtime)
+
+        if meta.get('extracted_size'):
+            with open(image + '.size', 'w') as f:
+                f.write(str(meta['extracted_size']))
+
+        log("Downloading", what, "image signature from", signature_url)
+        full_signature_dir = os.path.dirname(signature)
+        if full_signature_dir:
+            os.makedirs(full_signature_dir, exist_ok=True)
+        self.download(signature_url, signature)
+
+        if meta.get('extracted_signature'):
+            url = '{}/{}'.format(self.base, meta['extracted_signature'])
+            ext_sig_dir = ''
+            if self.args.mirror:
+                ext_sig_dir = url_dirname(url)
+            ext_signature = os.path.join(destdir, ext_sig_dir,
+                                         os.path.basename(url))
+            log("Downloading uncompressed", what, "image signature from", url)
+            full_ext_sig_dir = os.path.dirname(ext_signature)
+            if full_ext_sig_dir:
+                os.makedirs(full_ext_sig_dir, exist_ok=True)
+            self.download(url, ext_signature)
+
+        keyring = self.ensure_keyring()
+
+        log("Verifying")
+        check_call("gpgv", "--keyring", keyring, signature, image)
+
+        log("Download okay.")
+        return image
+
+    def __init__(self, session):
+        self.session = session
+
+        p = argparse.ArgumentParser(
+            description='Fetches and verifies an Endless OS image; '
+                        'fetches the Endless Installer for Windows; '
+                        'or mirrors an entire Endless OS product')
+        p.add_argument('-o', '--outdir',
+                       help='Output directory (default: current directory)',
+                       default='')
+        p.add_argument('-r', '--product',
+                       help='Product (eg: eosinstaller; default: eos)',
+                       default='eos')
+        p.add_argument('-i', '--internal',
+                       action='store_true',
+                       help='Fetch images from the Endless internal network')
+
+        # Mode
+        m = p.add_mutually_exclusive_group()
+        m.add_argument('-m', '--mirror',
+                       action='store_true',
+                       help='Mirror all versions and personalities')
+        m.add_argument('-w', '--windows-tool',
+                       action='store_true',
+                       help='Fetch the Windows USB creator/installer, '
+                            'not an Endless OS image')
+
+        # Which image? NB. product is not part of this group, because it *is*
+        # valid together with --mirror
+        g = p.add_argument_group(title='image selection (ignored with '
+                                       '--mirror or --windows-tool)')
+        g.add_argument('-p', '--personality',
+                       help='Image personality (default: base)',
+                       default='base')
+        g.add_argument('-v', '--version',
+                       help='Image version (default: newest)')
+        g.add_argument('-I', '--iso', action='store_true',
+                       help='Fetch an ISO image, not a raw disk image')
+
+        self.args = args = p.parse_args()
+
+        if args.product == 'fnde' and args.personality == 'base':
+            args.personality = 'fnde_aluno'
+
+        self.base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
+
+    def run(self):
+        # Create the output directory if necessary
+        if self.args.outdir:
+            os.makedirs(self.args.outdir, exist_ok=True)
+
+        if self.args.windows_tool:
+            self.fetch_windows_tool()
+        elif self.args.mirror:
+            self.mirror_images()
         else:
-            log("Image version", repr(args.version), "not found")
-            log("Known versions:", *[i['version'] for i in images])
-            sys.exit(1)
-    else:
-        selected = [images[-1]]
+            self.fetch_image()
 
-    for img in selected:
+    def fetch_windows_tool(self):
+        filename = 'endless-installer.exe'
+        url = '{}/endless-installer/{}'.format(self.base, filename)
+        dest = os.path.join(self.args.outdir, filename)
+        log("Fetching Windows Installer")
+        self.download(url, dest)
+
+    def fetch_manifest(self):
+        manifest_url = '{base}/releases-{product}-3.json'.format(
+            base=self.base, product=self.args.product)
+        manifest = self.session.get(manifest_url).json()
+
+        images = list(manifest['images'].values())
+        images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
+        return manifest, images
+
+    def fetch_image(self):
+        '''Downloads a single OS image, and its signatures. If args.iso is True,
+        fetches the ISO; if not, fetches the full raw image, plus the
+        corresponding bootloader bundle.'''
+        _, images = self.fetch_manifest()
+        args = self.args
+
+        if args.version is not None:
+            for img in images:
+                if img['version'] == args.version:
+                    break
+            else:
+                log("Image version", repr(args.version), "not found")
+                log("Known versions:", *[i['version'] for i in images])
+                sys.exit(1)
+        else:
+            img = images[-1]
+
         personalities = img['personality_images']
-        if not args.mirror and args.personality not in personalities:
+        if args.personality not in personalities:
             log("Personality", repr(args.personality), "not found")
             log("Known personalities:", *sorted(personalities.keys()))
             sys.exit(1)
 
-        for name, personality in sorted(personalities.items()):
-            if args.mirror:
+        personality = personalities[args.personality]
+        if args.iso:
+            what = 'iso'
+        else:
+            what = 'full'
+            if 'boot' in personality and personality['boot']['file']:
+                # We deliberately don't print() the path returned here. This
+                # script is run by eos-write-live-image, which expects it to
+                # print a single image path to stdout. The boot bundle is
+                # found by replacing the file extension.
+                self.download_and_verify(personality['boot'], what='boot')
+
+        if what not in personality:
+            log(what, "image not found for", args.product, img['version'],
+                args.personality)
+            sys.exit(1)
+
+        meta = personality[what]
+        print(self.download_and_verify(meta, what=what))
+
+    def mirror_images(self):
+        '''Mirror all images for the given product.'''
+        manifest, images = self.fetch_manifest()
+
+        for img in images:
+            personalities = img['personality_images']
+
+            for _name, personality in sorted(personalities.items()):
                 for meta in sorted(personality):
-                    kwargs = {'destdir': args.outdir, 'mirror': True}
-                    if meta == 'boot':
-                        kwargs['what'] = 'bootloader'
-                    print(download_and_verify(session, base,
-                                              personality[meta],
-                                              **kwargs))
-            elif name == args.personality:
-                meta = personality['full']
-                if 'boot' in personality and personality['boot']['file']:
-                    download_and_verify(session, base,
-                                        personality['boot'],
-                                        what='bootloader',
-                                        destdir=args.outdir)
+                    print(self.download_and_verify(personality[meta],
+                                                   what=meta))
 
-                print(download_and_verify(session, base, meta,
-                                          destdir=args.outdir))
-
-    # Write out the manifest when mirroring after all images downloaded
-    if args.mirror:
-        out_manifest = os.path.join(args.outdir,
-                                    'releases-{}-3.json'.format(args.product))
+        # Write out the manifest when mirroring after all images downloaded
+        out_manifest = os.path.join(self.args.outdir,
+                                    'releases-{}-3.json'.format(
+                                        self.args.product))
         out_manifest_gz = out_manifest + '.gz'
         with open(out_manifest, 'w') as f:
             json.dump(manifest, f, sort_keys=True)
         with gzip.open(out_manifest_gz, 'wt') as f:
             json.dump(manifest, f, sort_keys=True, indent=4)
+
+
+def main():
+    with requests.sessions.session() as session:
+        app = EosDownloadImage(session)
+        app.run()
 
 
 if __name__ == '__main__':
