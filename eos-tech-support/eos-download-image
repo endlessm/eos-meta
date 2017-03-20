@@ -324,6 +324,10 @@ class EosDownloadImage(object):
         else:
             what = 'full'
             if 'boot' in personality and personality['boot']['file']:
+                # We deliberately don't print() the path returned here. This
+                # script is run by eos-write-live-image, which expects it to
+                # print a single image path to stdout. The boot bundle is
+                # found by replacing the file extension.
                 self.download_and_verify(personality['boot'], what='boot')
 
         if what not in personality:
