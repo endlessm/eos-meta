@@ -220,7 +220,9 @@ class EosDownloadImage(object):
         log("Download okay.")
         return image
 
-    def __init__(self):
+    def __init__(self, session):
+        self.session = session
+
         p = argparse.ArgumentParser(
             description='Fetches and verifies an Endless OS image; '
                         'fetches the Endless Installer for Windows; '
@@ -264,19 +266,17 @@ class EosDownloadImage(object):
 
         self.base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
 
+    def run(self):
         # Create the output directory if necessary
-        if args.outdir:
-            os.makedirs(args.outdir, exist_ok=True)
+        if self.args.outdir:
+            os.makedirs(self.args.outdir, exist_ok=True)
 
-        with requests.sessions.session() as session:
-            self.session = session
-
-            if args.windows_tool:
-                self.fetch_windows_tool()
-            elif args.mirror:
-                self.mirror_images()
-            else:
-                self.fetch_image()
+        if self.args.windows_tool:
+            self.fetch_windows_tool()
+        elif self.args.mirror:
+            self.mirror_images()
+        else:
+            self.fetch_image()
 
     def fetch_windows_tool(self):
         filename = 'endless-installer.exe'
@@ -361,5 +361,11 @@ class EosDownloadImage(object):
             json.dump(manifest, f, sort_keys=True, indent=4)
 
 
+def main():
+    with requests.sessions.session() as session:
+        app = EosDownloadImage(session)
+        app.run()
+
+
 if __name__ == '__main__':
-    EosDownloadImage()
+    main()
