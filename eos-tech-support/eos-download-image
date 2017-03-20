@@ -298,7 +298,7 @@ class EosDownloadImage(object):
         '''Downloads a single OS image, and its signatures. If args.iso is True,
         fetches the ISO; if not, fetches the full raw image, plus the
         corresponding bootloader bundle.'''
-        _manifest, images = self.fetch_manifest()
+        _, images = self.fetch_manifest()
         args = self.args
 
         if args.version is not None:
