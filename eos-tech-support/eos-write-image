@@ -121,11 +121,11 @@ if ! which pv >/dev/null 2>&1; then
 fi
 
 cat_image() {
-    MIME_TYPE="$(file --mime-type "$IMAGE")"
-    if echo "$MIME_TYPE" | grep -q xz$; then
+    MIME_TYPE="$(file --brief --mime-type "$IMAGE")"
+    if [[ "$MIME_TYPE" =~ xz$ ]]; then
         # Image is xzipped, xz has its own rate meter
         xzcat -v "$IMAGE"
-    elif echo "$MIME_TYPE" | grep -q gzip$; then
+    elif [[ "$MIME_TYPE" =~ gzip$ ]]; then
         # Image is gzipped
         # The following would calculate the original size
         # of the unzipped file if less than 4G:
@@ -144,7 +144,7 @@ cat_image() {
         dd if="$IMAGE" "${DD_IN_OPTS[@]}" | pv -s ${IMAGE_SIZE}
 
         # ISO images do not need to be mangled
-        if echo "$MIME_TYPE" | grep -q x-iso9660-image$; then
+        if [[ "$MIME_TYPE" =~ x-iso9660-image$ ]]; then
             REMOVABLE=
         fi
     fi
