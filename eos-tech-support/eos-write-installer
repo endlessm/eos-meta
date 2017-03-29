@@ -167,14 +167,14 @@ echo "$TABLE" | sfdisk --force --no-reread "$DEVICE"
 # which was opened for writing, so it will be reprobing.
 # Add udevadm settle here to avoid races.
 udevadm settle
-partprobe
+partprobe "$DEVICE"
 
 # Grab the eosimages partition and create exfat fs on it
 PART=$(sfdisk -d "$DEVICE" | grep 'eosimages' | cut -f1 -d' ')
 mkfs.exfat -n eosimages "$PART"
 
 # Give udisks a chance to notice the new partition
-partprobe
+partprobe "$DEVICE"
 udevadm settle
 
 # Try to mount the exfat partition
