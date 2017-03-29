@@ -370,10 +370,14 @@ EFI_PARTITIONS
 
     if [ ! "$MBR" ]; then
         mkfs.vfat -n efi "${DEVICE_EFI}"
+        partprobe "$OUTPUT"
+        udevadm settle
         DIR_EFI=$(udisks_mount "$DEVICE_EFI")
     fi
 
     $MKFS_IMAGES $MKFS_ARGS eoslive "${DEVICE_IMAGES}"
+    partprobe "$OUTPUT"
+    udevadm settle
     DIR_IMAGES=$(udisks_mount "$DEVICE_IMAGES")
 fi
 
