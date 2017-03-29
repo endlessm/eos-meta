@@ -186,7 +186,7 @@ else
     cat_image | dd of="$DEVICE" "${DD_OUT_OPTS[@]}"
 
     # Probe new partitions
-    partprobe
+    partprobe "$DEVICE"
     udevadm settle
 
     # If removable device, delete $ESP/EFI/BOOT/fallback.efi
