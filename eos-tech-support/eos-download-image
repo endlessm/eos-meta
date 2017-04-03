@@ -284,6 +284,7 @@ class EosDownloadImage(object):
         dest = os.path.join(self.args.outdir, filename)
         log("Fetching Windows Installer")
         self.download(url, dest)
+        print(dest)
 
     def fetch_manifest(self):
         manifest_url = '{base}/releases-{product}-3.json'.format(
