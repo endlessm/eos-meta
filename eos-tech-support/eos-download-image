@@ -224,9 +224,12 @@ class EosDownloadImage(object):
         self.session = session
 
         p = argparse.ArgumentParser(
-            description='Fetches and verifies an Endless OS image; '
+            description='Fetches and verifies an Endless OS image (default); '
                         'fetches the Endless Installer for Windows; '
-                        'or mirrors an entire Endless OS product')
+                        'or mirrors an entire Endless OS product.',
+            epilog='In the default and --windows-tool modes, the path to the '
+                   'downloaded file (and nothing else) is printed to stdout, '
+                   'for consumption by other scripts.')
         p.add_argument('-o', '--outdir',
                        help='Output directory (default: current directory)',
                        default='')
@@ -279,6 +282,12 @@ class EosDownloadImage(object):
             self.fetch_image()
 
     def fetch_windows_tool(self):
+        '''Downloads the latest release of the Endless Installer for Windows
+        (endless-installer.exe), replacing an existing file in outdir if needed.
+
+        Prints the path to the downloaded file to stdout, to be consumed by
+        eos-write-live-image.'''
+
         filename = 'endless-installer.exe'
         url = '{}/endless-installer/{}'.format(self.base, filename)
         dest = os.path.join(self.args.outdir, filename)
@@ -298,7 +307,11 @@ class EosDownloadImage(object):
     def fetch_image(self):
         '''Downloads a single OS image, and its signatures. If args.iso is True,
         fetches the ISO; if not, fetches the full raw image, plus the
-        corresponding bootloader bundle.'''
+        corresponding bootloader bundle.
+
+        Prints the path to the downloaded OS image to stdout, to be consumed by
+        eos-write-live-image.'''
+
         _, images = self.fetch_manifest()
         args = self.args
 
