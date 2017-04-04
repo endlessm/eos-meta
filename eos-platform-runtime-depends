@@ -26,10 +26,6 @@ gir1.2-coglpango-1.0
 gir1.2-gtkclutter-1.0
 gir1.2-json-1.0
 gir1.2-webkit2-4.0
-gstreamer0.10-alsa
-gstreamer0.10-plugins-base
-gstreamer0.10-plugins-good
-gstreamer0.10-pulseaudio
 gvfs-bin
 kde-games-core-declarative
 kde-runtime
