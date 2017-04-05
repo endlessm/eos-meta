@@ -31,6 +31,8 @@ ARGS=$(getopt -o o:x:lp:r:nmwiL:fh \
     -l iso \
     -l label: \
     -l delete-os-image \
+    -l squashfs-comp: \
+    -l squashfs-b: \
     -l force \
     -l debug \
     -l help \
@@ -46,6 +48,8 @@ PERSONALITY=base
 PRODUCT=eos
 LABEL=
 DELETE_OS_IMAGE=
+SQUASHFS_COMP=gzip
+SQUASHFS_B=131072
 DEBUG=
 
 usage() {
@@ -75,6 +79,8 @@ ISO 9660-related options:
    -i,--iso                Write an ISO 9660 disk image to OUTPUT
    -L,--label LABEL        ISO volume id and Autorun.inf label
    --delete-os-image       Delete IMAGE after creating SquashFS wrapper
+   --squashfs-comp COMP    Pass '-comp COMP' to mksquashfs (default: $SQUASHFS_COMP)
+   --squashfs-b BLOCK_SIZE Pass '-b BLOCK_SIZE' to mksquashfs (default: $SQUASHFS_B)
 
 Developer options (you probably don't want to use these):
    -n,--ntfs               Format the image partition as NTFS, not exFAT
@@ -158,6 +164,16 @@ while true; do
         --delete-os-image):
             shift
             DELETE_OS_IMAGE=true
+            ;;
+        --squashfs-comp):
+            shift
+            SQUASHFS_COMP="$1"
+            shift
+            ;;
+        --squashfs-b):
+            shift
+            SQUASHFS_B="$1"
+            shift
             ;;
         -f|--force)
             shift
@@ -459,7 +475,9 @@ echo "Finalizing image"
 if [ "$ISO" ]; then
 
     # Converting to squashfs
-    mksquashfs "${DIR_IMAGES_ENDLESS}/endless.img" "${DIR_IMAGES_ENDLESS}/endless.squash"
+    mksquashfs "${DIR_IMAGES_ENDLESS}/endless.img" "${DIR_IMAGES_ENDLESS}/endless.squash" \
+        -comp "$SQUASHFS_COMP" \
+        -b "$SQUASHFS_B"
     rm -f "${DIR_IMAGES_ENDLESS}/endless.img"
 
     if [ "$DELETE_OS_IMAGE" ]; then
