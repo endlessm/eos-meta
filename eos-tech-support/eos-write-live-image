@@ -20,7 +20,20 @@ if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
 fi
 
 ARGS=$(getopt -o o:x:lp:r:nmwiL:fh \
-    -l "os-image:,windows-tool:,latest,personality:,product:,ntfs,mbr,writable,iso,label:,delete-os-image,force,debug,help" \
+    -l os-image: \
+    -l windows-tool: \
+    -l latest \
+    -l personality: \
+    -l product: \
+    -l ntfs \
+    -l mbr \
+    -l writable \
+    -l iso \
+    -l label: \
+    -l delete-os-image \
+    -l force \
+    -l debug \
+    -l help \
     -n "$0" -- "$@")
 eval set -- "$ARGS"
 
