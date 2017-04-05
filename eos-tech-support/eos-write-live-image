@@ -37,6 +37,17 @@ ARGS=$(getopt -o o:x:lp:r:nmwiL:fh \
     -n "$0" -- "$@")
 eval set -- "$ARGS"
 
+NTFS=
+MBR=
+ISO=
+WRITABLE=
+FORCE=
+PERSONALITY=base
+PRODUCT=eos
+LABEL=
+DELETE_OS_IMAGE=
+DEBUG=
+
 usage() {
     local SELF="$(basename "$0")"
     cat <<EOF
@@ -53,8 +64,8 @@ Options:
    -o,--os-image IMAGE     Path to Endless OS image
    -x,--windows-tool PATH  Path to Endless OS installer tool for Windows
    -l,--latest             Fetch latest OS image and/or Windows tool
-   -p,--personality        Fetch a different personality (default: base)
-   -r,--product            Fetch a different product (default: eos)
+   -p,--personality        Fetch a different personality (default: $PERSONALITY)
+   -r,--product            Fetch a different product (default: $PRODUCT)
    -w,--writable           Allow image to be modified when run (which
                            prevents installing it later)
    -f,--force              don't ask to proceed before writing
@@ -97,16 +108,6 @@ function find_by_type() {
     echo "$1" | grep -i "type=$2" | cut -d' ' -f1
 }
 
-NTFS=
-MBR=
-ISO=
-WRITABLE=
-FORCE=
-PERSONALITY=base
-PRODUCT=eos
-LABEL=
-DELETE_OS_IMAGE=
-DEBUG=
 while true; do
     case "$1" in
         -o|--os-image)
