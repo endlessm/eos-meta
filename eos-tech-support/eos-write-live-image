@@ -190,7 +190,7 @@ if [ $# -ne 1 ] ; then
     if [ $# -lt 1 ] ; then
         echo "Error: missing OUTPUT" >&2
     else
-        echo "Error: extra arguments after OUTPUT" >&2
+        echo "Error: extra arguments after OUTPUT: $@" >&2
     fi
     echo >&2
     usage >&2
