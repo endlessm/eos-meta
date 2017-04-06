@@ -360,6 +360,17 @@ if [ "$ISO" ]; then
     # Just to be sure
     mkdir "$DIR_EFI" "$DIR_IMAGES" "$DIR_ESP"
 else
+    # Erase any existing ISO9660 (0x8000 == 8 * 4096) or Joliet
+    # (0x9000 == 9 * 4096) header on the disk. If you have written ISO image I
+    # to disk A, overwrite disk A with this tool, write I to disk B, then try
+    # to boot from B with A still plugged in, the "UUID" from the stale ISO9660
+    # header on A is still read by the kernel and taken as the UUID for disk A
+    # as a whole, and its BIOS boot partition too (for good measure). This
+    # confuses eos-image-boot-setup into trying to mount a partition on disk A
+    # rather than B.
+    dd if=/dev/zero of="$OUTPUT" bs=4096 count=2 seek=8
+    udevadm settle
+
     if [ "$MBR" ]; then
         sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
 1 : type=7
