@@ -20,9 +20,37 @@ if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
 fi
 
 ARGS=$(getopt -o o:x:lp:r:nmwiL:fh \
-    -l "os-image:,windows-tool:,latest,personality:,product:,ntfs,mbr,writable,iso,label:,delete-os-image,force,debug,help" \
+    -l os-image: \
+    -l windows-tool: \
+    -l latest \
+    -l personality: \
+    -l product: \
+    -l ntfs \
+    -l mbr \
+    -l writable \
+    -l iso \
+    -l label: \
+    -l delete-os-image \
+    -l squashfs-comp: \
+    -l squashfs-b: \
+    -l force \
+    -l debug \
+    -l help \
     -n "$0" -- "$@")
 eval set -- "$ARGS"
+
+NTFS=
+MBR=
+ISO=
+WRITABLE=
+FORCE=
+PERSONALITY=base
+PRODUCT=eos
+LABEL=
+DELETE_OS_IMAGE=
+SQUASHFS_COMP=xz
+SQUASHFS_B=131072
+DEBUG=
 
 usage() {
     local SELF="$(basename "$0")"
@@ -40,8 +68,8 @@ Options:
    -o,--os-image IMAGE     Path to Endless OS image
    -x,--windows-tool PATH  Path to Endless OS installer tool for Windows
    -l,--latest             Fetch latest OS image and/or Windows tool
-   -p,--personality        Fetch a different personality (default: base)
-   -r,--product            Fetch a different product (default: eos)
+   -p,--personality        Fetch a different personality (default: $PERSONALITY)
+   -r,--product            Fetch a different product (default: $PRODUCT)
    -w,--writable           Allow image to be modified when run (which
                            prevents installing it later)
    -f,--force              don't ask to proceed before writing
@@ -51,6 +79,8 @@ ISO 9660-related options:
    -i,--iso                Write an ISO 9660 disk image to OUTPUT
    -L,--label LABEL        ISO volume id and Autorun.inf label
    --delete-os-image       Delete IMAGE after creating SquashFS wrapper
+   --squashfs-comp COMP    Pass '-comp COMP' to mksquashfs (default: $SQUASHFS_COMP)
+   --squashfs-b BLOCK_SIZE Pass '-b BLOCK_SIZE' to mksquashfs (default: $SQUASHFS_B)
 
 Developer options (you probably don't want to use these):
    -n,--ntfs               Format the image partition as NTFS, not exFAT
@@ -84,16 +114,6 @@ function find_by_type() {
     echo "$1" | grep -i "type=$2" | cut -d' ' -f1
 }
 
-NTFS=
-MBR=
-ISO=
-WRITABLE=
-FORCE=
-PERSONALITY=base
-PRODUCT=eos
-LABEL=
-DELETE_OS_IMAGE=
-DEBUG=
 while true; do
     case "$1" in
         -o|--os-image)
@@ -145,6 +165,16 @@ while true; do
             shift
             DELETE_OS_IMAGE=true
             ;;
+        --squashfs-comp):
+            shift
+            SQUASHFS_COMP="$1"
+            shift
+            ;;
+        --squashfs-b):
+            shift
+            SQUASHFS_B="$1"
+            shift
+            ;;
         -f|--force)
             shift
             FORCE=true
@@ -176,7 +206,7 @@ if [ $# -ne 1 ] ; then
     if [ $# -lt 1 ] ; then
         echo "Error: missing OUTPUT" >&2
     else
-        echo "Error: extra arguments after OUTPUT" >&2
+        echo "Error: extra arguments after OUTPUT: $@" >&2
     fi
     echo >&2
     usage >&2
@@ -445,7 +475,9 @@ echo "Finalizing image"
 if [ "$ISO" ]; then
 
     # Converting to squashfs
-    mksquashfs "${DIR_IMAGES_ENDLESS}/endless.img" "${DIR_IMAGES_ENDLESS}/endless.squash"
+    mksquashfs "${DIR_IMAGES_ENDLESS}/endless.img" "${DIR_IMAGES_ENDLESS}/endless.squash" \
+        -comp "$SQUASHFS_COMP" \
+        -b "$SQUASHFS_B"
     rm -f "${DIR_IMAGES_ENDLESS}/endless.img"
 
     if [ "$DELETE_OS_IMAGE" ]; then
