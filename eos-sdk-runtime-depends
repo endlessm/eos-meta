@@ -18,6 +18,7 @@ flex
 gdb
 git
 gperf
+gtk-3-examples
 gtk-doc-tools
 libclutter-1.0-dev
 libclutter-gst-2.0-dev
