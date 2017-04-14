@@ -150,6 +150,13 @@ Description: EndlessOS Development Tools
  This is a collection of development tools that make development and debugging
  of EndlessOS easier and more efficient.
 
+Package: eos-dev-kernel
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Kernel Team Development Tools
+ This is a collection of development tools for the Kernel team that make
+ development and debugging of EndlessOS easier and more efficient.
+
 Package: eos-language-pack-ar
 Architecture: all
 Depends: ${misc:Depends}, ${eos:Depends}

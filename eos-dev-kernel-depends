@@ -1,0 +1,24 @@
+acpidump [amd64]
+autoconf
+automake
+bison
+build-essential
+ccache
+evtest
+flex
+gdb
+git
+iasl [amd64]
+iotop
+libncurses5-dev
+libssl-dev
+lsof
+ltrace
+make
+patchutils
+strace
+tig
+util-linux
+valgrind
+vim
+zsh
