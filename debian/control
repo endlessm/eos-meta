@@ -151,11 +151,29 @@ Description: EndlessOS Development Tools
  of EndlessOS easier and more efficient.
 
 Package: eos-dev-kernel
-Architecture: all
+Architecture: any
 Depends: ${misc:Depends}, ${eos:Depends}
 Description: EndlessOS Kernel Team Development Tools
  This is a collection of development tools for the Kernel team that make
  development and debugging of EndlessOS easier and more efficient.
+
+Package: eos-dev-kernel-amd64
+Architecture: amd64
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Kernel Team Development Tools
+ This is a collection of development tools for the Kernel team that make
+ development and debugging of EndlessOS easier and more efficient.
+ .
+ This set provides the platform specific package list for amd64.
+
+Package: eos-dev-kernel-armhf
+Architecture: armhf
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Kernel Team Development Tools
+ This is a collection of development tools for the Kernel team that make
+ development and debugging of EndlessOS easier and more efficient.
+ .
+ This set provides the platform specific package list for armhf.
 
 Package: eos-language-pack-ar
 Architecture: all
