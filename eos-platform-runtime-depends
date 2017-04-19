@@ -5,6 +5,7 @@ include base-depends
 
 # Flatpak platform additions
 fontconfig-config-flatpak
+libgtk-3-0
 
 # Dependencies for apps included in the runtime.
 eos-extra-fonts
