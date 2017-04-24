@@ -25,6 +25,7 @@ eos-chrome-plugin-updater
 eos-codecs-manager
 eos-event-recorder-daemon
 eos-exploration-center
+eos-discovery-feed
 eos-gates
 eos-google-chrome-helper [amd64]
 eos-installer
