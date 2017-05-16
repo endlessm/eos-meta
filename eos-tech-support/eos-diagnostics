@@ -421,13 +421,6 @@ let diagnostics = [
         },
     },
     {
-        title: 'EndlessOS personality',
-        content: function() {
-            return tryReadFile('/etc/EndlessOS/personality.conf',
-                               'No personality file\n');
-        },
-    },
-    {
         title: 'Uptime',
         content: function() { return trySpawn('uptime'); },
     },
