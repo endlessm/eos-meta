@@ -1,0 +1,43 @@
+#!/bin/bash -e
+
+# Reverts to the previously deployed OSTree
+
+# This assumes that there are exactly two OSTrees available:
+# - the currently deployed  (listed as "* eos <commit>" in the status)
+# - the previously deployed (listed as "  eos <commit>" in the status)
+#
+# This may take several minutes to traverse the entire directory
+# tree to check for file objects to prune.  While not ideal
+# (since we really just want to switch the boot order
+# without a need to check for pruning), this is the best we can do
+# with the curently available command line options.
+#
+# Note the importance of specifying the contents of the origin file.
+# Otherwise, the origin file hard codes the commit hash,
+# which prevents future upgrades.
+
+USERID=$(id -u)
+if [ "$USERID" != "0" ]; then
+    echo "Program requires superuser privileges"
+    exit 1
+fi
+
+echo
+read -p "Are you sure you want to revert to the previously deployed OSTree? [y/N] "
+response=${REPLY,,} # to lower
+if [[ ! $response =~ ^(yes|y)$ ]]; then
+    exit 1
+fi
+echo
+
+deploy=$(ostree admin status | awk '/^  eos /{print $2}' | head -n1)
+
+if [ "$deploy" == "" ]; then
+    echo "No previous deployment available. Exiting."
+    exit 1
+fi
+
+commit=${deploy%.*}
+ostree admin deploy --origin-file=/ostree/deploy/eos-deploy/$deploy.origin $commit
+
+echo "Revert complete! Please reboot the computer to use the deployed version"
