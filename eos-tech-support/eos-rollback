@@ -37,7 +37,12 @@ if [ "$deploy" == "" ]; then
     exit 1
 fi
 
+echo "Please be patient.  This may take several minutes..."
+echo
+
 commit=${deploy%.*}
 ostree admin deploy --origin-file=/ostree/deploy/eos/deploy/$deploy.origin $commit
 
+echo
 echo "Revert complete! Please reboot the computer to use the deployed version"
+echo
