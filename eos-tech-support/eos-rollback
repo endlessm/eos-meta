@@ -38,6 +38,6 @@ if [ "$deploy" == "" ]; then
 fi
 
 commit=${deploy%.*}
-ostree admin deploy --origin-file=/ostree/deploy/eos-deploy/$deploy.origin $commit
+ostree admin deploy --origin-file=/ostree/deploy/eos/deploy/$deploy.origin $commit
 
 echo "Revert complete! Please reboot the computer to use the deployed version"
