@@ -16,7 +16,6 @@ PUBLIC_BASE_URL = "https://d1anzknqnc1kmb.cloudfront.net"
 
 def log(*args):
     print(*args, file=sys.stderr)
-    sys.stderr.write('\n')
     sys.stderr.flush()
 
 def is_endless_img(img, product):
@@ -29,8 +28,8 @@ def is_endless_img(img, product):
         -(?P<platform>[^-]+)                # platform
         \.(?P<version>[0-9.-]+)             # version
         \.(?P<personality>[^-]+)            # personality
-        \.(?P<asset>img)                    # image
-        \.(?P<compression>gz|xz)            # compression ext
+        \.(?P<asset>img|iso)                # image
+        (?:\.(?P<compression>gz|xz))?       # compression ext
         $""" % (product), re.VERBOSE)
     m_filename = re_filename.match(img)
 
@@ -59,6 +58,9 @@ def main():
                    help='Delete old torrents rather than suspending them')
     p.add_argument('-g', '--get', type=(lambda x: x.split(',')),
                    help='Comma-separated list of image personalities to get (default: all)')
+    p.add_argument('-t', '--torrent',
+                   help='Torrent to fetch (e.g. full, default: iso)',
+                   default='iso'),
     p.add_argument('-v', '--version',
                    help='Image version (default: newest)')
     p.add_argument('--product',
@@ -122,7 +124,7 @@ def main():
         client.start_torrent(start_torrents)
 
     for url in desired_torrents.values():
-        print ('adding', basename(url))
+        log('adding', basename(url))
         client.add_torrent(url)
 
 def fetch_torrents(args, base):
@@ -154,12 +156,15 @@ def fetch_torrents(args, base):
             if k not in args.get:
                 continue
 
-        try:
-            img = basename(v['full']['file'])
-            torrent = v['full']['torrents']['full']
-            torrents[img] = torrent
-        except KeyError:
-            log("No torrent for personality", k)
+        for asset in v.values():
+            if 'torrents' not in asset:
+                continue
+
+            if args.torrent not in asset['torrents']:
+                continue
+
+            img = basename(asset['file'])
+            torrents[img] = asset['torrents'][args.torrent]
 
     if not torrents:
         log("No torrents found!")
