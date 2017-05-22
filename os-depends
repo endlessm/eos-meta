@@ -16,7 +16,6 @@ eos-factory-tools
 eos-keyring
 eos-license-service
 eos-plymouth-theme
-eos-shell
 eos-tech-support
 eos-updater
 exfat-fuse
@@ -29,6 +28,7 @@ gettext-base
 gir1.2-flatpak-1.0
 gir1.2-ostree-1.0
 gnome-session
+gnome-shell (>= 3.22.3)
 gnupg
 # Could just be i386 amd64, but theoretically supports other arches
 grub2 [!armhf]
