@@ -99,6 +99,19 @@ Description: Target packages of the Endless distribution for S905X-based boards
  .
  This set provides the platform specific package list for armhf-s905x
 
+Package: eos-core-nexthw
+Architecture: amd64
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless distribution for amd64 nexthw
+ This package depends on all packages required for the Endless OS core images
+ .
+ It is also used to help ensure proper upgrades, so it is recommended that
+ it not be removed.
+ .
+ This set provides the platform specific package list for amd64 nexthw
+ builds. These builds provide newer hardware enablement on top of the
+ standard amd64 builds.
+
 Package: eos-installer-meta
 Architecture: any
 Depends: ${misc:Depends}, ${eos:Depends}
