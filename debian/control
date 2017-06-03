@@ -137,6 +137,15 @@ Description: Target packages of the Endless installer
  .
  This set provides the platform specific package list for amd64.
 
+Package: eos-installer-meta-nexthw
+Architecture: amd64
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless installer
+ This metapackage depends on all packages required for the Endless
+ installer tool.
+ .
+ This set provides the platform specific package list for nexthw.
+
 Package: eos-installer-meta-ec100
 Architecture: armhf
 Depends: ${misc:Depends}, ${eos:Depends}
