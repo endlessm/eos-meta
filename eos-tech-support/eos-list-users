@@ -31,7 +31,10 @@ list_users() {
     local DEVICE=$1
     local PHYSICAL_DEVICE=$2
 
-    mount $DEVICE $MOUNT
+    if ! mount $DEVICE $MOUNT; then
+        echo "Can't list users on $PHYSICAL_DEVICE" >&2
+        return
+    fi
 
     # FIXME A more robust approach would be the following:
     # - read /usr/etc/login.defs and extract UID_MIN
@@ -46,7 +49,11 @@ list_users() {
 list_dualboot_users() {
     local PHYSICAL_DEVICE=${1:?}
 
-    mount $PHYSICAL_DEVICE $MOUNT
+    if ! mount $PHYSICAL_DEVICE $MOUNT; then
+        echo "Can't list users on $PHYSICAL_DEVICE" >&2
+        return
+    fi
+
     local ENDLESS_IMG="$MOUNT/endless/endless.img"
 
     if [ -e "$ENDLESS_IMG" ] && [ ! -e "$MOUNT/endless/live" ]; then
