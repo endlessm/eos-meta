@@ -82,9 +82,14 @@ BD_MBR="0x7"
 BD_GPT="EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
 
 echo
-DEVICES=$(lsblk --raw --paths --noheadings -o NAME,PARTTYPE,LABEL)
-while read NAME PARTTYPE LABEL; do
-    if [ "${LABEL}" == "ostree" ]; then
+DEVICES=$(lsblk --raw --paths --noheadings -o NAME,PARTTYPE,LABEL,RO)
+while read NAME PARTTYPE LABEL RO; do
+    if [ "${RO}" == "1" ]; then
+        # Skip read-only partitions, such as the eoslive partition on a live
+        # USB or the /dev/mapper/endless-image3 ostree partition mapped within
+        # it.
+        :
+    elif [ "${LABEL}" == "ostree" ]; then
         list_users $NAME $NAME
     elif [ "${PARTTYPE}" == "${BD_MBR}" ] || \
          [ "${PARTTYPE^^}" == "${BD_GPT}" ]; then
