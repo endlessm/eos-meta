@@ -49,6 +49,7 @@ libclutter-gtk-1.0-dev
 libcogl-dev
 libcogl-pango-dev
 libcogl-path-dev
+libdbus-glib-1-dev
 libegl1-mesa-dev [!armhf]
 libevdev-dev
 libfolks-eds-dev
@@ -61,6 +62,7 @@ libglew-dev
 libglib2.0-dev
 libglibmm-2.4-dev
 libglu1-mesa-dev
+libgconf2-dev
 libgstreamer1.0-dev
 libgtk-3-dev
 libgtk2.0-dev
