@@ -46,7 +46,7 @@ list_users() {
 list_dualboot_users() {
     local PHYSICAL_DEVICE=${1:?}
 
-    mount $NAME $MOUNT
+    mount $PHYSICAL_DEVICE $MOUNT
     local ENDLESS_IMG="$MOUNT/endless/endless.img"
 
     if [ -e "$ENDLESS_IMG" ] && [ ! -e "$MOUNT/endless/live" ]; then
