@@ -58,6 +58,7 @@ libclutter-gtk-1.0-0
 libcogl20
 libcogl-pango20
 libcogl-path20
+libdbus-glib-1-2
 libevdev2
 libfolks-eds25
 libfribidi0
