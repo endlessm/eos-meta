@@ -180,6 +180,39 @@ function collectI2cDevices() {
     return output;
 }
 
+function collectRfkill() {
+    let dir = Gio.File.new_for_path('/sys/class/rfkill');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let devDir = fileEnum.get_child(info).get_path();
+        output += info.get_name() + '\n';
+        output += '  name: ' + tryReadFile(devDir + '/name');
+        output += '  type: ' + tryReadFile(devDir + '/type');
+        output += '  hard: ' + tryReadFile(devDir + '/hard');
+        output += '  soft: ' + tryReadFile(devDir + '/soft');
+        output += '  persistent: ' + tryReadFile(devDir + '/persistent');
+        output += '  state: ' + tryReadFile(devDir + '/state');
+        try {
+            let driver = GLib.file_read_link(devDir + '/device/device/driver');
+            output += '  driver: ' + GLib.path_get_basename(driver) + '\n';
+        } catch (e) { }
+
+        output += '\n';
+    }
+
+    return output;
+}
+
 function collectHdaProcCodecInfo(dir) {
     let output = '';
     let fileEnum;
@@ -461,6 +494,11 @@ let diagnostics = [
         title: 'Network interfaces',
         hardwareInfo: true,
         content: function() { return trySpawn('ifconfig -a'); },
+    },
+    {
+        title: 'rfkill devices',
+        hardwareInfo: true,
+        content: function() { return collectRfkill(); },
     },
     {
         title: 'Graphics',
