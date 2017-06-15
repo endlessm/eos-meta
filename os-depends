@@ -19,6 +19,7 @@ eos-license-service
 eos-plymouth-theme
 eos-tech-support
 eos-updater
+eos-version-number
 exfat-fuse
 exfat-utils
 fake-hwclock
