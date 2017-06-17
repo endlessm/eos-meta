@@ -1,10 +1,5 @@
 #!/bin/bash -e
 
-# OSTree dev repo URL settings.
-OSTREE_USER=endless
-OSTREE_HOST=origin.ostree.endlessm.com
-OSTREE_DEV_ROOT=staging/dev
-
 function usage {
     cat <<EOF
 Usage:
@@ -46,12 +41,11 @@ if [ "$STAGE" == "dev" ] ; then
 	echo "Error: missing required PASSWORD for dev stage" >&2
 	exit 1
     fi
+    base_url="https://endless:${PASSWORD}@origin.ostree.endlessm.com/staging/dev"
 elif [ "$STAGE" == "demo" ] ; then
-    echo "Currently this script only supports the dev stage" >&2
-    exit 1
+    base_url="https://ostree.endlessm.com/staging/demo"
 elif [ "$STAGE" == "prod" ] ; then
-    echo "Currently this script only supports the dev stage" >&2
-    exit 1
+    base_url="https://ostree.endlessm.com/ostree"
 else
     echo "Invalid STAGE -- must be dev, demo, or prod" >&2
     exit 1
@@ -65,14 +59,14 @@ fi
 
 runtime_url=$(ostree --repo="$flatpak_repo" config get 'remote "eos-runtimes".url')
 runtime_repo=${runtime_url##*/}
-new_runtime_url="https://${OSTREE_USER}:${PASSWORD}@${OSTREE_HOST}/${OSTREE_DEV_ROOT}/${runtime_repo}"
+new_runtime_url="${base_url}/${runtime_repo}"
 
 echo "Setting flatpak runtimes URL to $new_runtime_url"
 flatpak remote-modify eos-runtimes --url="$new_runtime_url"
 
 apps_url=$(ostree --repo="$flatpak_repo" config get 'remote "eos-apps".url')
 apps_repo=${apps_url##*/}
-new_apps_url="https://${OSTREE_USER}:${PASSWORD}@${OSTREE_HOST}/${OSTREE_DEV_ROOT}/${apps_repo}"
+new_apps_url="${base_url}/${apps_repo}"
 
 echo "Setting flatpak apps URL to $new_apps_url"
 flatpak remote-modify eos-apps --url="$new_apps_url"
