@@ -1,0 +1,107 @@
+#!/bin/bash -e
+
+# OSTree dev repo URL settings.
+OSTREE_USER=endless
+OSTREE_HOST=origin.ostree.endlessm.com
+OSTREE_DEV_ROOT=staging/dev
+
+function usage {
+    cat <<EOF
+Usage:
+    $0 STAGE [PASSWORD]
+Arguments:
+    STAGE     One of the following:
+                - dev: development staging (requires password)
+                - demo: beta testing in advance of production releases
+                - prod: full production releases for general availability
+    PASSWORD  Development password (for staging branch only)
+EOF
+}
+
+if [ $# -lt 1 ] || [ $# -gt 2 ] ; then
+    if [ $# -lt 1 ] ; then
+        echo "Error: missing STAGE argument" >&2
+    else
+        echo "Error: extra arguments after STAGE PASSWORD" >&2
+    fi
+    echo >&2
+    usage >&2
+    exit 1
+fi
+
+STAGE="$1"
+
+PASSWORD=
+if [ $# -ge 2 ] ; then
+    PASSWORD="$2"
+fi
+
+if [ $EUID != 0 ] ; then
+    echo "Program requires superuser privileges" >&2
+    exit 1
+fi
+
+if [ "$STAGE" == "dev" ] ; then
+    if [ -z "$PASSWORD" ] ; then
+	echo "Error: missing required PASSWORD for dev stage" >&2
+	exit 1
+    fi
+elif [ "$STAGE" == "demo" ] ; then
+    echo "Currently this script only supports the dev stage" >&2
+    exit 1
+elif [ "$STAGE" == "prod" ] ; then
+    echo "Currently this script only supports the dev stage" >&2
+    exit 1
+else
+    echo "Invalid STAGE -- must be dev, demo, or prod" >&2
+    exit 1
+fi
+
+# Get the current refspec.
+refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
+branch=${refspec#*:}
+
+# Get the OS major.minor version,
+version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
+
+# Construct the new branch. The major version is the last
+# component of the branch. Replace it with the full version.
+new_branch="${branch%/*}/eos${version}"
+
+# Get the current URL and convert to staging.
+url=$(ostree config get 'remote "eos".url')
+repo=${url##*/}
+new_url="https://${OSTREE_USER}:${PASSWORD}@${OSTREE_HOST}/${OSTREE_DEV_ROOT}/${repo}"
+
+# Make sure the autoupdater doesn't start the updater after it's
+# killed below.
+echo "Stopping running eos-autoupdater."
+systemctl stop eos-autoupdater.timer eos-autoupdater.service
+
+echo "Killing eos-updater."
+systemctl stop eos-updater.service
+
+echo "Configuring OSTree for $STAGE stage."
+# HACK! HACK! HACK! ostree admin set-origin is horribly broken
+# as of ostree 2015.7. It won't change the url or use any --set
+# options for an existing remote. Instead, use the config
+# builtin to handle that. The correct set-origin command is left
+# in place in case this is ever fixed. Upstream bug at
+# https://bugzilla.gnome.org/show_bug.cgi?id=753373
+ostree config set 'remote "eos".url' "$new_url"
+ostree config set 'remote "eos".branches' "${new_branch};"
+ostree admin set-origin eos "$new_url" "$new_branch" \
+       --set=branches="${new_branch};"
+
+# Check for an update every time the updater runs
+# rather than once every two weeks. eos-updater.conf is the old
+# location of the config file.
+sed -i 's/IntervalDays=14/IntervalDays=0/' /etc/eos-updater/eos-autoupdater.conf 2>/dev/null || true
+sed -i 's/IntervalDays=14/IntervalDays=0/' /etc/eos-updater.conf 2>/dev/null || true
+
+if [ ! -f /etc/eos-updater/eos-autoupdater.conf ] && [ ! -f /etc/eos-updater.conf ]; then
+    mkdir -p /etc/eos-updater
+    cp /usr/share/eos-updater/eos-autoupdater.conf /etc/eos-updater
+
+    sed -i 's/IntervalDays=14/IntervalDays=0/' /etc/eos-updater/eos-autoupdater.conf
+fi
