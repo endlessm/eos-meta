@@ -110,3 +110,11 @@ if [ ! -f /etc/eos-updater/eos-autoupdater.conf ] && [ ! -f /etc/eos-updater.con
 
     sed -i "s/IntervalDays=.*/IntervalDays=$interval_days/" /etc/eos-updater/eos-autoupdater.conf
 fi
+
+# Restart the autoupdater timer, and try to update now.
+# Note that downgrades (e.g., from demo to previous prod release)
+# won't happen automatically.  They would have to be done via
+# `ostree admin upgrade --allow-downgrade`, but that should be
+# a manual step if someone really wants to downgrade.
+echo "Starting eos-autoupdater."
+systemctl start eos-autoupdater.timer eos-autoupdater.service
