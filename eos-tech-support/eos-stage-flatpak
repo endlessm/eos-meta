@@ -1,0 +1,72 @@
+#!/bin/bash -e
+
+function usage {
+    cat <<EOF
+Usage:
+    $0 STAGE [PASSWORD]
+Arguments:
+    STAGE     One of the following:
+                - dev: development staging (requires password)
+                - demo: beta testing in advance of production releases
+                - prod: full production releases for general availability
+    PASSWORD  Development password (for staging branch only)
+EOF
+}
+
+if [ $# -lt 1 ] || [ $# -gt 2 ] ; then
+    if [ $# -lt 1 ] ; then
+        echo "Error: missing STAGE argument" >&2
+    else
+        echo "Error: extra arguments after STAGE PASSWORD" >&2
+    fi
+    echo >&2
+    usage >&2
+    exit 1
+fi
+
+STAGE="$1"
+
+PASSWORD=
+if [ $# -ge 2 ] ; then
+    PASSWORD="$2"
+fi
+
+if [ $EUID != 0 ] ; then
+    echo "Program requires superuser privileges" >&2
+    exit 1
+fi
+
+if [ "$STAGE" == "dev" ] ; then
+    if [ -z "$PASSWORD" ] ; then
+	echo "Error: missing required PASSWORD for dev stage" >&2
+	exit 1
+    fi
+    base_url="https://endless:${PASSWORD}@origin.ostree.endlessm.com/staging/dev"
+elif [ "$STAGE" == "demo" ] ; then
+    base_url="https://ostree.endlessm.com/staging/demo"
+elif [ "$STAGE" == "prod" ] ; then
+    base_url="https://ostree.endlessm.com/ostree"
+else
+    echo "Invalid STAGE -- must be dev, demo, or prod" >&2
+    exit 1
+fi
+
+if [ -d /var/endless-extra/flatpak/repo ]; then
+    flatpak_repo=/var/endless-extra/flatpak/repo
+else
+    flatpak_repo=/var/lib/flatpak/repo
+fi
+
+runtime_url=$(ostree --repo="$flatpak_repo" config get 'remote "eos-runtimes".url')
+runtime_repo=${runtime_url##*/}
+new_runtime_url="${base_url}/${runtime_repo}"
+
+echo "Setting flatpak runtimes URL to $new_runtime_url"
+flatpak remote-modify eos-runtimes --url="$new_runtime_url"
+
+apps_url=$(ostree --repo="$flatpak_repo" config get 'remote "eos-apps".url')
+apps_repo=${apps_url##*/}
+new_apps_url="${base_url}/${apps_repo}"
+
+echo "Setting flatpak apps URL to $new_apps_url"
+flatpak remote-modify eos-apps --url="$new_apps_url"

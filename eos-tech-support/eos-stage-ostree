@@ -1,0 +1,120 @@
+#!/bin/bash -e
+
+function usage {
+    cat <<EOF
+Usage:
+    $0 STAGE [PASSWORD]
+Arguments:
+    STAGE     One of the following:
+                - dev: development staging (requires password)
+                       (note that the dev stage does not automatically
+                       update to the next major release series)
+                - demo: beta testing in advance of production releases
+                - prod: full production releases for general availability
+    PASSWORD  Development password (for staging branch only)
+EOF
+}
+
+if [ $# -lt 1 ] || [ $# -gt 2 ] ; then
+    if [ $# -lt 1 ] ; then
+        echo "Error: missing STAGE argument" >&2
+    else
+        echo "Error: extra arguments after STAGE PASSWORD" >&2
+    fi
+    echo >&2
+    usage >&2
+    exit 1
+fi
+
+STAGE="$1"
+
+PASSWORD=
+if [ $# -ge 2 ] ; then
+    PASSWORD="$2"
+fi
+
+if [ $EUID != 0 ] ; then
+    echo "Program requires superuser privileges" >&2
+    exit 1
+fi
+
+if [ "$STAGE" == "dev" ] ; then
+    if [ -z "$PASSWORD" ] ; then
+	echo "Error: missing required PASSWORD for dev stage" >&2
+	exit 1
+    fi
+    base_url="https://endless:${PASSWORD}@origin.ostree.endlessm.com/staging/dev"
+    # Get the OS product.major version, as dev stages stay
+    # on the major version (e.g., eos3.2)
+    version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
+    # Check for an update every time the updater runs
+    interval_days=0
+elif [ "$STAGE" == "demo" ] ; then
+    base_url="https://ostree.endlessm.com/staging/demo"
+    # Get the OS product version (e.g., eos3)
+    version=$(. /etc/os-release && echo $VERSION | cut -d. -f1)
+    # Check for an update every time the updater runs
+    interval_days=0
+elif [ "$STAGE" == "prod" ] ; then
+    base_url="https://ostree.endlessm.com/ostree"
+    # Get the OS product version (e.g., eos3)
+    version=$(. /etc/os-release && echo $VERSION | cut -d. -f1)
+    # By default we check for updates every two weeks on production
+    interval_days=14
+else
+    echo "Invalid STAGE -- must be dev, demo, or prod" >&2
+    exit 1
+fi
+
+# Get the current refspec.
+refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
+branch=${refspec#*:}
+
+# Construct the new branch with the product or product.major version
+# depending on the stage.
+new_branch="${branch%/*}/eos${version}"
+
+# Get the current URL and convert to the new stage.
+url=$(ostree config get 'remote "eos".url')
+repo=${url##*/}
+new_url="${base_url}/${repo}"
+
+# Make sure the autoupdater doesn't start the updater after it's
+# killed below.
+echo "Stopping running eos-autoupdater."
+systemctl stop eos-autoupdater.timer eos-autoupdater.service
+
+echo "Killing eos-updater."
+systemctl stop eos-updater.service
+
+echo "Configuring OSTree for $STAGE stage."
+# HACK! HACK! HACK! ostree admin set-origin is horribly broken
+# as of ostree 2015.7. It won't change the url or use any --set
+# options for an existing remote. Instead, use the config
+# builtin to handle that. The correct set-origin command is left
+# in place in case this is ever fixed. Upstream bug at
+# https://bugzilla.gnome.org/show_bug.cgi?id=753373
+ostree config set 'remote "eos".url' "$new_url"
+ostree config set 'remote "eos".branches' "${new_branch};"
+ostree admin set-origin eos "$new_url" "$new_branch" \
+       --set=branches="${new_branch};"
+
+# Adjust the frequency of update checks
+# eos-updater.conf is the old location of the config file.
+sed -i "s/IntervalDays=.*/IntervalDays=$interval_days/" /etc/eos-updater/eos-autoupdater.conf 2>/dev/null || true
+sed -i "s/IntervalDays=.*/IntervalDays=$interval_days/" /etc/eos-updater.conf 2>/dev/null || true
+
+if [ ! -f /etc/eos-updater/eos-autoupdater.conf ] && [ ! -f /etc/eos-updater.conf ]; then
+    mkdir -p /etc/eos-updater
+    cp /usr/share/eos-updater/eos-autoupdater.conf /etc/eos-updater
+
+    sed -i "s/IntervalDays=.*/IntervalDays=$interval_days/" /etc/eos-updater/eos-autoupdater.conf
+fi
+
+# Restart the autoupdater timer, and try to update now.
+# Note that downgrades (e.g., from demo to previous prod release)
+# won't happen automatically.  They would have to be done via
+# `ostree admin upgrade --allow-downgrade`, but that should be
+# a manual step if someone really wants to downgrade.
+echo "Starting eos-autoupdater."
+systemctl start eos-autoupdater.timer eos-autoupdater.service
