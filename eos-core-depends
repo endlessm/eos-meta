@@ -8,6 +8,7 @@ alsa-utils
 apt
 apt-transport-https
 apt-utils
+bluez-obexd
 brasero
 btrfs-tools
 cdrdao
@@ -110,7 +111,6 @@ imagescan
 libreoffice
 nautilus
 network-manager-openvpn
-bluez-obexd
 openprinting-ppds
 openssh-server
 printer-driver-all
