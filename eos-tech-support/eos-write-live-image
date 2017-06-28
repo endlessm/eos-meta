@@ -439,7 +439,7 @@ if [ ! "$WRITABLE" ]; then
     echo "$OS_IMAGE_UNCOMPRESSED_BASENAME" > "${DIR_IMAGES_ENDLESS}/live"
     cp "$WINDOWS_TOOL" "$DIR_IMAGES/"
     WINDOWS_TOOL_BASENAME="$(basename "$WINDOWS_TOOL")"
-    iconv -f utf-8 -t utf-16 <<AUTORUN_INF > "${DIR_IMAGES}/autorun.inf"
+    sed 's/$/\r/' <<AUTORUN_INF | iconv -f utf-8 -t utf-16 > "${DIR_IMAGES}/autorun.inf"
 [AutoRun]
 label=${LABEL}
 icon=${WINDOWS_TOOL_BASENAME}
