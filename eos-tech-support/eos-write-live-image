@@ -450,24 +450,6 @@ MusicFiles=false
 PictureFiles=false
 VideoFiles=false
 AUTORUN_INF
-
-    # Work around a bug in eos-installer, which only shows images whose
-    # personality is 'base' or a valid locale. Delete this block once
-    # 3.1.1 is released.
-    if [[ "${OS_IMAGE_UNCOMPRESSED_BASENAME}" == fnde-eos3.1-*.17011*.fnde_* ]]; then
-       for i in "$DIR_IMAGES_ENDLESS"/*; do
-          j=${i/fnde_aluno/base}
-          j=${j/fnde_escola/pt_BR}
-          if [ "$i" != "$j" ]; then
-             mv $i $j
-          fi
-       done
-
-       j=${OS_IMAGE_UNCOMPRESSED_BASENAME}
-       j=${j/fnde_aluno/base}
-       j=${j/fnde_escola/pt_BR}
-       echo "$j" > "${DIR_IMAGES_ENDLESS}/live"
-    fi
 fi
 
 # attempt to avoid copy if input image is already compressed but fall back
