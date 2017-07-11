@@ -24,7 +24,12 @@ Options:
    --debug      turn on debugging messages
    --removable  device is removable (remove fallback.efi);
                 not supported if DEVICE is '-'
+   --fixed      device is not removable (don't remove fallback.efi)
    -h,--help    show this message
+Note:
+   If neither --removable nor --fixed is specified, 'lsblk -o HOTPLUG' is used
+   to guess; the guess will be shown before you're asked to proceed with
+   writing.
 EOF
 }
 
@@ -47,7 +52,19 @@ while true; do
             shift
             ;;
         --removable)
-            REMOVABLE=true
+            if [ "$REMOVABLE" = "0" ]; then
+                echo "--removable and --fixed cannot both be used" >&2
+                exit 1
+            fi
+            REMOVABLE=1
+            shift
+            ;;
+        --fixed)
+            if [ "$REMOVABLE" = "1" ]; then
+                echo "--removable and --fixed cannot both be used" >&2
+                exit 1
+            fi
+            REMOVABLE=0
             shift
             ;;
         -h|--help)
@@ -145,13 +162,13 @@ cat_image() {
 
         # ISO images do not need to be mangled
         if [[ "$MIME_TYPE" =~ x-iso9660-image$ ]]; then
-            REMOVABLE=
+            REMOVABLE=0
         fi
     fi
 }
 
 if [ "$DEVICE" == "-" ]; then
-    if [ "$REMOVABLE" ]; then
+    if [ "$REMOVABLE" = "1" ]; then
         echo "--removable not supported when writing to stdout" >&2
         exit 1
     fi
@@ -173,6 +190,17 @@ else
         exit 1
     fi
 
+    if [ ! "$REMOVABLE" ]; then
+        REMOVABLE=$(lsblk --raw --nodeps --noheading --output HOTPLUG "$DEVICE")
+        if [ "$REMOVABLE" = 1 ]; then
+            echo "Guessed that $DEVICE is a removable disk;" \
+                 "pass --fixed if this is wrong." >&2
+        else
+            echo "Guessed that $DEVICE is a fixed disk;" \
+                 "pass --removable if this is wrong." >&2
+        fi
+    fi
+
     if [ ! "$FORCE" ]; then
         read -p "Are you sure you want to overwrite all data on $DEVICE? [y/N] "
         response="${REPLY,,}" # to lower
@@ -190,7 +218,7 @@ else
     udevadm settle
 
     # If removable device, delete $ESP/EFI/BOOT/fallback.efi
-    if [ "$REMOVABLE" ]; then
+    if [ "$REMOVABLE" = "1" ]; then
         # Assume ESP is the first partition
         case "$DEVICE" in
             /dev/mmcblk?)
