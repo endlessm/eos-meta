@@ -1,6 +1,5 @@
 # Dependencies shared between OS metapackages
 adduser
-avahi-daemon
 bluez
 cryptsetup
 dbus-x11
