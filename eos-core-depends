@@ -21,6 +21,7 @@ cups
 debconf-i18n
 eog
 eos-acknowledgements
+eos-b43fw-install
 eos-browser-tools
 eos-chrome-plugin-updater
 eos-codecs-manager
