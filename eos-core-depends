@@ -8,6 +8,7 @@ alsa-utils
 apt
 apt-transport-https
 apt-utils
+avahi-daemon
 bluez-obexd
 brasero
 btrfs-tools
