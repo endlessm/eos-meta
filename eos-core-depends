@@ -8,6 +8,7 @@ alsa-utils
 apt
 apt-transport-https
 apt-utils
+avahi-daemon
 bluez-obexd
 brasero
 btrfs-tools
@@ -21,6 +22,7 @@ cups
 debconf-i18n
 eog
 eos-acknowledgements
+eos-b43fw-install
 eos-browser-tools
 eos-chrome-plugin-updater
 eos-codecs-manager
@@ -110,7 +112,8 @@ ibus-unikey
 imagescan
 libreoffice
 nautilus
-network-manager-openvpn
+network-manager-openvpn-gnome
+network-manager-vpnc-gnome
 openprinting-ppds
 openssh-server
 printer-driver-all
@@ -132,8 +135,6 @@ unoconv
 unrar
 vinagre
 vino
-virtualbox-guest-utils [amd64]
-virtualbox-guest-x11 [amd64]
 whiptail
 xapian-bridge
 xdg-desktop-portal

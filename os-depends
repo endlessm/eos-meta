@@ -1,6 +1,5 @@
 # Dependencies shared between OS metapackages
 adduser
-avahi-daemon
 bluez
 cryptsetup
 dbus-x11
@@ -8,7 +7,6 @@ dconf-cli
 dosfstools
 dracut
 efibootmgr [amd64]
-eos-b43fw-install
 eos-boot-helper
 eos-composite-mode
 eos-default-background
@@ -54,7 +52,6 @@ module-init-tools
 net-tools
 network-manager
 network-manager-gnome
-network-manager-vpnc-gnome
 ntp
 openssh-client
 ostree
@@ -74,6 +71,8 @@ u-boot-tools [armhf]
 udev
 usb-modeswitch
 vim-tiny
+virtualbox-guest-utils [amd64]
+virtualbox-guest-x11 [amd64]
 wpasupplicant
 xauth
 xdg-user-dirs
