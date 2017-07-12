@@ -8,7 +8,6 @@ dconf-cli
 dosfstools
 dracut
 efibootmgr [amd64]
-eos-b43fw-install
 eos-boot-helper
 eos-composite-mode
 eos-default-background
