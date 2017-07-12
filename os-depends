@@ -54,7 +54,6 @@ module-init-tools
 net-tools
 network-manager
 network-manager-gnome
-network-manager-vpnc-gnome
 ntp
 openssh-client
 ostree
