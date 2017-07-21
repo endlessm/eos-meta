@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2016 Endless Mobile, Inc.
+# Copyright (C) 2016-2017 Endless Mobile, Inc.
 # Licensed under the GPLv2
 set -e
 set -o pipefail
@@ -13,7 +13,16 @@ Usage:
    $0 [--gap] [--no-act] DEVICE
 
 Uninstalls GRUB from an Endless OS dual-boot machine, restoring the normal
-Windows boot setup.
+Windows boot setup. This is useful if GRUB no longer allows you to boot into
+Windows to uninstall Endless OS in the normal way.
+
+This is only supported:
+
+* on BIOS systems (on EFI systems, use efibootmgr to remove the Endless OS boot
+  entry, or use the firmware boot menu to boot directly into Windows)
+* installed before version 3.2.0.0 of the Endless Installer for Windows (newer
+  installations add GRUB to the Windows boot menu, not vice versa, so Windows
+  should be accessible even if GRUB doesn't work)
 
 Arguments:
     DEVICE        Device path (e.g. '/dev/sda')
@@ -132,14 +141,20 @@ fi
 label_type="$(grep "label: " $table | cut -f2 -d' ')"
 echo "label type is $label_type"
 
-#Run DOS sanity checks and write bootrack
-#Check that
-#    1) bootrack.img exists alongside endless.img
-#    2) The partition table on bootrack.img matches the one on the device
-#    3) The size of boottrack.img matches the space before partition 1 (typically 1MiB)
-#Write boottrack.img to the HDD, skipping the partition table.
 if [ "$label_type" = "dos" ]; then
+    if [ -f "${mountpoint}/eosldr" ]; then
+        echo "Found eosldr. This means that Endless OS is loaded from the " >&2
+        echo "Windows boot loader on this system; this cannot be undone by " >&2
+        echo "this tool. Please boot into Windows and uninstall from there." >&2
+        exit 1
+    fi
+
+    # Check that boottrack.img exists alongside endless.img
     boottrack_path="${mountpoint}/endless/boottrack.img"
+    if ! [ -f "$boottrack_path" ]; then
+        echo "$boottrack_path not found. Aborting." >&2
+        exit 1
+    fi
 
     # Get the start of the first partition from sfdisk output
     # Note that sfdisk --dump lists partitions in numerical order, not on-disk order.
@@ -147,13 +162,9 @@ if [ "$label_type" = "dos" ]; then
     start="$(python -c 'import re, sys; print(512 * min(map(int,
         re.findall(r"start=\s*(\d+)", open(sys.argv[1]).read()))))' "$table")"
 
-    if ! [ -f "$boottrack_path" ]; then
-        echo "$boottrack_path not found. Aborting." >&2
-        exit 1
-    fi
-
     boottrack_size="$(stat $boottrack_path --format=%s)"
 
+    # Check that the size of boottrack.img matches the space before the first partition
     if [ "$boottrack_size" != "$start" ]; then
         echo "$boottrack_path is $boottrack_size bytes; expected $start. Aborting." >&2
         exit 1
@@ -175,6 +186,7 @@ if [ "$label_type" = "dos" ]; then
     sfdisk -d "$boottrack_path" | remove_table_ids > "$boottrack_table"
     cat "$table" | remove_table_ids > "$disk_table"
 
+    # Check that the partition table in boottrack.img matches the one on the device
     if diff -u "$boottrack_table" "$disk_table"; then
         if [ -z "$NO_ACT" ]; then
             echo "Reinstating MBR on $dev from $boottrack_path"
@@ -186,6 +198,8 @@ if [ "$label_type" = "dos" ]; then
                 dd if="$boottrack_path" of="$dev" bs=512 skip=1 seek=1
                 udevadm settle
             fi
+
+            echo "Success. Please boot into Windows and run the Endless OS uninstaller."
         else
             echo "(Would write boottrack.img to $dev, but you specified --no-act)"
         fi
