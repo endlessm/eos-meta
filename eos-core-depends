@@ -110,7 +110,6 @@ ibus-table-wubi
 ibus-unikey
 # Needed to support some Epson scanners
 imagescan
-libreoffice
 nautilus
 network-manager-openvpn-gnome
 network-manager-vpnc-gnome
