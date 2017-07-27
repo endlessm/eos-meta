@@ -396,8 +396,8 @@ function collectChromiumPluginsInfo() {
 
 function collectEosDevInfo() {
     let output = '';
-    let dpkgDir = Gio.File.new_for_path('/var/lib/dpkg');
-    if (dpkgDir.query_exists(null)) {
+    let signalDir = Gio.File.new_for_path('/var/lib/xml-core');
+    if (signalDir.query_exists(null)) {
         output += '*************************************************************\n';
         output += '*                        WARNING                            *\n';
         output += '* eos-dev-fix or eos-convert-system was run on the system!! *\n';
