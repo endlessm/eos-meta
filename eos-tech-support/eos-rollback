@@ -1,48 +1,92 @@
-#!/bin/bash -e
+#!/usr/bin/python3 -u
 
-# Reverts to the previously deployed OSTree
+# Changes the boot order to revert to the previous OSTree deployment.
 
-# This assumes that there are exactly two OSTrees available:
-# - the currently deployed  (listed as "* eos <commit>" in the status)
-# - the previously deployed (listed as "  eos <commit>" in the status)
-#
-# This may take several minutes to traverse the entire directory
-# tree to check for file objects to prune.  While not ideal
-# (since we really just want to switch the boot order
-# without a need to check for pruning), this is the best we can do
-# with the curently available command line options.
-#
-# Note the importance of specifying the contents of the origin file.
-# Otherwise, the origin file hard codes the commit hash,
-# which prevents future upgrades.
+# On Endless OS, after the first OS upgrade, we keep two deployments available.
+# So, each call to this script will toggle between the two deployments.
 
-USERID=$(id -u)
-if [ "$USERID" != "0" ]; then
-    echo "Program requires superuser privileges"
-    exit 1
-fi
+from argparse import ArgumentParser
+import gi
+gi.require_version('OSTree', '1.0')
+from gi.repository import Gio, OSTree
+import os
+import sys
+import time
 
-echo
-read -p "Are you sure you want to revert to the previously deployed OSTree? [y/N] "
-response=${REPLY,,} # to lower
-if [[ ! $response =~ ^(yes|y)$ ]]; then
-    exit 1
-fi
-echo
+def print_deployments(deployments):
+    for index, deploy in enumerate(deployments):
+        print('Deployment {}:'.format(index))
+        print(' Index:', deploy.get_index())
+        print(' Checksum:', deploy.get_csum())
+        print(' Boot checksum:', deploy.get_bootcsum())
+        print(' OS:', deploy.get_osname())
+        print(' Deploy serial:', deploy.get_deployserial())
+        print(' Boot serial:', deploy.get_bootserial())
 
-deploy=$(ostree admin status | awk '/^  eos /{print $2}' | head -n1)
+aparser = ArgumentParser(
+    description='Rollback to previous OSTree deployment'
+)
+aparser.add_argument('--sysroot', help='path to OSTree sysroot')
+args = aparser.parse_args()
 
-if [ "$deploy" == "" ]; then
-    echo "No previous deployment available. Exiting."
-    exit 1
-fi
+if os.getuid() != 0:
+    print('Program requires superuser privileges')
+    sys.exit(1)
 
-echo "Please be patient.  This may take several minutes..."
-echo
+print()
+response = input('Are you sure you want to rollback to the previous OS version? [y/N] ')
+response = response.lower()
+if response != 'yes' and response != 'y':
+    sys.exit(1)
 
-commit=${deploy%.*}
-ostree admin deploy --origin-file=/ostree/deploy/eos/deploy/$deploy.origin $commit
+sysroot_file = None
+if args.sysroot is not None:
+    sysroot_file = Gio.File.new_for_path(args.sysroot)
+sysroot = OSTree.Sysroot.new(sysroot_file)
+sysroot.load()
+sysroot_path = sysroot.get_path().get_path()
 
-echo
-echo "Revert complete! Please reboot the computer to use the deployed version"
-echo
+# Lock the sysroot, waiting up to 5 minutes
+wait = 5 * 60
+while True:
+    locked = sysroot.try_lock()
+    if locked:
+        break
+    if wait <= 0:
+        print('Could not lock OSTree sysroot', sysroot_path,
+              file=sys.stderr)
+        sys.exit(1)
+
+    # Try again in 1 second
+    if wait % 60 == 0:
+        minutes = wait / 60
+        print('Waiting', minutes, 'minute' + 's' if minutes > 1 else '',
+              'to acquire OSTree sysroot lock for', sysroot_path)
+    wait -= 1
+    time.sleep(1)
+
+deployments = sysroot.get_deployments()
+print()
+print('Old deployments...')
+print_deployments(deployments)
+if len(deployments) == 0:
+    print('No OSTree deployments found', file=sys.stderr)
+    sys.exit(1)
+elif len(deployments) == 1:
+    print('Only one OSTree deployment found, cannot rollback',
+          file=sys.stderr)
+    sys.exit(1)
+
+# Construct the new deployment list with the previous deployment first,
+# rotating so that the current deployment is at the end of the list
+new_deployments = deployments[1:] + [deployments[0]]
+print()
+print('New deployments...')
+print_deployments(new_deployments)
+
+# Now write the new deployments
+print()
+sysroot.write_deployments(new_deployments)
+
+print()
+print('Rollback complete. Please reboot the computer to start the previous OS version.')
