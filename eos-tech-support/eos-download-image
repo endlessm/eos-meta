@@ -298,8 +298,16 @@ class EosDownloadImage(object):
     def fetch_manifest(self):
         manifest_url = '{base}/releases-{product}-3.json'.format(
             base=self.base, product=self.args.product)
-        manifest = self.session.get(manifest_url).json()
+        response = self.session.get(manifest_url)
 
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            log("Couldn't fetch manifest for product", self.args.product)
+            log(e)
+            sys.exit(1)
+
+        manifest = response.json()
         images = list(manifest['images'].values())
         images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
         return manifest, images
