@@ -16,6 +16,7 @@ devscripts
 diffutils
 elinks
 emacs
+endless-ca-cert
 eos-node-modules-dev
 exuberant-ctags
 flex
