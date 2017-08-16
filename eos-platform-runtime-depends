@@ -50,7 +50,7 @@ libboost-regex1.55.0
 libboost-signals1.55.0
 libboost-system1.55.0
 libboost-thread1.55.0
-libcairomm-1.0-1
+libcairomm-1.0-1v5
 libcanberra-gtk3-0
 libclutter-1.0-0
 libclutter-gst-2.0-0
@@ -67,8 +67,8 @@ libgconf-2-4
 libgfortran3
 libglew1.10
 libglibmm-2.4-1c2a
-libgtkmm-2.4-1c2a
-libgtkmm-3.0-1
+libgtkmm-2.4-1v5
+libgtkmm-3.0-1v5
 libgtkspell3-3-0
 libinput10
 libjson-glib-1.0-0
@@ -83,7 +83,7 @@ liblua5.1-0
 liblua5.2-0
 libmp3lame0
 libmtdev1
-libpangomm-1.4-1
+libpangomm-1.4-1v5
 libpulse0
 libpulse-mainloop-glib0
 libpython2.7
