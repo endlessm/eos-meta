@@ -161,9 +161,9 @@ class EosDownloadImage(object):
         # keyring from the gnupg homedir
         keyring = os.path.abspath(os.path.join(
             self.args.outdir, KEYRING_FILENAME))
-        if not os.path.isfile(keyring):
-            log("Fetching Endless keyring")
-            self.download(KEYRING_URL, keyring)
+
+        log("Fetching Endless keyring")
+        self.download(KEYRING_URL, keyring)
 
         return keyring
 
