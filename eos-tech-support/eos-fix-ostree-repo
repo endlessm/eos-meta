@@ -1,0 +1,261 @@
+#!/usr/bin/python3 -u
+# -*- mode: Python; coding: utf-8 -*-
+
+# Fix issues with missing OSTree objects
+#
+# Copyright (C) 2017  Endless Mobile, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+"""Fix issues with OSTree missing objects
+
+When OSTree repository objects have been inadvertently deleted, it can
+cause two types of problems (among others):
+
+1. If the deleted object is part of a commit, then the commit is now
+partial, but OSTree doesn't know that unless a commitpartial file
+exists. Without that, it will assume the commit is fully intact and use
+it as the source for a static delta.
+
+2. If the deleted object is a commit, then any references to it will be
+dangling. This will cause errors since OSTree assumes that a referenced
+commit will exist and will raise errors as soon as it tries to be used.
+
+This script attempts to address these 2 issues by repulling the commits
+for any dangling references and marking any commits with missing objects
+as partial.
+
+To guard against another program operating on the repository, all
+processes that have the repository open are killed.
+"""
+
+from argparse import ArgumentParser
+import gi
+gi.require_version('OSTree', '1.0')
+from gi.repository import GLib, Gio, OSTree
+import os
+import signal
+import sys
+import time
+
+
+def kill_repo_procs(repo_path, sig):
+    """Kill all processes with repo open
+
+    Walk /proc to find any process with the repo directory open and kill
+    them with signal sig.
+    """
+    print('Killing processes with', repo_path, 'open with signal', sig)
+
+    self_pid = os.getpid()
+    for pid in os.listdir('/proc'):
+        if not pid.isnumeric():
+            continue
+        if int(pid) == self_pid:
+            continue
+
+        # The process may have exited
+        try:
+            proc_fds = os.listdir(os.path.join('/proc', pid, 'fd'))
+        except FileNotFoundError:
+            continue
+
+        for fd in proc_fds:
+            # The process may have exited or the file may have been closed
+            try:
+                fd_path = os.readlink(os.path.join('/proc', pid, 'fd', fd))
+            except FileNotFoundError:
+                continue
+
+            # If the open file is the repo or a path within the repo,
+            # kill the process
+            if fd_path == repo_path or fd_path.startswith(repo_path + '/'):
+                # Try to read the exe file for information, but in some
+                # cases (kernel thread), it may not exist
+                try:
+                    pid_exe = os.readlink(os.path.join('/proc', pid, 'exe'))
+                except:
+                    pid_exe = ''
+
+                # Kill it and go to the next process
+                print('Killing pid', pid, pid_exe, 'with signal', sig)
+                os.kill(int(pid), sig)
+                break
+
+
+def pull_commit(repo, remote, checksum, full=False):
+    """Pull commit from remote
+
+    When full is False, only the commit metadata will be pulled.
+    """
+    if full:
+        flags = OSTree.RepoPullFlags.NONE
+    else:
+        flags = OSTree.RepoPullFlags.COMMIT_ONLY
+    opts = GLib.Variant('a{sv}', {
+        'flags': GLib.Variant('i', flags),
+        'refs': GLib.Variant('as', (checksum,)),
+        'depth': GLib.Variant('i', 0),
+    })
+
+    # FIXME: For some reason, pull_with_options cannot be stopped with
+    # ^C from the keyboard (SIGINT). This could be a problem in ostree
+    # or pygobject, but I suspect it has something to do with what pull
+    # does with the main context.
+    progress = OSTree.AsyncProgress.new()
+    progress.connect('changed',
+                     OSTree.Repo.pull_default_console_progress_changed,
+                     None)
+    repo.pull_with_options(remote, opts, progress)
+    progress.finish()
+
+
+def fix_dangling_refs(repo):
+    """Update repo refs where the commit is missing
+
+    This does a commit metadata only pull so the refs are valid again.
+    """
+    repo_path = os.path.realpath(repo.get_path().get_path())
+    print('Fixing refs pointing to missing commits in', repo_path)
+
+    _, all_refs = repo.list_refs()
+    for refspec, checksum in all_refs.items():
+        try:
+            repo.load_commit(checksum)
+        except GLib.Error as err:
+            if not err.matches(Gio.io_error_quark(),
+                               Gio.IOErrorEnum.NOT_FOUND):
+                raise
+
+            # Try to pull it the commit metadata again.
+            _, remote, ref = OSTree.parse_refspec(refspec)
+            if remote is None:
+                # If there's no remote, assume it's an ostree ref and
+                # use "eos" as the remote.
+                print('No remote for ref', ref, 'assuming "eos"')
+                remote = 'eos'
+            print('Pulling', checksum, 'commit metadata from', remote,
+                  'for', ref)
+            pull_commit(repo, remote, checksum)
+
+
+def mark_commits_partial(repo):
+    """Mark commits with missing objects as partial"""
+    repo_path = os.path.realpath(repo.get_path().get_path())
+    print('Marking commits with missing objects as partial in', repo_path)
+
+    _, all_objects = repo.list_objects(OSTree.RepoListObjectsFlags.ALL, None)
+    for objname in all_objects:
+        checksum, objtype = OSTree.object_name_deserialize(objname)
+        if objtype != OSTree.ObjectType.COMMIT:
+            continue
+        _, commit, state = repo.load_commit(checksum)
+        if state == OSTree.RepoCommitState.REPO_COMMIT_STATE_PARTIAL:
+            print('Commit', checksum, 'already marked as partial')
+            continue
+
+        try:
+            repo.traverse_commit(checksum, 0)
+        except GLib.Error as err:
+            if not err.matches(Gio.io_error_quark(),
+                               Gio.IOErrorEnum.NOT_FOUND):
+                raise
+
+            print('Marking commit', checksum, 'as partial')
+            commit_partial_path = os.path.join(repo_path, 'state',
+                                               checksum + '.commitpartial')
+            with open(commit_partial_path, 'w'):
+                pass
+
+
+def pull_partial_commits(repo):
+    """Try to fully restore any partial referenced commits"""
+    # Make a reverse mapping of commit to ref
+    _, all_refs = repo.list_refs()
+    commit_refs = dict([(v, k) for k, v in all_refs.items()])
+
+    # Look for any commits marked partial. If they're referenced, pull
+    # them.
+    _, all_objects = repo.list_objects(OSTree.RepoListObjectsFlags.ALL, None)
+    for objname in all_objects:
+        checksum, objtype = OSTree.object_name_deserialize(objname)
+        if objtype != OSTree.ObjectType.COMMIT:
+            continue
+        _, commit, state = repo.load_commit(checksum)
+        if state != OSTree.RepoCommitState.REPO_COMMIT_STATE_PARTIAL:
+            continue
+
+        # See if there's a ref to this commit
+        refspec = commit_refs.get(checksum)
+        if refspec is None:
+            continue
+
+        # Try to pull it the commit metadata again.
+        _, remote, ref = OSTree.parse_refspec(refspec)
+        if remote is None:
+            # If there's no remote, assume it's an ostree ref and use
+            # "eos" as the remote.
+            print('No remote for ref', ref, 'assuming "eos"')
+            remote = 'eos'
+        print('Pulling', checksum, 'commit from', remote, 'for', ref)
+        pull_commit(repo, remote, checksum, full=True)
+
+
+def main():
+    aparser = ArgumentParser(
+        description='Fix broken system OSTree repo'
+    )
+    aparser.add_argument('--sysroot', help='path to OSTree sysroot')
+    args = aparser.parse_args()
+
+    if os.geteuid() != 0:
+        print('Must be root to run', sys.argv[0], file=sys.stderr)
+        sys.exit(1)
+
+    print('WARNING: Do not start App Center while this is running')
+
+    if args.sysroot is None:
+        sysroot_file = None
+    else:
+        sysroot_file = Gio.File.new_for_path(args.sysroot)
+    sysroot = OSTree.Sysroot.new(sysroot_file)
+    sysroot.load()
+    _, repo = sysroot.get_repo()
+    repo_path = os.path.realpath(repo.get_path().get_path())
+
+    # Kill once with SIGTERM, then with SIGKILL
+    kill_repo_procs(repo_path, signal.SIGTERM)
+    time.sleep(1)
+    kill_repo_procs(repo_path, signal.SIGKILL)
+
+    # Now lock the sysroot
+    if not sysroot.try_lock():
+        print('Could not lock sysroot', sysroot.get_path().get_path(),
+              file=sys.stderr)
+        sys.exit(1)
+
+    # First, fix dangling refs so that refs can be reliably listed again
+    fix_dangling_refs(repo)
+
+    # Next, traverse all commits to mark any as partial
+    mark_commits_partial(repo)
+
+    # Finally, try to completely pull in any partial commits so there
+    # are no longer any missing objects
+    pull_partial_commits(repo)
+
+
+if __name__ == '__main__':
+    main()
