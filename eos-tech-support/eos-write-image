@@ -5,7 +5,7 @@ set -o pipefail
 # to a device (e.g., USB drive or SD card)
 # using dd, with status monitoring via pv
 
-ARGS=$(getopt -o fh -l "force,sparse,debug,removable,help" -n "$0" -- "$@")
+ARGS=$(getopt -o fh -l "force,sparse,debug,removable,fixed,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
