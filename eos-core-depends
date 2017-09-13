@@ -117,6 +117,7 @@ network-manager-vpnc-gnome
 openprinting-ppds
 openssh-server
 printer-driver-all
+python3-flapjack
 python3-showmehow
 rhythmbox (>= 2.99.1)
 rtkit
