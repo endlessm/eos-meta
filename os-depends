@@ -52,6 +52,7 @@ module-init-tools
 net-tools
 network-manager
 network-manager-gnome
+nvidia-kernel-drivers [!armhf]
 ntp
 openssh-client
 ostree
@@ -86,6 +87,7 @@ xserver-xorg-video-amdgpu [!armhf]
 xserver-xorg-video-armsoc [armhf]
 xserver-xorg-video-intel [!armhf]
 xserver-xorg-video-nouveau [!armhf]
+xserver-xorg-video-nvidia [!armhf]
 xserver-xorg-video-qxl [!armhf]
 xserver-xorg-video-radeon [!armhf]
 xserver-xorg-video-vesa [!armhf]
