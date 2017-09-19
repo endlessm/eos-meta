@@ -10,12 +10,12 @@ set -o pipefail
 # the image partition. Additional images copied to the image partition will be
 # detected by the installer, but will not be bootable.
 
-EOS_WRITE_IMAGE=$(dirname $0)/eos-write-image
-if [ ! -f $EOS_WRITE_IMAGE ]; then
+EOS_WRITE_IMAGE=$(dirname "$0")/eos-write-image
+if [ ! -f "$EOS_WRITE_IMAGE" ]; then
     EOS_WRITE_IMAGE='eos-write-image'
 fi
-EOS_DOWNLOAD_IMAGE=$(dirname $0)/eos-download-image
-if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
+EOS_DOWNLOAD_IMAGE=$(dirname "$0")/eos-download-image
+if [ ! -f "$EOS_DOWNLOAD_IMAGE" ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
@@ -45,7 +45,8 @@ LABEL=
 DEBUG=
 
 usage() {
-    local SELF="$(basename "$0")"
+    local SELF
+    SELF=$(basename "$0")
     cat <<EOF
 Usage:
     $SELF [options] OUTPUT
@@ -89,7 +90,7 @@ function udisks_mount() {
         echo "Failed to mount $1" >&2
         exit 1
     fi
-    echo $MOUNT_POINT
+    echo "$MOUNT_POINT"
 }
 
 function udisks_unmount() {
@@ -174,7 +175,7 @@ if [ $# -ne 1 ] ; then
     if [ $# -lt 1 ] ; then
         echo "Error: missing OUTPUT" >&2
     else
-        echo "Error: extra arguments after OUTPUT: $@" >&2
+        echo "Error: extra arguments after OUTPUT:" "$@" >&2
     fi
     echo >&2
     usage >&2
@@ -254,7 +255,7 @@ if grep -qs "$OUTPUT" /proc/mounts; then
 fi
 
 if [ ! "$FORCE" ]; then
-    read -p "Are you sure you want to overwrite all data on $OUTPUT? [y/N] "
+    read -r -p "Are you sure you want to overwrite all data on $OUTPUT? [y/N] "
     response="${REPLY,,}" # to lower
     if [[ ! "$response" =~ ^(yes|y)$ ]]; then
         exit 1
