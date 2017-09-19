@@ -55,24 +55,24 @@ Usage:
     $SELF IMAGE OUTPUT
 
 Arguments:
-    OUTPUT                 Device path (e.g. '/dev/sdb')
+    OUTPUT                   Device path (e.g. '/dev/sdb')
 
 Options:
-   -o,--os-image IMAGE     Path to Endless OS image
-   -x,--windows-tool PATH  Path to Endless OS installer tool for Windows
-   -l,--latest             Fetch latest OS image and/or Windows tool
-   -p,--personality        Fetch a different personality (default: $PERSONALITY)
-   -r,--product            Fetch a different product (default: $PRODUCT)
-   -L,--label LABEL        Autorun.inf label (default: Endless OS)
-   -w,--writable           Allow image to be modified when run (which
-                           prevents installing it later)
-   -f,--force              don't ask to proceed before writing
-   -h,--help               Show this message
+    -o, --os-image IMAGE     Path to Endless OS image
+    -x, --windows-tool PATH  Path to Endless OS installer tool for Windows
+    -l, --latest             Fetch latest OS image and/or Windows tool
+    -p, --personality        Fetch a different personality (default: $PERSONALITY)
+    -r, --product            Fetch a different product (default: $PRODUCT)
+    -L, --label LABEL        Autorun.inf label (default: Endless OS)
+    -w, --writable           Allow image to be modified when run (which
+                             prevents installing it later)
+    -f, --force              don't ask to proceed before writing
+    -h, --help               Show this message
 
 Developer options (you probably don't want to use these):
-   -n,--ntfs               Format the image partition as NTFS, not exFAT
-   -m,--mbr                Format DEVICE as MBR, not GPT
-   --debug                 Enable debugging output
+    -n, --ntfs               Format the image partition as NTFS, not exFAT
+    -m, --mbr                Format DEVICE as MBR, not GPT
+        --debug              Enable debugging output
 EOF
 }
 
