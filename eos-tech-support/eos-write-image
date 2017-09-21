@@ -116,7 +116,7 @@ fi
 DD_IN_OPTS+=(bs="$BLOCK_SIZE")
 DD_OUT_OPTS+=(bs="$BLOCK_SIZE")
 
-if [ "$USERID" != "0" ]; then
+if [ "$DEVICE" != "-" ] && [ "$USERID" != "0" ]; then
     echo "Program requires superuser privileges" >&2
     exit 1
 fi
