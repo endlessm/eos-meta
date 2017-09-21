@@ -534,6 +534,7 @@ if [ "$ISO" ]; then
 	    -joliet -joliet-long \
 	    -volid "$VOLID" \
 	    -publisher 'Endless Computers' \
+	    --md5 \
 	    ${DIR_IMAGES}
 
     # Change partition type from 0x83 to 0x00
