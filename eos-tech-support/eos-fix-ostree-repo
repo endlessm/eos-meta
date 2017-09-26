@@ -42,6 +42,7 @@ processes that have the repository open are killed.
 """
 
 from argparse import ArgumentParser
+from fnmatch import fnmatch
 import gi
 gi.require_version('OSTree', '1.0')
 from gi.repository import GLib, Gio, OSTree
@@ -139,7 +140,7 @@ def fix_dangling_refs(repo):
                                Gio.IOErrorEnum.NOT_FOUND):
                 raise
 
-            # Try to pull it the commit metadata again.
+            # Try to pull the commit metadata again.
             _, remote, ref = OSTree.parse_refspec(refspec)
             if remote is None:
                 # If there's no remote, assume it's an ostree ref and
@@ -206,6 +207,14 @@ def pull_partial_refs(repo):
             # Don't bother pulling local refs. Only the ostree deploys
             # are local, and as long as they're marked partial, they can
             # be updated later.
+            continue
+
+        # If this is an app or runtime locale, it's intentionally
+        # partial since only the relevant subpaths are pulled. Skip it
+        # to not use up extra bandwidth and disk space.
+        if fnmatch(ref, '*/*.Locale/*/*'):
+            print('Skipping intentionally partial Locale commit',
+                  refspec, checksum)
             continue
 
         _, commit, state = repo.load_commit(checksum)
