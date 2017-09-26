@@ -166,13 +166,29 @@ def mark_commits_partial(repo):
             print('Commit', checksum, 'already marked as partial')
             continue
 
+        mark_partial = False
         try:
-            repo.traverse_commit(checksum, 0)
+            # If a dirtree is missing, traverse_commit will fail with
+            # G_IO_ERROR_NOT_FOUND.
+            _, reachable_objects = repo.traverse_commit(checksum, 0)
+
+            # Unfortunately, it doesn't check that the leaves (dirmeta
+            # and files) exist, so we need to do that manually. In case
+            # that behavior ever changes, just check that all the
+            # reachable objects exist.
+            #
+            # https://github.com/ostreedev/ostree/issues/1222
+            for commit_obj in reachable_objects:
+                if commit_obj not in all_objects:
+                    mark_partial = True
+                    break
         except GLib.Error as err:
             if not err.matches(Gio.io_error_quark(),
                                Gio.IOErrorEnum.NOT_FOUND):
                 raise
+            mark_partial = True
 
+        if mark_partial:
             print('Marking commit', checksum, 'as partial')
             commit_partial_path = os.path.join(repo_path, 'state',
                                                checksum + '.commitpartial')
