@@ -201,17 +201,18 @@ def pull_partial_refs(repo):
     # Look for any partial refs and re-pull them.
     _, all_refs = repo.list_refs()
     for refspec, checksum in all_refs.items():
+        _, remote, ref = OSTree.parse_refspec(refspec)
+        if remote is None:
+            # Don't bother pulling local refs. Only the ostree deploys
+            # are local, and as long as they're marked partial, they can
+            # be updated later.
+            continue
+
         _, commit, state = repo.load_commit(checksum)
         if state != OSTree.RepoCommitState.REPO_COMMIT_STATE_PARTIAL:
             continue
 
         # Try to pull the full commit again.
-        _, remote, ref = OSTree.parse_refspec(refspec)
-        if remote is None:
-            # If there's no remote, assume it's an ostree ref and use
-            # "eos" as the remote.
-            print('No remote for ref', ref, 'assuming "eos"')
-            remote = 'eos'
         print('Pulling', checksum, 'commit from', remote, 'for', ref)
         pull_commit(repo, remote, checksum, full=True)
 
