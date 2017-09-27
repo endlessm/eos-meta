@@ -196,29 +196,16 @@ def mark_commits_partial(repo):
                 pass
 
 
-def pull_partial_commits(repo):
+def pull_partial_refs(repo):
     """Try to fully restore any partial referenced commits"""
-    # Make a reverse mapping of commit to ref
+    # Look for any partial refs and re-pull them.
     _, all_refs = repo.list_refs()
-    commit_refs = dict([(v, k) for k, v in all_refs.items()])
-
-    # Look for any commits marked partial. If they're referenced, pull
-    # them.
-    _, all_objects = repo.list_objects(OSTree.RepoListObjectsFlags.ALL, None)
-    for objname in all_objects:
-        checksum, objtype = OSTree.object_name_deserialize(objname)
-        if objtype != OSTree.ObjectType.COMMIT:
-            continue
+    for refspec, checksum in all_refs.items():
         _, commit, state = repo.load_commit(checksum)
         if state != OSTree.RepoCommitState.REPO_COMMIT_STATE_PARTIAL:
             continue
 
-        # See if there's a ref to this commit
-        refspec = commit_refs.get(checksum)
-        if refspec is None:
-            continue
-
-        # Try to pull it the commit metadata again.
+        # Try to pull the full commit again.
         _, remote, ref = OSTree.parse_refspec(refspec)
         if remote is None:
             # If there's no remote, assume it's an ostree ref and use
@@ -268,9 +255,9 @@ def main():
     # Next, traverse all commits to mark any as partial
     mark_commits_partial(repo)
 
-    # Finally, try to completely pull in any partial commits so there
-    # are no longer any missing objects
-    pull_partial_commits(repo)
+    # Finally, try to completely pull in any partial referenced commits
+    # so there are no longer any missing objects
+    pull_partial_refs(repo)
 
 
 if __name__ == '__main__':
