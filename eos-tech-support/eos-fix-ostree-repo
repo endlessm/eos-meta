@@ -355,6 +355,8 @@ def main():
     # so there are no longer any missing objects
     pull_partial_refs(repo)
 
+    print('\nSuccess! Try to update the OS and Apps now.')
+
 
 if __name__ == '__main__':
     main()
