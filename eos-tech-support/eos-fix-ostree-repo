@@ -330,6 +330,21 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
+    # In older OSTree, cleaning up after a transaction (e.g., a pull)
+    # would delete the tmp/cache directory if it was older than 1 day.
+    # That's a problem because it has an open fd for that directory.
+    # Update the directory's mtime to current. This is racy because
+    # other repo users may have deleted the directory after we opened
+    # the repo and before they were killed, so just fail if the
+    # directory doesn't exist.
+    cache_dir = os.path.join(repo_path, 'tmp', 'cache')
+    try:
+        os.utime(cache_dir)
+    except FileNotFoundError:
+        print(cache_dir, 'does not exist - run', sys.argv[0], 'again!',
+              file=sys.stderr)
+        sys.exit(1)
+
     # First, fix dangling refs so that refs can be reliably listed again
     fix_dangling_refs(repo)
 
