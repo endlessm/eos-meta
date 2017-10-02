@@ -52,6 +52,77 @@ import sys
 import time
 
 
+# Prior to ostree-2017.1, the GI annotation for ostree_repo_list_objects
+# was wrong, making it unusable from bindings[1]. This is tricky to
+# detect since the version checking was not added until ostree-2017.3.
+# However, in the same commit,
+# ostree_repo_list_commit_objects_starting_with was fixed so that the
+# out_commits parameter was marked properly.
+#
+# Use the direction of this argument as a proxy to know when
+# ostree_repo_list_objects will work. Otherwise, make our own
+# list_objects implementation and monkey-patch it into the Repo class.
+#
+# 1. https://github.com/ostreedev/ostree/commit/300752e5
+_func = OSTree.Repo.list_commit_objects_starting_with
+if _func.get_arguments()[1].get_direction() == gi._gi.Direction.IN:
+    import glob
+
+    # Fake ostree_repo_list_objects. See
+    # https://github.com/ostreedev/ostree/blob/master/src/libostree/ostree-repo.c
+    # for the real implementation.
+    def _list_objects(self, flags, cancellable=None):
+        objects = {}
+        repo_path = self.get_path().get_path()
+        repo_mode = self.get_mode()
+
+        # Objects live in the objects directory split after the 2nd
+        # character of their sha256sum. E.g.,
+        # 8d/2925839245dd91ac9fbfcc0e7a383cddf5145bd7c5bc5de0d46929a3fa5963.file.
+        objdir_pattern = repo_path + '/objects/[a-f0-9][a-f0-9]'
+        for objdir in glob.iglob(objdir_pattern):
+            for entry in os.listdir(objdir):
+                name, ext = os.path.splitext(entry)
+
+                if len(name) != 62:
+                    # Not a partial sha256
+                    continue
+
+                if ext == '':
+                    continue
+                elif (ext == '.filez' and
+                      repo_mode == OSTree.RepoMode.ARCHIVE_Z2):
+                    objtype = OSTree.ObjectType.FILE
+                elif (ext == '.file' and
+                      repo_mode != OSTree.RepoMode.ARCHIVE_Z2):
+                    objtype = OSTree.ObjectType.FILE
+                elif ext == '.dirtree':
+                    objtype = OSTree.ObjectType.DIR_TREE
+                elif ext == '.dirmeta':
+                    objtype = OSTree.ObjectType.DIR_META
+                elif ext == '.commit':
+                    objtype = OSTree.ObjectType.COMMIT
+                else:
+                    continue
+
+                # Insert the object. The key is the serialized object
+                # name and the value is always the same (bas) variant (I
+                # think packed objects were supposed to put something
+                # here, but only loose objects ever exist).
+                checksum = os.path.basename(objdir) + name
+                key = OSTree.object_name_serialize(checksum, objtype)
+                value = GLib.Variant.new_tuple(
+                    GLib.Variant('b', True),
+                    GLib.Variant('as', [])
+                )
+                objects[key] = value
+
+        return True, objects
+
+    # Override the standard list_objects
+    OSTree.Repo.list_objects = _list_objects
+
+
 def kill_repo_procs(repo_path, sig):
     """Kill all processes with repo open
 
@@ -259,6 +330,21 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
+    # In older OSTree, cleaning up after a transaction (e.g., a pull)
+    # would delete the tmp/cache directory if it was older than 1 day.
+    # That's a problem because it has an open fd for that directory.
+    # Update the directory's mtime to current. This is racy because
+    # other repo users may have deleted the directory after we opened
+    # the repo and before they were killed, so just fail if the
+    # directory doesn't exist.
+    cache_dir = os.path.join(repo_path, 'tmp', 'cache')
+    try:
+        os.utime(cache_dir)
+    except FileNotFoundError:
+        print(cache_dir, 'does not exist - run', sys.argv[0], 'again!',
+              file=sys.stderr)
+        sys.exit(1)
+
     # First, fix dangling refs so that refs can be reliably listed again
     fix_dangling_refs(repo)
 
@@ -268,6 +354,8 @@ def main():
     # Finally, try to completely pull in any partial referenced commits
     # so there are no longer any missing objects
     pull_partial_refs(repo)
+
+    print('\nSuccess! Try to update the OS and Apps now.')
 
 
 if __name__ == '__main__':
