@@ -299,9 +299,11 @@ def pull_partial_refs(repo):
 
 def main():
     aparser = ArgumentParser(
-        description='Fix broken system OSTree repo'
+        description='Fix broken OSTree repo'
     )
-    aparser.add_argument('--sysroot', help='path to OSTree sysroot')
+    path_group = aparser.add_mutually_exclusive_group()
+    path_group.add_argument('--sysroot', help='path to OSTree sysroot')
+    path_group.add_argument('--repo', help='path to OSTree repo')
     args = aparser.parse_args()
 
     if os.geteuid() != 0:
@@ -310,13 +312,23 @@ def main():
 
     print('WARNING: Do not start App Center while this is running')
 
-    if args.sysroot is None:
-        sysroot_file = None
+    if args.repo is not None:
+        # Use a repo directly instead of getting it from the sysroot
+        sysroot = None
+        repo_file = Gio.File.new_for_path(args.repo)
+        repo = OSTree.Repo.new(repo_file)
+        repo.open()
     else:
-        sysroot_file = Gio.File.new_for_path(args.sysroot)
-    sysroot = OSTree.Sysroot.new(sysroot_file)
-    sysroot.load()
-    _, repo = sysroot.get_repo()
+        # Get the repo from the sysroot
+        if args.sysroot is None:
+            sysroot_file = None
+        else:
+            sysroot_file = Gio.File.new_for_path(args.sysroot)
+        sysroot = OSTree.Sysroot.new(sysroot_file)
+        sysroot.load()
+        _, repo = sysroot.get_repo()
+
+    # Resolve the full repo path
     repo_path = os.path.realpath(repo.get_path().get_path())
 
     # Kill once with SIGTERM, then with SIGKILL
@@ -324,8 +336,8 @@ def main():
     time.sleep(1)
     kill_repo_procs(repo_path, signal.SIGKILL)
 
-    # Now lock the sysroot
-    if not sysroot.try_lock():
+    # Now lock the sysroot if one is in use
+    if sysroot is not None and not sysroot.try_lock():
         print('Could not lock sysroot', sysroot.get_path().get_path(),
               file=sys.stderr)
         sys.exit(1)
