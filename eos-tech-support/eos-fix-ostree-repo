@@ -47,7 +47,9 @@ import gi
 gi.require_version('OSTree', '1.0')
 from gi.repository import GLib, Gio, OSTree
 import os
+import pwd
 import signal
+import stat
 import sys
 import time
 
@@ -330,6 +332,20 @@ def main():
 
     # Resolve the full repo path
     repo_path = os.path.realpath(repo.get_path().get_path())
+
+    # Must be running as the owner of the repo. We don't want to make
+    # root owned files in a non-root owned repo.
+    repo_uid = os.stat(repo_path).st_uid
+    if os.geteuid() != repo_uid:
+        # Try to get the repo owner's name
+        try:
+            repo_user = pwd.getpwuid(repo_uid).pw_name
+        except:
+            repo_user = repo_uid
+
+        print(repo_path, 'is owned by', repo_user, 'not root',
+              file=sys.stderr)
+        sys.exit(1)
 
     # Kill once with SIGTERM, then with SIGKILL
     kill_repo_procs(repo_path, signal.SIGTERM)
