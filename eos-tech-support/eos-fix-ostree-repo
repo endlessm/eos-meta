@@ -39,6 +39,19 @@ as partial.
 
 To guard against another program operating on the repository, all
 processes that have the repository open are killed.
+
+Some commands for testing this script when hacking on it (from a throwaway
+working system):
+
+```
+for objtype in commit dirtree dirmeta file; do
+  sudo find /ostree/repo/objects -type f -name "*.${objtype}" -print -delete -quit
+done
+sudo eos-fix-ostree-repo
+sudo ostree fsck
+```
+
+Make sure to test on normal and split-disk systems.
 """
 
 from argparse import ArgumentParser
