@@ -19,12 +19,29 @@ do
     CORE_APPS+="$app "
 done
 
-FLATPAK_APPS=`flatpak list --app | grep -v EknServices | cut -d'/' -f 1`
+FLATPAK_APPS=`flatpak list --app | grep -v EknServices | grep -v org\.kde\. | cut -d'/' -f 1`
+KDE_APPS=`flatpak list --app | grep org\.kde\. | cut -d'/' -f 1`
 
 for app in $CORE_APPS $FLATPAK_APPS
 do
     echo $app
     gtk-launch $app
+    zenity --question --title=$script --text="Did $app launch successfully?" --ok-label="Yes" --cancel-label="No"
+    if [ $? == "0" ]; then
+	passed_apps+=($app)
+    else
+	failed_apps+=($app)
+    fi
+done
+
+# Hack to workaround gtk-launch breakage with the kde4 directory
+# in the path to the desktop files
+# Note that we don't use 'flatpak run' in general since it bypasses
+# the splash screen
+for app in $KDE_APPS
+do
+    echo $app
+    flatpak run $app
     zenity --question --title=$script --text="Did $app launch successfully?" --ok-label="Yes" --cancel-label="No"
     if [ $? == "0" ]; then
 	passed_apps+=($app)
