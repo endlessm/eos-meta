@@ -26,6 +26,7 @@ gir1.2-coglpango-1.0
 gir1.2-gtkclutter-1.0
 gir1.2-json-1.0
 gir1.2-webkit2-4.0
+gir1.2-webkit-3.0
 gvfs-bin
 kde-games-core-declarative
 kde-runtime
