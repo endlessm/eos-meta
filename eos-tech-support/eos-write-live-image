@@ -309,12 +309,14 @@ udevadm settle
 
 if [ "$MBR" ]; then
     sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
+2 : start=2048, size=62MiB, type=EF
 1 : type=7
 MBR_PARTITIONS
     udevadm settle
     partprobe "$OUTPUT"
     PARTMAP=$(sfdisk --dump "$OUTPUT")
     DEVICE_IMAGES=$(find_by_type "$PARTMAP" "7")
+    DEVICE_EFI=$(find_by_type "$PARTMAP" "EF")
 else
     # https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
     PARTITION_SYSTEM_GUID="c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
@@ -345,12 +347,10 @@ fi
 # Give udisks a chance to notice the new partitions
 udevadm settle
 
-if [ ! "$MBR" ]; then
-    mkfs.vfat -n efi "${DEVICE_EFI}"
-    partprobe "$OUTPUT"
-    udevadm settle
-    DIR_EFI=$(udisks_mount "$DEVICE_EFI")
-fi
+mkfs.vfat -n efi "${DEVICE_EFI}"
+partprobe "$OUTPUT"
+udevadm settle
+DIR_EFI=$(udisks_mount "$DEVICE_EFI")
 
 $MKFS_IMAGES $MKFS_ARGS eoslive "${DEVICE_IMAGES}"
 partprobe "$OUTPUT"
@@ -364,9 +364,7 @@ DIR_IMAGES_ENDLESS="${DIR_IMAGES}/endless"
 mkdir "$DIR_IMAGES_ENDLESS"
 unzip -q -d "${DIR_IMAGES_ENDLESS}" "${BOOT_ZIP}" "grub/*"
 
-if [ ! -z "$DIR_EFI" ]; then
-    unzip -q -d "${DIR_EFI}" "${BOOT_ZIP}" "EFI/*"
-fi
+unzip -q -d "${DIR_EFI}" "${BOOT_ZIP}" "EFI/*"
 
 if [ ! "$WRITABLE" ]; then
     cp "${BOOT_ZIP}" "${BOOT_ZIP}.asc" "${EXTRACTED_SIGNATURE}" \
@@ -393,9 +391,7 @@ echo
 echo "Finalizing"
 
 udisks_unmount "$DEVICE_IMAGES"
-if [ ! "$MBR" ]; then
-    udisks_unmount "$DEVICE_EFI"
-fi
+udisks_unmount "$DEVICE_EFI"
 
 if [ "$MBR" ]; then
     # Bootstrap code, which will jump to sector 1
