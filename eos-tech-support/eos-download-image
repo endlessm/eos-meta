@@ -304,6 +304,7 @@ class EosDownloadImage(object):
     def fetch_manifest(self):
         manifest_url = '{base}/releases-{product}-3.json'.format(
             base=self.base, product=self.args.product)
+        log("Fetching manifest from", manifest_url)
         response = self.session.get(manifest_url, timeout=TIMEOUT)
 
         try:
