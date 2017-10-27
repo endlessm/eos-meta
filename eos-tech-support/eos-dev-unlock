@@ -1,0 +1,17 @@
+#!/bin/bash -e
+# Use "ostree admin unlock" to create writable /usr overlay.
+# Also make basic tweaks so that apt works in this setup.
+
+systemctl stop eos-autoupdater.timer
+systemctl stop eos-autoupdater.service
+systemctl stop eos-updater.service
+
+ostree admin unlock
+
+# Some tweaks to make apt work
+if [ ! -d /var/lib/xml-core ]; then
+  OSTREE_DEPLOY_CURRENT=$(ostree admin --print-current-dir)
+  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/xml-core /var/lib/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/sgml-base /var/lib/
+  cp -a $OSTREE_DEPLOY_CURRENT/var/cache/debconf /var/cache/
+fi
