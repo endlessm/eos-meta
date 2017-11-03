@@ -645,7 +645,16 @@ function dumpDiagnostics(filename, verboseFlag) {
     } else {
         try {
             GLib.file_set_contents(filename, fullDump);
-            log('Saved to ' + filename);
+            print('Endless OS Diagnostics file saved as:')
+            print(filename);
+            print('Please send that file (not this message!) to the Endless Community or Support.');
+
+            // pop up a new Nautilus window, with the file pre-selected
+            try {
+                GLib.spawn_command_line_async('nautilus --new-window --select ' + filename);
+            } catch (e) {
+                // oh well, never mind
+            }
         } catch (e) {
             log('Can\'t save diagnostic file to ' + filename + ': ' + e.message);
         }
