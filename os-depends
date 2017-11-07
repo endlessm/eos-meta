@@ -52,6 +52,7 @@ module-init-tools
 net-tools
 network-manager
 network-manager-gnome
+nvidia-driver-bin [!armhf]
 nvidia-kernel-drivers [!armhf]
 ntp
 openssh-client
