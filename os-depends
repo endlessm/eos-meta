@@ -34,6 +34,7 @@ gnupg
 grub2 [!armhf]
 grub-efi-amd64-image-signed [amd64] | grub-efi-amd64-image [i386]
 iproute2
+kmod
 less
 libpam-fprintd
 libpam-runtime
@@ -48,7 +49,6 @@ linux-signed-image-generic [amd64] | linux-image-generic-64 [i386]
 lsb-base
 lsb-release
 mobile-broadband-provider-info
-module-init-tools
 net-tools
 network-manager
 network-manager-gnome
