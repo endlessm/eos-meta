@@ -219,7 +219,7 @@ done
 
 # If the given OS image is an ISO, short-circuit and write it straight to disk
 if [ -f "$OS_IMAGE" ] && \
-   [ "$(file --brief --mime-type "$OS_IMAGE")" = "application/x-iso9660-image" ]; then
+    [ "$(file --brief --mime-type "$OS_IMAGE")" = "application/x-iso9660-image" ]; then
     exec "$EOS_WRITE_IMAGE" $DEBUG "$OS_IMAGE" "$OUTPUT"
 fi
 
