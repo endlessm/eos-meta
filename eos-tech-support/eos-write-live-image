@@ -389,6 +389,11 @@ MusicFiles=false
 PictureFiles=false
 VideoFiles=false
 AUTORUN_INF
+
+    # Include these on the ESP as well. The Windows tool detects when it's run
+    # from the ESP and discovers images on the other partition on the drive.
+    cp "$WINDOWS_TOOL" "$DIR_EFI/"
+    cp "$DIR_IMAGES/autorun.inf" "$DIR_EFI/"
 fi
 
 "$EOS_WRITE_IMAGE" "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
