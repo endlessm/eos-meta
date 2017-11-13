@@ -23,6 +23,11 @@ KEYRING_SYSTEM_PATH = "/usr/share/keyrings/eos-image-keyring.gpg"
 # http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html
 CDN_MAX_SIZE = 20 * 2 ** 30
 
+TIMEOUT = (
+    30,  # connect timeout, in seconds
+    30,  # read timeout, in seconds, between bytes received
+)
+
 
 def log(*args):
     sys.stderr.write('\n')
@@ -74,7 +79,7 @@ class EosDownloadImage(object):
         headers['Accept-Encoding'] = 'identity'
 
         # Make a HEAD request to get the size and mtime
-        resp = self.session.head(src, headers=headers)
+        resp = self.session.head(src, headers=headers, timeout=TIMEOUT)
         if resp.status_code == 200:
             src_mtime = dateutil.parser.parse(resp.headers['Last-Modified'])
             src_size = int(resp.headers['Content-Length'])
@@ -145,7 +150,8 @@ class EosDownloadImage(object):
             progress(dest, int(100 * received / src_size))
             for start, stop in ranges:
                 headers['Range'] = 'bytes={}-{}'.format(start, stop)
-                resp = self.session.get(src, headers=headers, stream=True)
+                resp = self.session.get(src, headers=headers, stream=True,
+                                        timeout=TIMEOUT)
                 if resp.status_code not in (200, 206):
                     resp.raise_for_status()
                 for chunk in resp.iter_content(chunk_size=8192):
@@ -298,7 +304,8 @@ class EosDownloadImage(object):
     def fetch_manifest(self):
         manifest_url = '{base}/releases-{product}-3.json'.format(
             base=self.base, product=self.args.product)
-        response = self.session.get(manifest_url)
+        log("Fetching manifest from", manifest_url)
+        response = self.session.get(manifest_url, timeout=TIMEOUT)
 
         try:
             response.raise_for_status()
