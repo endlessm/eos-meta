@@ -4,9 +4,9 @@
 # The appname.dekstop file must already exist (typically in
 # /usr/share/applications or ~/.local/share/applications)
 
-if [ $# -lt 1 ] ; then
+if [ $# -lt 1 ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
     echo "Usage:"
-    echo "   $0 appid"
+    echo "   `basename $0` appid"
     echo "Where:"
     echo "   appid = application id (where desktop file is named appid.desktop)"
     exit
