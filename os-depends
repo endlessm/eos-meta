@@ -1,5 +1,6 @@
 # Dependencies shared between OS metapackages
 adduser
+amd64-microcode [!armhf]
 bluez
 cryptsetup
 dbus-x11
@@ -33,6 +34,7 @@ gnupg
 # Could just be i386 amd64, but theoretically supports other arches
 grub2 [!armhf]
 grub-efi-amd64-image-signed [amd64] | grub-efi-amd64-image [i386]
+intel-microcode [!armhf]
 iproute2
 kmod
 less
