@@ -86,9 +86,9 @@ class EosDownloadImage(object):
         elif resp.status_code == 403:
             # Assume this is CloudFront returning a 403 for a file exceeding
             # the maximum limit. In that case, the caller must supply the
-            # size and mtime. If this is a real error, it will be hit below
+            # size. If this is a real error, it will be hit below
             # when doing the real download request.
-            if src_size is None or src_mtime is None:
+            if src_size is None:
                 resp.raise_for_status()
         else:
             resp.raise_for_status()
@@ -96,16 +96,20 @@ class EosDownloadImage(object):
         # Check the status of an existing download
         dest_size = 0
         if os.path.exists(dest):
-            dest_stat = os.stat(dest)
-            dest_mtime = datetime.datetime.fromtimestamp(dest_stat.st_mtime,
-                                                         datetime.timezone.utc)
-            dest_size = dest_stat.st_size
+            if src_mtime is None:
+                # Assume it's a partial download; the signature may prove that wrong
+                outdated = False
+            else:
+                dest_stat = os.stat(dest)
+                dest_mtime = datetime.datetime.fromtimestamp(dest_stat.st_mtime,
+                                                             datetime.timezone.utc)
+                dest_size = dest_stat.st_size
 
-            # Is the existing file outdated? Strip off microseconds since
-            # one or the other is likely to not support it
-            src_mtime = src_mtime.replace(microsecond=0)
-            dest_mtime = dest_mtime.replace(microsecond=0)
-            outdated = dest_mtime < src_mtime
+                # Is the existing file outdated? Strip off microseconds since
+                # one or the other is likely to not support it
+                src_mtime = src_mtime.replace(microsecond=0)
+                dest_mtime = dest_mtime.replace(microsecond=0)
+                outdated = dest_mtime < src_mtime
 
             # Is the times and sizes match, the file is already downloaded.
             # Delete an outdated file or one that's larger then the source.
@@ -173,12 +177,30 @@ class EosDownloadImage(object):
 
         return keyring
 
-    def download_and_verify(self, meta, what):
+    def download_and_verify(self, meta, what, url=None, size=None):
+        """ Download and verify image. Caller should either use meta or specify url and size."""
         destdir = self.args.outdir
-        image_url = '{}/{}'.format(self.base, meta['file'])
-        image_size = meta['compressed_size']
-        image_mtime = dateutil.parser.parse(meta['last_modified'])
-        signature_url = '{}/{}'.format(self.base, meta['signature'])
+        if meta is not None:
+            image_url = '{}/{}'.format(self.base, meta['file'])
+            image_size = meta['compressed_size']
+            image_mtime = dateutil.parser.parse(meta['last_modified'])
+            signature_url = '{}/{}'.format(self.base, meta['signature'])
+            if meta.get('extracted_signature'):
+                extracted_sig_url = '{}/{}'.format(self.base, meta['extracted_signature'])
+            else:
+                extracted_sig_url = None
+        else:
+            assert(url is not None and size is not None)
+            image_url = url
+            image_size = size
+            image_mtime = None
+            signature_url = url + '.asc'
+            if '.xz' in signature_url:
+                extracted_sig_url = signature_url.replace('.xz', '')
+            elif '.gz' in signature_url:
+                extracted_sig_url = signature_url.replace('.gz', '')
+            else:
+                extracted_sig_url = None
 
         image_dir = signature_dir = ''
         if self.args.mirror:
@@ -195,7 +217,7 @@ class EosDownloadImage(object):
         self.download(image_url, image, src_size=image_size,
                       src_mtime=image_mtime)
 
-        if meta.get('extracted_size'):
+        if meta is not None and meta.get('extracted_size'):
             with open(image + '.size', 'w') as f:
                 f.write(str(meta['extracted_size']))
 
@@ -205,18 +227,17 @@ class EosDownloadImage(object):
             os.makedirs(full_signature_dir, exist_ok=True)
         self.download(signature_url, signature)
 
-        if meta.get('extracted_signature'):
-            url = '{}/{}'.format(self.base, meta['extracted_signature'])
+        if extracted_sig_url is not None:
             ext_sig_dir = ''
             if self.args.mirror:
-                ext_sig_dir = url_dirname(url)
+                ext_sig_dir = url_dirname(extracted_sig_url)
             ext_signature = os.path.join(destdir, ext_sig_dir,
-                                         os.path.basename(url))
-            log("Downloading uncompressed", what, "image signature from", url)
+                                         os.path.basename(extracted_sig_url))
+            log("Downloading uncompressed", what, "image signature from", extracted_sig_url)
             full_ext_sig_dir = os.path.dirname(ext_signature)
             if full_ext_sig_dir:
                 os.makedirs(full_ext_sig_dir, exist_ok=True)
-            self.download(url, ext_signature)
+            self.download(extracted_sig_url, ext_signature)
 
         keyring = self.ensure_keyring()
 
@@ -267,6 +288,10 @@ class EosDownloadImage(object):
                        help='Image version (default: newest)')
         g.add_argument('-I', '--iso', action='store_true',
                        help='Fetch an ISO image, not a raw disk image')
+        g.add_argument('-u', '--url',
+                       help='Fetch compressed image by URL (use with --size)')
+        g.add_argument('-s', '--size',
+                       help='Size in bytes of compressed image (use with --url)')
 
         self.args = args = p.parse_args()
 
@@ -327,8 +352,16 @@ class EosDownloadImage(object):
         Prints the path to the downloaded OS image to stdout, to be consumed by
         eos-write-live-image.'''
 
-        _, images = self.fetch_manifest()
         args = self.args
+        if args.url is not None:
+            if args.size is None:
+                log("--size must be used when using --url")
+                sys.exit(1)
+            what = 'iso' if args.url.endswith('.iso') else 'full'
+            print(self.download_and_verify(meta=None, what=what, url=args.url, size=args.size))
+            return
+
+        _, images = self.fetch_manifest()
 
         if args.version is not None:
             for img in images:
