@@ -284,7 +284,7 @@ class EosDownloadImage(object):
         if args.product == 'fnde' and args.personality == 'base':
             args.personality = 'fnde_aluno'
 
-        if args.url.startswith(INTERNAL_BASE_URL):
+        if args.url is not None and args.url.startswith(INTERNAL_BASE_URL):
             args.internal = True
 
         self.base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
