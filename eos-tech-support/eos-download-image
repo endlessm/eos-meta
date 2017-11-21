@@ -86,9 +86,9 @@ class EosDownloadImage(object):
         elif resp.status_code == 403:
             # Assume this is CloudFront returning a 403 for a file exceeding
             # the maximum limit. In that case, the caller must supply the
-            # size and mtime. If this is a real error, it will be hit below
+            # size. If this is a real error, it will be hit below
             # when doing the real download request.
-            if src_size is None or src_mtime is None:
+            if src_size is None:
                 resp.raise_for_status()
         else:
             resp.raise_for_status()
@@ -96,16 +96,20 @@ class EosDownloadImage(object):
         # Check the status of an existing download
         dest_size = 0
         if os.path.exists(dest):
-            dest_stat = os.stat(dest)
-            dest_mtime = datetime.datetime.fromtimestamp(dest_stat.st_mtime,
-                                                         datetime.timezone.utc)
-            dest_size = dest_stat.st_size
+            if src_mtime is None:
+                # Assume it's a partial download; the signature may prove that wrong
+                outdated = False
+            else:
+                dest_stat = os.stat(dest)
+                dest_mtime = datetime.datetime.fromtimestamp(dest_stat.st_mtime,
+                                                             datetime.timezone.utc)
+                dest_size = dest_stat.st_size
 
-            # Is the existing file outdated? Strip off microseconds since
-            # one or the other is likely to not support it
-            src_mtime = src_mtime.replace(microsecond=0)
-            dest_mtime = dest_mtime.replace(microsecond=0)
-            outdated = dest_mtime < src_mtime
+                # Is the existing file outdated? Strip off microseconds since
+                # one or the other is likely to not support it
+                src_mtime = src_mtime.replace(microsecond=0)
+                dest_mtime = dest_mtime.replace(microsecond=0)
+                outdated = dest_mtime < src_mtime
 
             # Is the times and sizes match, the file is already downloaded.
             # Delete an outdated file or one that's larger then the source.
@@ -177,7 +181,10 @@ class EosDownloadImage(object):
         destdir = self.args.outdir
         image_url = '{}/{}'.format(self.base, meta['file'])
         image_size = meta['compressed_size']
-        image_mtime = dateutil.parser.parse(meta['last_modified'])
+        if meta.get('last_modified'):
+            image_mtime = dateutil.parser.parse(meta['last_modified'])
+        else:
+            image_mtime = None
         signature_url = '{}/{}'.format(self.base, meta['signature'])
 
         image_dir = signature_dir = ''
@@ -245,6 +252,8 @@ class EosDownloadImage(object):
         p.add_argument('-i', '--internal',
                        action='store_true',
                        help='Fetch images from the Endless internal network')
+        p.add_argument('-s', '--size', type=int,
+                       help='Size in bytes of compressed image (use with --url)')
 
         # Mode
         m = p.add_mutually_exclusive_group()
@@ -255,6 +264,8 @@ class EosDownloadImage(object):
                        action='store_true',
                        help='Fetch the Windows USB creator/installer, '
                             'not an Endless OS image')
+        m.add_argument('-u', '--url',
+                       help='Fetch compressed image by URL (use with --size)')
 
         # Which image? NB. product is not part of this group, because it *is*
         # valid together with --mirror
@@ -273,6 +284,9 @@ class EosDownloadImage(object):
         if args.product == 'fnde' and args.personality == 'base':
             args.personality = 'fnde_aluno'
 
+        if args.url is not None and args.url.startswith(INTERNAL_BASE_URL):
+            args.internal = True
+
         self.base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
 
     def run(self):
@@ -284,6 +298,8 @@ class EosDownloadImage(object):
             self.fetch_windows_tool()
         elif self.args.mirror:
             self.mirror_images()
+        elif self.args.url:
+            self.fetch_image_url()
         else:
             self.fetch_image()
 
@@ -318,6 +334,21 @@ class EosDownloadImage(object):
         images = list(manifest['images'].values())
         images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
         return manifest, images
+
+    def fetch_image_url(self):
+        '''Downloads an image using the specified URL and size.'''
+        args = self.args
+        if args.size is None:
+            log("--size must be used when using --url")
+            sys.exit(1)
+
+        what = 'iso' if args.url.endswith('.iso') else 'full'
+        # Create a fake meta object for download_and_verify()
+        meta = {}
+        meta['file'] = '/'.join(args.url.split('/')[3:])
+        meta['signature'] = meta['file'] + '.asc'
+        meta['compressed_size'] = args.size
+        print(self.download_and_verify(meta, what=what))
 
     def fetch_image(self):
         '''Downloads a single OS image, and its signatures. If args.iso is True,
