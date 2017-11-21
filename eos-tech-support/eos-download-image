@@ -177,30 +177,15 @@ class EosDownloadImage(object):
 
         return keyring
 
-    def download_and_verify(self, meta, what, url=None, size=None):
-        """ Download and verify image. Caller should either use meta or specify url and size."""
+    def download_and_verify(self, meta, what):
         destdir = self.args.outdir
-        if meta is not None:
-            image_url = '{}/{}'.format(self.base, meta['file'])
-            image_size = meta['compressed_size']
+        image_url = '{}/{}'.format(self.base, meta['file'])
+        image_size = meta['compressed_size']
+        if meta.get('last_modified'):
             image_mtime = dateutil.parser.parse(meta['last_modified'])
-            signature_url = '{}/{}'.format(self.base, meta['signature'])
-            if meta.get('extracted_signature'):
-                extracted_sig_url = '{}/{}'.format(self.base, meta['extracted_signature'])
-            else:
-                extracted_sig_url = None
         else:
-            assert(url is not None and size is not None)
-            image_url = url
-            image_size = size
             image_mtime = None
-            signature_url = url + '.asc'
-            if '.xz' in signature_url:
-                extracted_sig_url = signature_url.replace('.xz', '')
-            elif '.gz' in signature_url:
-                extracted_sig_url = signature_url.replace('.gz', '')
-            else:
-                extracted_sig_url = None
+        signature_url = '{}/{}'.format(self.base, meta['signature'])
 
         image_dir = signature_dir = ''
         if self.args.mirror:
@@ -217,7 +202,7 @@ class EosDownloadImage(object):
         self.download(image_url, image, src_size=image_size,
                       src_mtime=image_mtime)
 
-        if meta is not None and meta.get('extracted_size'):
+        if meta.get('extracted_size'):
             with open(image + '.size', 'w') as f:
                 f.write(str(meta['extracted_size']))
 
@@ -227,17 +212,18 @@ class EosDownloadImage(object):
             os.makedirs(full_signature_dir, exist_ok=True)
         self.download(signature_url, signature)
 
-        if extracted_sig_url is not None:
+        if meta.get('extracted_signature'):
+            url = '{}/{}'.format(self.base, meta['extracted_signature'])
             ext_sig_dir = ''
             if self.args.mirror:
-                ext_sig_dir = url_dirname(extracted_sig_url)
+                ext_sig_dir = url_dirname(url)
             ext_signature = os.path.join(destdir, ext_sig_dir,
-                                         os.path.basename(extracted_sig_url))
-            log("Downloading uncompressed", what, "image signature from", extracted_sig_url)
+                                         os.path.basename(url))
+            log("Downloading uncompressed", what, "image signature from", url)
             full_ext_sig_dir = os.path.dirname(ext_signature)
             if full_ext_sig_dir:
                 os.makedirs(full_ext_sig_dir, exist_ok=True)
-            self.download(extracted_sig_url, ext_signature)
+            self.download(url, ext_signature)
 
         keyring = self.ensure_keyring()
 
@@ -266,6 +252,8 @@ class EosDownloadImage(object):
         p.add_argument('-i', '--internal',
                        action='store_true',
                        help='Fetch images from the Endless internal network')
+        p.add_argument('-s', '--size', type=int,
+                       help='Size in bytes of compressed image (use with --url)')
 
         # Mode
         m = p.add_mutually_exclusive_group()
@@ -276,6 +264,8 @@ class EosDownloadImage(object):
                        action='store_true',
                        help='Fetch the Windows USB creator/installer, '
                             'not an Endless OS image')
+        m.add_argument('-u', '--url',
+                       help='Fetch compressed image by URL (use with --size)')
 
         # Which image? NB. product is not part of this group, because it *is*
         # valid together with --mirror
@@ -288,15 +278,14 @@ class EosDownloadImage(object):
                        help='Image version (default: newest)')
         g.add_argument('-I', '--iso', action='store_true',
                        help='Fetch an ISO image, not a raw disk image')
-        g.add_argument('-u', '--url',
-                       help='Fetch compressed image by URL (use with --size)')
-        g.add_argument('-s', '--size',
-                       help='Size in bytes of compressed image (use with --url)')
 
         self.args = args = p.parse_args()
 
         if args.product == 'fnde' and args.personality == 'base':
             args.personality = 'fnde_aluno'
+
+        if args.url.startswith(INTERNAL_BASE_URL):
+            args.internal = True
 
         self.base = INTERNAL_BASE_URL if args.internal else PUBLIC_BASE_URL
 
@@ -309,6 +298,8 @@ class EosDownloadImage(object):
             self.fetch_windows_tool()
         elif self.args.mirror:
             self.mirror_images()
+        elif self.args.url:
+            self.fetch_image_url()
         else:
             self.fetch_image()
 
@@ -344,6 +335,21 @@ class EosDownloadImage(object):
         images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
         return manifest, images
 
+    def fetch_image_url(self):
+        '''Downloads an image using the specified URL and size.'''
+        args = self.args
+        if args.size is None:
+            log("--size must be used when using --url")
+            sys.exit(1)
+
+        what = 'iso' if args.url.endswith('.iso') else 'full'
+        # Create a fake meta object for download_and_verify()
+        meta = {}
+        meta['file'] = '/'.join(args.url.split('/')[3:])
+        meta['signature'] = meta['file'] + '.asc'
+        meta['compressed_size'] = args.size
+        print(self.download_and_verify(meta, what=what))
+
     def fetch_image(self):
         '''Downloads a single OS image, and its signatures. If args.iso is True,
         fetches the ISO; if not, fetches the full raw image, plus the
@@ -352,16 +358,8 @@ class EosDownloadImage(object):
         Prints the path to the downloaded OS image to stdout, to be consumed by
         eos-write-live-image.'''
 
-        args = self.args
-        if args.url is not None:
-            if args.size is None:
-                log("--size must be used when using --url")
-                sys.exit(1)
-            what = 'iso' if args.url.endswith('.iso') else 'full'
-            print(self.download_and_verify(meta=None, what=what, url=args.url, size=args.size))
-            return
-
         _, images = self.fetch_manifest()
+        args = self.args
 
         if args.version is not None:
             for img in images:
