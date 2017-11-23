@@ -107,6 +107,17 @@ for command in "${!dependencies[@]}"; do
     fi
 done
 
+# fall back if pv isn't available
+if ! which pv >/dev/null 2>&1; then
+  pv() {
+    echo "Proceeding with no pv, there will be no progress message!" >&2
+    echo "Try 'sudo apt-get install pv'" >&2
+    echo "Copying $1..." >&2
+    cat "$1"
+    echo "Done!" >&2
+  }
+fi
+
 if [ ! -b "$DEVICE" ]; then
     echo "$DEVICE does not exist or is not a block device... aborting!"
     exit 1
