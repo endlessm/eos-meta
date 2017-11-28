@@ -18,11 +18,13 @@ libcanberra-pulse
 libcaribou-gtk-module
 libcaribou-gtk3-module
 # Mali used on arm
-libegl1-mesa-drivers [!armhf]
+libegl-mesa0 [!armhf]
+libegl1 [!armhf]
 # Mali used on arm
-libgles2-mesa [!armhf]
+libgles2 [!armhf]
 libglib2.0-data
 libglu1-mesa [!armhf]
+libglx-mesa0
 libnss-altfiles
 libnss-myhostname
 locales
