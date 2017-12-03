@@ -27,6 +27,12 @@ if [[ ! "$response" =~ ^(yes|y)$ ]]; then
     exit 1
 fi
 
+# Check that script was run with superuser privileges.
+if [[ $EUID != 0 ]]; then
+    echo "$0 requires superuser privileges."
+    exit 1
+fi
+
 if [ ! -L /ostree ]; then
   echo "Not running on an ostree system"
   exit 1
