@@ -46,7 +46,7 @@ if [ $# -gt 0 ]; then
     done
 fi
 
-# Check that script was run with superuser priviliges.
+# Check that script was run with superuser privileges.
 if [[ $EUID != 0 ]]; then
     echo "$0 requires superuser privileges."
     exit 1
