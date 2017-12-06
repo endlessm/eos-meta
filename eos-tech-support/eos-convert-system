@@ -1,5 +1,38 @@
 #!/bin/bash -e
 
+function warning_blob() {
+    echo "This script converts an EOS system from using OSTree to using apt for"
+    echo "package management, and makes other changes that are generally"
+    echo "desired for development systems, such as making the journal"
+    echo "persistent."
+    echo ""
+    echo "WARNING: If you're not an Endless developer this will prevent you"
+    echo "from installing OS updates or meaningfully using apt. Also note"
+    echo "that these changes are IRREVERSIBLE."
+    echo ""
+}
+
+if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
+    echo "Usage:"
+    echo "   $0"
+    echo ""
+    warning_blob
+    exit 0
+fi
+
+warning_blob
+read -p "Are you sure you want to proceed? [y/n] "
+response="${REPLY,,}" # to lower
+if [[ ! "$response" =~ ^(yes|y)$ ]]; then
+    exit 1
+fi
+
+# Check that script was run with superuser privileges.
+if [[ $EUID != 0 ]]; then
+    echo "$0 requires superuser privileges."
+    exit 1
+fi
+
 if [ ! -L /ostree ]; then
   echo "Not running on an ostree system"
   exit 1
