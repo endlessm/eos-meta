@@ -1,0 +1,50 @@
+#!/bin/bash -e
+#
+# Enables coredumps and adjusts storage path to work with coredumpcl
+#
+# Copyright (C) 2017 Endless Mobile, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along
+# with this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+SYSCONFDIR=/etc
+
+if [ $# -gt 1 ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
+    echo "Usage:"
+    echo "   `basename $0` [sysconfdir]"
+    echo "Where:"
+    echo "   sysconfdir = path to the system configuration (default: /etc)"
+    exit
+elif [ $# -gt 0 ]; then
+     SYSCONFDIR="${1}"
+     shift
+fi
+
+CONF_FILENAME="99-coredump.conf"
+SYSCTL_CONF_FILE="${SYSCONFDIR}/sysctl.d/${CONF_FILENAME}"
+LIMITS_CONF_FILE="${SYSCONFDIR}/security/limits.d/${CONF_FILENAME}"
+
+# Enable coredumps
+mkdir -p $(dirname "${LIMITS_CONF_FILE}")
+cat <<EOF > "${LIMITS_CONF_FILE}"
+# Enable coredumps for regular root (max 256MB) users and root (unlimited)
+*        soft        core        unlimited
+root     hard        core        256000
+EOF
+
+# Enable systemd coredumps storage
+mkdir -p $(dirname "${SYSCTL_CONF_FILE}")
+echo "Enabling systemd coredumps processing and storage"
+echo "kernel.core_pattern=|/lib/systemd/systemd-coredump %p %u %g %s %t %c %e" > "${SYSCTL_CONF_FILE}"
+sysctl -p "${SYSCTL_CONF_FILE}"
