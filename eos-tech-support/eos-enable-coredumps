@@ -20,15 +20,16 @@
 
 SYSCONFDIR=/etc
 
-if [ $# -gt 1 ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
-    echo "Usage:"
-    echo "   `basename $0` [sysconfdir]"
-    echo "Where:"
-    echo "   sysconfdir = path to the system configuration (default: /etc)"
-    exit
-elif [ $# -gt 0 ]; then
-     SYSCONFDIR="${1}"
-     shift
+if [ $# -gt 0 ]; then
+    if [ $1 = "-h" ] || [ $1 = "--help" ]; then
+        echo "Usage:"
+        echo "   `basename $0` [sysconfdir]"
+        echo "Where:"
+        echo "   sysconfdir = path to the system configuration (default: /etc)"
+        exit 0
+    fi
+
+    SYSCONFDIR="${1}"
 fi
 
 CONF_FILENAME="99-coredump.conf"
