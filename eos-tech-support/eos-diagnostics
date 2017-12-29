@@ -54,6 +54,87 @@ function collectBoardInfo() {
     return output;
 }
 
+function collectDrmDevice(devDir) {
+    let output = '';
+    let devDirPath = devDir.get_path();
+    let fileEnum;
+
+    output += devDir.get_basename() + '\n';
+
+    try {
+        let driver = GLib.file_read_link(devDirPath + '/device/driver');
+        output += '  driver: ' + GLib.path_get_basename(driver) + '\n';
+    } catch (e) { }
+
+    let contents = tryReadFile(devDirPath + '/device/firmware_node/path');
+    if (contents)
+        output += '  firmware_path: ' + contents;
+
+    try {
+        fileEnum = devDir.enumerate_children('standard::name,standard::type',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let conDir = fileEnum.get_child(info);
+        let conDirPath = conDir.get_path();
+        if (info.get_file_type() != Gio.FileType.DIRECTORY)
+            continue;
+        if (!info.get_name().startsWith("card"))
+            continue;
+
+        output += "\n  " + info.get_name();
+
+        contents = tryReadFile(conDirPath + '/enabled');
+        if (contents)
+            output += ' (' + contents.trim() + ')'
+
+        output += "\n";
+
+        contents = tryReadFile(conDirPath + '/status');
+        if (contents)
+            output += '    status: ' + contents;
+
+        contents = tryReadFile(conDirPath + '/dpms');
+        if (contents)
+            output += '    dpms: ' + contents;
+    }
+
+    output += '\n';
+    return output;
+}
+
+function collectDrmDevices() {
+    let dir = Gio.File.new_for_path('/sys/class/drm');
+    let fileEnum;
+    let output = '';
+
+    try {
+        fileEnum = dir.enumerate_children('standard::name,standard::type',
+                                          Gio.FileQueryInfoFlags.NONE, null);
+    } catch (e) {
+        return '';
+    }
+
+    let info;
+    while ((info = fileEnum.next_file(null))) {
+        let devDir = fileEnum.get_child(info);
+        if (info.get_file_type() != Gio.FileType.DIRECTORY)
+            continue;
+
+        let devFile = devDir.resolve_relative_path('dev');
+        if (!devFile.query_exists(null))
+            continue;
+
+        output += collectDrmDevice(devDir);
+    }
+
+    return output;
+}
+
 function collectMmcDevice(dir, level) {
     let fileEnum;
     let output = '';
@@ -503,6 +584,10 @@ let diagnostics = [
     {
         title: 'Graphics',
         content: function() { return collectGraphicsRenderer(); },
+    },
+    {
+        title: 'Direct Rendering devices',
+        content: function() { return collectDrmDevices(); },
     },
     {
         title: 'Display',
