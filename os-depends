@@ -3,10 +3,12 @@ adduser
 amd64-microcode [!armhf]
 bluez
 cryptsetup
+dbus-user-session
 dbus-x11
 dconf-cli
 dosfstools
 dracut
+eject
 efibootmgr [amd64]
 eos-boot-helper
 eos-composite-mode
@@ -24,7 +26,9 @@ exfat-utils
 fake-hwclock
 file
 fonts-dejavu
+gdisk
 geoclue-2.0
+geoip-database
 gettext-base
 gir1.2-flatpak-1.0
 gir1.2-ostree-1.0
@@ -35,8 +39,12 @@ gnupg
 grub2 [!armhf]
 grub-efi-amd64-image-signed [amd64 i386]
 grub-efi-ia32-image [amd64 i386]
+# Required for unknown reasons (see T19310)
+im-config
 intel-microcode [!armhf]
 iproute2
+# NetworkManager uses this to avoid IP address conflicts
+iputils-arping
 kmod
 less
 libpam-fprintd
@@ -55,6 +63,7 @@ mobile-broadband-provider-info
 net-tools
 network-manager
 network-manager-gnome
+ntfs-3g
 nvidia-driver-bin [!armhf]
 nvidia-kernel-drivers [!armhf]
 nvidia-kernel-drivers-blob-signed [!armhf]
