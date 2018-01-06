@@ -11,7 +11,9 @@ Package: eos-core
 Architecture: any
 Replaces: endless-core
 Provides: endless-core
-Conflicts: endless-core
+Conflicts: endless-core,
+           libwebkit2gtk-4.0-37 (>= 1:2.18.4),
+           libjavascriptcoregtk-4.0-18 (>= 1:2.18.4)
 Depends: ${misc:Depends}, ${eos:Depends}
 Description: Target packages of the Endless distribution
  This package depends on all packages required for the Endless OS core images
@@ -22,6 +24,8 @@ Description: Target packages of the Endless distribution
 Package: eos-platform-runtime
 Architecture: any
 Depends: ${misc:Depends}, ${eos:Depends}
+Conflicts: libwebkit2gtk-4.0-37 (>= 1:2.18.4),
+           libjavascriptcoregtk-4.0-18 (>= 1:2.18.4)
 Description: Target packages of the Endless platform runtime
  This metapackage depends on all packages required for the Endless
  platform runtime.
@@ -29,6 +33,8 @@ Description: Target packages of the Endless platform runtime
 Package: eos-sdk-runtime
 Architecture: any
 Depends: ${misc:Depends}, ${eos:Depends}
+Conflicts: libwebkit2gtk-4.0-37 (>= 1:2.18.4),
+           libjavascriptcoregtk-4.0-18 (>= 1:2.18.4)
 Description: Target packages of the Endless SDK runtime
  This metapackage depends on all packages required for the Endless SDK
  runtime.
