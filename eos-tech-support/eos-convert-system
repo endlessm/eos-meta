@@ -146,7 +146,7 @@ else
   O=$(grep options /boot/loader/entries/*.conf | head -n1 | cut -d ' ' -f 2-)
   echo GRUB_CMDLINE_LINUX_DEFAULT=\"${O} \" | sed 's/ostree=[^ ]*//g' \
     >> /etc/default/grub
-  update-grub
+  update-grub -f
 fi
 
 echo "All done, please reboot"
