@@ -73,6 +73,11 @@ flatpak remote-modify eos-apps --url="$new_apps_url"
 
 sdk_url=$(ostree --repo="$flatpak_repo" config get 'remote "eos-sdk".url')
 sdk_repo=${sdk_url##*/}
+
+# eos-sdk's dev is passwordless
+if [ "$STAGE" == "dev" ] ; then
+    base_url="https://ostree.endlessm.com/staging/dev"
+fi
 new_sdk_url="${base_url}/${sdk_repo}"
 
 echo "Setting flatpak sdk URL to $new_sdk_url"
