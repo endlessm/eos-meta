@@ -11,7 +11,6 @@ apt-utils
 avahi-daemon
 bluez-obexd
 brasero
-btrfs-tools
 cdrdao
 cheese
 chromium-browser
