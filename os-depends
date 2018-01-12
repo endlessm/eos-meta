@@ -33,7 +33,8 @@ gnome-shell (>= 3.22.3)
 gnupg
 # Could just be i386 amd64, but theoretically supports other arches
 grub2 [!armhf]
-grub-efi-amd64-image-signed [amd64] | grub-efi-amd64-image [i386]
+grub-efi-amd64-image-signed [amd64 i386]
+grub-efi-ia32-image [amd64 i386]
 intel-microcode [!armhf]
 iproute2
 kmod
