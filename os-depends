@@ -68,6 +68,7 @@ python-gi
 python3-gi
 pulseaudio
 pulseaudio-module-bluetooth
+shim [amd64]
 shim-efi-image-signed [amd64]
 spice-vdagent
 sudo
