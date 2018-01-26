@@ -57,28 +57,16 @@ else
     flatpak_repo=/var/lib/flatpak/repo
 fi
 
-runtime_url=$(ostree --repo="$flatpak_repo" config get 'remote "eos-runtimes".url')
-runtime_repo=${runtime_url##*/}
-new_runtime_url="${base_url}/${runtime_repo}"
-
-echo "Setting flatpak runtimes URL to $new_runtime_url"
-flatpak remote-modify eos-runtimes --url="$new_runtime_url"
-
-apps_url=$(ostree --repo="$flatpak_repo" config get 'remote "eos-apps".url')
-apps_repo=${apps_url##*/}
-new_apps_url="${base_url}/${apps_repo}"
-
-echo "Setting flatpak apps URL to $new_apps_url"
-flatpak remote-modify eos-apps --url="$new_apps_url"
-
-sdk_url=$(ostree --repo="$flatpak_repo" config get 'remote "eos-sdk".url')
-sdk_repo=${sdk_url##*/}
-
-# eos-sdk's dev is passwordless
-if [ "$STAGE" == "dev" ] ; then
-    base_url="https://ostree.endlessm.com/staging/dev"
-fi
-new_sdk_url="${base_url}/${sdk_repo}"
-
-echo "Setting flatpak sdk URL to $new_sdk_url"
-flatpak remote-modify eos-sdk --url="$new_sdk_url"
+for remote in `flatpak remote-list | awk {'print $1'}` ; do
+    url=$(ostree --repo="$flatpak_repo" config get 'remote "'"$remote"'".url')
+    if [[ "$url" == *"ostree.endlessm.com"* ]] ; then
+        repo=${url##*/}
+        new_url="${base_url}/${repo}"
+        if [ "$remote" == "eos-sdk" ] && [ "$STAGE" == "dev" ] ; then
+            # eos-sdk's dev is passwordless
+            new_url="https://ostree.endlessm.com/staging/dev/${repo}"
+        fi
+        echo "Setting flatpak $remote URL to $new_url"
+        flatpak remote-modify "$remote" --url="$new_url"
+    fi
+done
