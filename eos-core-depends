@@ -9,8 +9,14 @@ apt
 apt-transport-https
 apt-utils
 avahi-daemon
+# For field debugging
+avahi-utils
 bluez-obexd
+# For Evolution spam filtering
+bogofilter
 brasero
+brasero-cdrkit
+btrfs-tools
 cdrdao
 cheese
 chromium-browser
@@ -18,8 +24,14 @@ coding-chatbox
 coding-game-manager
 coding-shell-extensions
 cups
+cups-browsed
+cups-pk-helper
 debconf-i18n
+# For NetworkManager connection sharing
+dnsmasq-base
 eog
+# For flatpak-builder
+elfutils
 eos-acknowledgements
 eos-b43fw-install
 eos-browser-tools
@@ -55,6 +67,7 @@ eos-speedwagon
 eos-updater-tools
 evince
 evolution
+evolution-plugins
 file-roller
 flatpak
 flatpak-builder
@@ -63,6 +76,7 @@ fonts-arphic-ukai
 fonts-arphic-uming
 fonts-crosextra-caladea
 fonts-crosextra-carlito
+fonts-droid-fallback
 fonts-farsiweb
 fonts-indic
 fonts-kacst
@@ -70,9 +84,11 @@ fonts-khmeros
 fonts-knda
 fonts-nanum
 fonts-nanum-coding
+fonts-linuxlibertine
 fonts-ocr-a
 fonts-paktype
 fonts-sil-andika
+fonts-sil-gentium
 fonts-sil-gentium-basic
 fonts-sil-padauk
 fonts-thai-tlwg
@@ -84,18 +100,29 @@ foomatic-db-compressed-ppds
 fprintd
 gdb
 gedit
+# For showing the keyboard layout from the control center
+gkbd-capplet
+gnome-accessibility-themes
 gnome-calculator
 gnome-clocks
+gnome-contacts
 gnome-control-center
+gnome-disk-utility
 gnome-font-viewer
+gnome-getting-started-docs
 gnome-initial-setup
 gnome-logs
+gnome-online-accounts
 gnome-orca
 gnome-screenshot
 gnome-software
 gnome-sushi
 gnome-system-monitor
 gnome-terminal
+gnome-user-guide
+gnome-user-share
+gsfonts
+gvfs-backends
 gvfs-bin
 ibus-anthy
 ibus-avro
@@ -109,21 +136,40 @@ ibus-libzhuyin
 ibus-m17n
 ibus-table-wubi
 ibus-unikey
+# For screen rotation support
+iio-sensor-proxy
+# Used by cups-filters
+imagemagick
 # Needed to support some Epson scanners
 imagescan
+libgphoto2-l10n
+# For DNS lookup of .local domains
+libnss-mdns
+# For auto-unlocking keyrings
+libpam-gnome-keyring
 libreoffice
 libreoffice-gnome
 libreoffice-gtk3
+libreoffice-ogltrans
+libreoffice-script-provider-python
 libreoffice-style-tango
+# Assumed useful for apps that use libsasl2
+libsasl2-modules
+modemmanager
 nautilus
 network-manager-openvpn-gnome
 network-manager-vpnc-gnome
 openprinting-ppds
 openssh-server
-printer-driver-all
+# For flatpak-builder
+patch
+# For modem support
+ppp
+printer-driver-all-enforce
 python3-flapjack
 python3-showmehow
 rhythmbox (>= 2.99.1)
+rhythmbox-plugins
 rtkit
 shotwell
 showmehow-service
@@ -131,16 +177,24 @@ simple-scan
 smbclient
 strace
 system-config-printer-gnome
+system-config-printer-udev
 systemd-coredump
 totem
+totem-plugins
 tracker
+tracker-miner-fs
 ttf-ancient-fonts
 ttf-femkeklaver
+yelp
 unoconv
 unrar
 vinagre
 vino
 whiptail
 xapian-bridge
+# Assuming useful for Orca screen reader
+xbrlapi
 xdg-desktop-portal
 xdg-desktop-portal-gtk
+# Used by mutter for showing dialogs
+zenity
