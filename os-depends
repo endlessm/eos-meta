@@ -47,6 +47,8 @@ iproute2
 iputils-arping
 kmod
 less
+# Needed to make gdb useful
+libc-dbg
 libpam-fprintd
 libpam-runtime
 libpam-systemd

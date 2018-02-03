@@ -12,11 +12,8 @@ avahi-daemon
 # For field debugging
 avahi-utils
 bluez-obexd
-# For Evolution spam filtering
-bogofilter
 brasero
 brasero-cdrkit
-btrfs-tools
 cdrdao
 cheese
 chromium-browser
@@ -29,6 +26,8 @@ cups-pk-helper
 debconf-i18n
 # For NetworkManager connection sharing
 dnsmasq-base
+# For brasero video DVD functionality
+dvdauthor
 eog
 # For flatpak-builder
 elfutils
@@ -68,6 +67,10 @@ eos-updater-tools
 evince
 evolution
 evolution-plugins
+# For spam filtering
+evolution-plugin-bogofilter
+# For Outlook import
+evolution-plugin-pstimport
 file-roller
 flatpak
 flatpak-builder
@@ -78,15 +81,18 @@ fonts-crosextra-caladea
 fonts-crosextra-carlito
 fonts-droid-fallback
 fonts-farsiweb
+fonts-gargi
 fonts-indic
 fonts-kacst
 fonts-khmeros
 fonts-knda
 fonts-nanum
 fonts-nanum-coding
+fonts-noto-mono
 fonts-linuxlibertine
 fonts-ocr-a
 fonts-paktype
+fonts-sarai
 fonts-sil-andika
 fonts-sil-gentium
 fonts-sil-gentium-basic
@@ -143,6 +149,12 @@ imagemagick
 # Needed to support some Epson scanners
 imagescan
 libgphoto2-l10n
+# Assuming needed for iPod support
+libgpod-common
+# Assuming useful for cups
+libmagickcore-6.q16-3-extra
+# Assuming needed for MTP support
+libmtp-runtime
 # For DNS lookup of .local domains
 libnss-mdns
 # For auto-unlocking keyrings
@@ -188,6 +200,8 @@ ttf-femkeklaver
 yelp
 unoconv
 unrar
+# For data transfer with iOS devices
+usbmuxd
 vinagre
 vino
 whiptail
