@@ -128,6 +128,8 @@ gnome-terminal
 gnome-user-guide
 gnome-user-share
 gsfonts
+# Our default GTK2 theme requires this engine.
+gtk2-engines-pixbuf
 gvfs-backends
 gvfs-bin
 ibus-anthy
