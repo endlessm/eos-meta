@@ -35,6 +35,7 @@ fi
 CONF_FILENAME="99-coredump.conf"
 SYSCTL_CONF_FILE="${SYSCONFDIR}/sysctl.d/${CONF_FILENAME}"
 LIMITS_CONF_FILE="${SYSCONFDIR}/security/limits.d/${CONF_FILENAME}"
+SYSTEM_CONF_FILE="${SYSCONFDIR}/systemd/system.conf.d/${CONF_FILENAME}"
 
 # Enable coredumps
 mkdir -p $(dirname "${LIMITS_CONF_FILE}")
@@ -49,3 +50,13 @@ mkdir -p $(dirname "${SYSCTL_CONF_FILE}")
 echo "Enabling systemd coredumps processing and storage"
 echo "kernel.core_pattern=|/lib/systemd/systemd-coredump %p %u %g %s %t %c %e" > "${SYSCTL_CONF_FILE}"
 sysctl -p "${SYSCTL_CONF_FILE}"
+
+# Remove coredump size limits for all systemd-controlled processes by default.
+# Note that this won’t override explicit LimitCORE= values in individual unit files.
+mkdir -p $(dirname "${SYSTEM_CONF_FILE}")
+echo "Removing coredump size limits for systemd units"
+cat <<EOF > "${SYSTEM_CONF_FILE}"
+[Manager]
+# Do not limit coredumps by default
+DefaultLimitCORE=infinity
+EOF
