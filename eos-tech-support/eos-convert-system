@@ -129,8 +129,12 @@ mkdir -p /var/log/journal
 eos-enable-coredumps /sysroot/etc
 
 # Put the kernels/initramfs in the expected place by Debian
-cp -pax ${OSTREE_DEPLOY_CURRENT}/boot/{vmlinuz,initramfs}*  /boot
-rename 's/-\w*$//g,s/initramfs/initrd\.img/g' /boot/{vmlinuz,init}*
+for orig in ${OSTREE_DEPLOY_CURRENT}/boot/{vmlinuz,initramfs}*; do
+  new="${orig##*/}"
+  new="${new%-*}"
+  new="${new/initramfs/initrd.img}"
+  cp -pax "$orig" "/boot/$new"
+done
 
 if [ -L /boot/uEnv.txt ] ; then 
   # Running on ARM
