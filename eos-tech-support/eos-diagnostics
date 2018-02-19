@@ -388,7 +388,7 @@ function collectPrintersInfo() {
         let envp = ['LANG=C'];
         let [res, stdout, stderr, exitStatus] = GLib.spawn_sync(null, argv, envp,
                                                                 GLib.SpawnFlags.DEFAULT,
-                                                                null, null);
+                                                                null);
         output += stdout;
     } catch (e) {
         output += 'error ocurred querying CUPS status: ' + e + '\n';
