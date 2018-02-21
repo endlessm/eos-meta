@@ -36,7 +36,7 @@ EOF
 FORCE=
 REMOVABLE=
 DD_IN_OPTS=(iflag=nonblock)
-DD_OUT_OPTS=(oflag=nonblock conv=fsync)
+DD_OUT_OPTS=(conv=fsync)
 while true; do
     case "$1" in
         -f|--force)
