@@ -27,23 +27,27 @@ eval set -- "$ARGS"
 usage() {
     cat <<EOF
 Usage:
-   $0 [options] DEVICE
+   $0 --os-image PATH --installer PATH DEVICE
+   $0 --latest DEVICE
+
 Arguments:
     DEVICE	Device path (e.g. '/dev/sdb' or '/dev/mmcblk0')
+
 Options:
-   -i,--installer PATH	Path to Endless OS installer image
+   -i,--installer PATH	Path to eosinstaller image
    -o,--os-image  PATH	Path to Endless OS image to add to installer
-   -l,--latest		Fetch latest OS and/or installer image
-   -h,--help		show this message
+   -l,--latest		Fetch latest OS and/or eosinstaller image
+
+If --latest is not specified, both --installer and --os-image are required.
+
 If --latest is specified and one or both of --installer or --os-image are
-missing, the latest image will be downloaded. If --latest is not specified,
-both --installer and --os-image must be specified.
+missing, the latest image will be downloaded.
 EOF
 }
 
 function check_exists() {
     if [ ! -f "$1" ]; then
-        echo "$1 does not exist or is not a file device"
+        echo "Error: $1 does not exist or is not a file"
         exit 1
     fi
 }
@@ -77,11 +81,20 @@ while true; do
     esac
 done
 
-if [ $# -lt 1 ] ; then
-    echo "Missing DEVICE"
+if [ $# -lt 1 ]; then
+    echo "Error: missing DEVICE"
+    echo
     usage
     exit 1
 fi
+
+if [ $# -gt 1 ]; then
+    echo "Error: extra arguments after DEVICE"
+    echo
+    usage
+    exit 1
+fi
+
 
 DEVICE="$1"
 
@@ -129,7 +142,8 @@ if [ ! -z "$FETCH_LATEST" ]; then
 fi
 
 if [ ! -f "$INSTALLER_IMAGE" -o ! -f "$OS_IMAGE" ]; then
-    echo "--installer and --image are required if --latest is not specified"
+    echo "Error: --installer and --os-image are both required if --latest is not specified"
+    echo
     usage
     exit 2
 fi
