@@ -477,7 +477,7 @@ function collectChromiumPluginsInfo() {
 
 function collectEosDevInfo() {
     let output = '';
-    let signalDir = Gio.File.new_for_path('/var/lib/xml-core');
+    let signalDir = Gio.File.new_for_path('/var/cache/debconf');
     if (signalDir.query_exists(null)) {
         output += '*************************************************************\n';
         output += '*                        WARNING                            *\n';

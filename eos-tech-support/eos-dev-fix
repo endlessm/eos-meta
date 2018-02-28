@@ -49,9 +49,7 @@ echo -e "\nAutomatic upgrades have been stopped," \
 
 echo "Copying files from $OSTREE_DEPLOY_CURRENT"
 
-if [ ! -d /var/lib/xml-core ]; then
-  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/xml-core /var/lib/
-  cp -a $OSTREE_DEPLOY_CURRENT/var/lib/sgml-base /var/lib/
+if [ ! -d /var/cache/debconf ]; then
   cp -a $OSTREE_DEPLOY_CURRENT/var/cache/debconf /var/cache/
   apt-get update
 else
