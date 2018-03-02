@@ -105,6 +105,17 @@ Description: Target packages of the Endless distribution for S905X-based boards
  .
  This set provides the platform specific package list for armhf-s905x
 
+Package: eos-core-rk3288
+Architecture: armhf
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless distribution for rk3288-based boards
+ This package depends on all packages required for the Endless OS core images
+ .
+ It is also used to help ensure proper upgrades, so it is recommended that
+ it not be removed.
+ .
+ This set provides the platform specific package list for armhf-rk3288
+
 Package: eos-core-nexthw
 Architecture: amd64
 Depends: ${misc:Depends}, ${eos:Depends}
