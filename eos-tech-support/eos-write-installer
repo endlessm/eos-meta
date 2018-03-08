@@ -25,7 +25,7 @@ ARGS=$(getopt -o i:o:lh -l "installer:,os-image:,latest,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
-    cat <<EOF
+    cat >&2 <<EOF
 Usage:
    $0 --os-image PATH --installer PATH DEVICE
    $0 --latest DEVICE
@@ -47,7 +47,7 @@ EOF
 
 function check_exists() {
     if [ ! -f "$1" ]; then
-        echo "Error: $1 does not exist or is not a file"
+        echo "Error: $1 does not exist or is not a file" >&2
         exit 1
     fi
 }
@@ -82,15 +82,15 @@ while true; do
 done
 
 if [ $# -lt 1 ]; then
-    echo "Error: missing DEVICE"
-    echo
+    echo "Error: missing DEVICE" >&2
+    echo >&2
     usage
     exit 1
 fi
 
 if [ $# -gt 1 ]; then
-    echo "Error: extra arguments after DEVICE"
-    echo
+    echo "Error: extra arguments after DEVICE" >&2
+    echo >&2
     usage
     exit 1
 fi
@@ -100,7 +100,7 @@ DEVICE="$1"
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
-    echo "Program requires superuser privileges"
+    echo "Program requires superuser privileges" >&2
     exit 1
 fi
 
@@ -122,13 +122,13 @@ for command in "${!dependencies[@]}"; do
 done
 
 if [ ! -b "$DEVICE" ]; then
-    echo "$DEVICE does not exist or is not a block device... aborting!"
+    echo "$DEVICE does not exist or is not a block device... aborting!" >&2
     exit 1
 fi
 
 if grep -qs "$DEVICE" /proc/mounts; then
     # Protect against overwriting the device currently in use
-    echo "$DEVICE is currently in use -- please unmount and try again"
+    echo "$DEVICE is currently in use -- please unmount and try again" >&2
     exit 1
 fi
 
@@ -142,15 +142,15 @@ if [ ! -z "$FETCH_LATEST" ]; then
 fi
 
 if [ ! -f "$INSTALLER_IMAGE" -o ! -f "$OS_IMAGE" ]; then
-    echo "Error: --installer and --os-image are both required if --latest is not specified"
-    echo
+    echo "Error: --installer and --os-image are both required if --latest is not specified" >&2
+    echo >&2
     usage
     exit 2
 fi
 
 # Write the image
-echo
-echo "Writing $INSTALLER_IMAGE to $DEVICE..."
+echo >&2
+echo "Writing $INSTALLER_IMAGE to $DEVICE..." >&2
 $EOS_WRITE_IMAGE --removable -f "$INSTALLER_IMAGE" "$DEVICE"
 
 # Get the current partition table
