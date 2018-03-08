@@ -36,7 +36,7 @@ EOF
 FORCE=
 REMOVABLE=
 DD_IN_OPTS=(iflag=nonblock)
-DD_OUT_OPTS=(oflag=nonblock conv=fsync)
+DD_OUT_OPTS=(conv=fsync)
 while true; do
     case "$1" in
         -f|--force)
@@ -191,8 +191,13 @@ else
     fi
 
     if [ ! "$REMOVABLE" ]; then
-        REMOVABLE=$(lsblk --raw --nodeps --noheading --output HOTPLUG "$DEVICE")
-        if [ "$REMOVABLE" = 1 ]; then
+        if ! REMOVABLE=$(lsblk --raw --nodeps --noheading --output HOTPLUG "$DEVICE"); then
+            # This can happen if the disk has been "ejected" rather than
+            # unmounting. Writing to it will fail in this case.
+            echo "Unable to detect whether $DEVICE is removable;" \
+                 "writing to it will probably fail." >&2
+            REMOVABLE=1
+        elif [ "$REMOVABLE" = 1 ]; then
             echo "Guessed that $DEVICE is a removable disk;" \
                  "pass --fixed if this is wrong." >&2
         else
