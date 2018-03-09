@@ -159,6 +159,8 @@ libmagickcore-6.q16-3-extra
 libmtp-runtime
 # For DNS lookup of .local domains
 libnss-mdns
+# For NSS lookup of users and groups created by units with DynamicUser=
+libnss-systemd
 # For auto-unlocking keyrings
 libpam-gnome-keyring
 libreoffice
