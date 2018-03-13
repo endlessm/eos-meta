@@ -27,6 +27,7 @@ fake-hwclock
 file
 fonts-dejavu
 gdisk
+gdm3
 geoclue-2.0
 geoip-database
 gettext-base
