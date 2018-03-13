@@ -2,3 +2,4 @@
 mali400-drivers-meson8
 linux-image-3.10-trunk-meson8b
 u-boot-meson-m201
+xserver-xorg-video-armsoc

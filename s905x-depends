@@ -2,3 +2,4 @@
 mali400-drivers-meson8
 linux-image-3.14-2-s905x
 u-boot-s905x
+xserver-xorg-video-armsoc
