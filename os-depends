@@ -86,8 +86,6 @@ xserver-xorg
 xserver-xorg-input-libinput
 # Some of these are really specific to x86, but just keep them off of arm for now
 xserver-xorg-video-amdgpu [!armhf]
-# Generic ARM X driver
-xserver-xorg-video-armsoc [armhf]
 xserver-xorg-video-intel [!armhf]
 xserver-xorg-video-nouveau [!armhf]
 xserver-xorg-video-nvidia [!armhf]
