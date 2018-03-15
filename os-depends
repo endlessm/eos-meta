@@ -95,7 +95,6 @@ wpasupplicant
 xauth
 xdg-user-dirs
 xdg-user-dirs-gtk
-xserver-xorg
 xserver-xorg-input-libinput
 # Some of these are really specific to x86, but just keep them off of arm for now
 xserver-xorg-video-amdgpu [!armhf]

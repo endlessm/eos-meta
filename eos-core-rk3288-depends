@@ -1,2 +1,3 @@
+include os-rk3288-depends
 include rk3288-depends
 eos-core
