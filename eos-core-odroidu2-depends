@@ -1,2 +1,3 @@
 include odroidu2-depends
+include os-odroidu2-depends
 eos-core
