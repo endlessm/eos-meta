@@ -1,0 +1,130 @@
+#!/bin/bash
+
+set -euo pipefail
+
+DATA_FILES_URL=https://github.com/endlessm/eos-qa-test-files/archive/master.zip
+DATA_FILES_BASEDIR=~/eos-qa-test-files-master
+DATA_FILES_ZIP=${DATA_FILES_BASEDIR}.zip
+DATA_FILES=${DATA_FILES_BASEDIR}/user-tests
+SLEEP_APP_LAUNCH=30
+SLEEP_URL_LAUNCH=10
+
+command=""
+if [ $# -gt 0 ]; then
+        command=$1
+fi
+
+check_dep_flatpak() {
+    # relies on set -e
+    flatpak info $1 > /dev/null
+}
+
+check_deps_common() {
+    if [ ! -e $DATA_FILES ]; then
+        echo "missing data files at $DATA_FILES; attempting to download"
+        wget -O ${DATA_FILES_ZIP} ${DATA_FILES_URL}
+        unzip -d $(dirname ${DATA_FILES_BASEDIR}) ${DATA_FILES_ZIP}
+        if [ $? -ne 0 ]; then
+            echo >&2 "failed to extract test files from archive"
+            exit 1
+        fi
+    fi
+}
+
+check_deps_light() {
+    check_deps_common
+    check_dep_flatpak "com.endlessm.animals.en"
+}
+
+check_deps_medium() {
+    check_deps_common
+}
+
+check_deps_heavy() {
+    check_deps_common
+    check_dep_flatpak "org.gimp.Gimp"
+}
+
+check_deps() {
+    check_deps_light
+    check_deps_medium
+    check_deps_heavy
+}
+
+command_launch() {
+    cmd="$1"
+    shift
+
+    $cmd $@ &
+    # wait to simulate a (somewhat-patient) user launching an app then waiting
+    # some time before doing any other work (like launching other apps)
+    #
+    # NOTE: a more-realistic scenario would be waiting until the app appears to
+    # be responsive, use it for a while, then launch another app. But that would
+    # be fairly complex to simulate as an app's "apparent" readiness to be used
+    # depends on the app and is probably not readily detected in software.
+    sleep $SLEEP_APP_LAUNCH
+}
+
+url_launch() {
+    gio open $1 &
+
+    # see note above for command_launch; this wait time is shorter as users seem
+    # likely to wait much less time between opening new tabs
+    sleep_time=$SLEEP_URL_LAUNCH
+
+    if [ $browser_launched -eq 0 ]; then
+        # on the first URL launch of this script's run, assume the browser is
+        # launching and give it more time.
+        #
+        # this isn't a perfect check but the browser (or any apps but the
+        # terminal and maybe system monitor) shouldn't be running at the start
+        # of this script under normal use.
+        sleep_time=$SLEEP_APP_LAUNCH
+        browser_launched=1
+    fi
+
+    sleep $sleep_time
+}
+
+browser_launched=0
+
+# note that this implicitly depends upon EOS >= 3.0 for the `gio` command and
+# apps being packaged as Flatpaks
+case $command in
+    check)
+        check_deps
+        echo "all dependencies fulfilled"
+        ;;
+    light)
+        check_deps_light
+        command_launch flatpak run com.endlessm.animals.en
+        command_launch lowriter --norestore ${DATA_FILES}/chicken.odt
+        url_launch https://www.google.com/search?q=chicken
+        url_launch https://www.youtube.com/watch?v=vgUzdb3S2uA
+        url_launch https://codecombat.com/
+        ;;
+    medium)
+        check_deps_medium
+        command_launch rhythmbox
+        command_launch localc --norestore ${DATA_FILES}/random-data.ods
+        url_launch https://news.google.com/
+        url_launch http://www.espn.com/
+        url_launch http://www.maxgames.com/
+        ;;
+    heavy)
+        check_deps_heavy
+        command_launch shotwell
+        command_launch flatpak run org.gimp.Gimp ${DATA_FILES}/coffee-2mp.jpg
+        command_launch loimpress --norestore \
+            ${DATA_FILES}/example-presentation.odp
+        url_launch http://www.supercook.com/
+        url_launch https://science.nasa.gov/
+        url_launch https://www.nationalgeographic.com/
+        ;;
+    *)
+        echo >&2 "usage: $0 [light|medium|heavy]	add marginal load"
+        echo >&2 "       $0 check			check requirements for command"
+        exit 1
+        ;;
+esac
