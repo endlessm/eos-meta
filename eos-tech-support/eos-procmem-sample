@@ -1,0 +1,36 @@
+#!/bin/bash
+
+declare -A rss_sums
+declare -A pss_sums
+
+if [ $EUID != 0 ]; then
+    echo "permission denied: must be run as root" >&2
+    exit 1
+fi
+
+for pid in $(ps -ef | awk '{print $2}'); do
+    if [ -f /proc/$pid/smaps ]; then
+        cmd=$(cat /proc/$pid/comm)
+        rss=$(awk 'BEGIN {i=0} /^Rss/ {i = i + $2} END {print i}' \
+                /proc/$pid/smaps)
+        pss=$(awk 'BEGIN {i=0} /^Pss/ {i = i + $2} END {print i}' \
+                /proc/$pid/smaps)
+
+        rss_sums[$cmd]=$((${rss_sums[$cmd]} + $rss))
+        pss_sums[$cmd]=$((${pss_sums[$cmd]} + $pss))
+    fi
+done
+
+for k in ${!rss_sums[@]}; do
+    output=$(echo "$output\n$k\t${pss_sums[$k]}\t${rss_sums[$k]}")
+done
+
+# PSS is the "proportional" set size. In this measure, each shared page size is
+# divided by the number of processes sharing that page, to avoid the
+# double-counting you get with RSS. Thus, PSS values are a fairer measure of
+# memory usage than RSS for processes that heavily share their memory (like
+# Xorg)
+
+echo -e "process name\tPSS (KiB)\tRSS (KiB)"
+# print results sorted by PSS
+echo -e "$output" | sort -rnk 2

@@ -51,3 +51,18 @@ eos-sysmem-sampler
 ==================
 Continuously samples the various memory stats of the system and prints them out
 in a format for easy pasting into a spreadsheet.
+
+eos-procmem-sample
+==================
+Sums up the total PSS and RSS memory used by each process, collated by command.
+So, if there are two chrome processes using A and B KiB of PSS, respectively,
+the output will show a single row for "chrome" with a PSS value of A+B (KiB).
+
+PSS memory is a measure of memory used with each shared page of memory divided
+by the number of processes sharing it. This gives a better idea of how much
+memory each process is responsible for than RSS (which over-counts shared
+memory). Thus, processes which share a lot of memory look better compared by PSS
+than RSS.
+
+This command has to be run as root (eg, by running it through `sudo`) since it
+gets stats for all users' processes, including root.
