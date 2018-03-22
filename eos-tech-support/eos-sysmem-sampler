@@ -1,0 +1,29 @@
+#!/bin/bash
+
+echo -en "time\tphys total\tphys free\tphys used\tphys buff/cache\t"
+echo -en "phys avail\tswap total\tswap free\tswap used"
+echo
+
+while : ; do
+    # populate an array with the system memory summary lines from `free`
+    mapfile -t lines < <(free | egrep '^(Mem|Swap)')
+
+    time=$(date +%s)
+
+    phys_total=$(echo ${lines[0]} | cut -d ' ' -f 2)
+    phys_used=$(echo ${lines[0]} | cut -d ' ' -f 3)
+    phys_free=$(echo ${lines[0]} | cut -d ' ' -f 4)
+    phys_buff=$(echo ${lines[0]} | cut -d ' ' -f 6)
+    phys_avail=$(echo ${lines[0]} | cut -d ' ' -f 7)
+
+    swap_total=$(echo ${lines[1]} | cut -d ' ' -f 2)
+    swap_used=$(echo ${lines[1]} | cut -d ' ' -f 3)
+    swap_free=$(echo ${lines[1]} | cut -d ' ' -f 4)
+
+    echo -en "${time}\t${phys_total}\t${phys_free}\t${phys_used}\t"
+    echo -en "${phys_buff}\t${phys_avail}\t${swap_total}\t"
+    echo -en "${swap_free}\t${swap_used}"
+    echo
+
+    sleep 1
+done
