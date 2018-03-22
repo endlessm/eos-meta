@@ -46,3 +46,8 @@ $ eos-user-stress-test medium
 ```
 
 For "heavy" stress, follow this with `eos-user-stress-test heavy`.
+
+eos-sysmem-sampler
+==================
+Continuously samples the various memory stats of the system and prints them out
+in a format for easy pasting into a spreadsheet.
