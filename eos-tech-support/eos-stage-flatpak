@@ -57,7 +57,7 @@ else
     flatpak_repo=/var/lib/flatpak/repo
 fi
 
-for remote in `flatpak remote-list | awk {'print $1'}` ; do
+for remote in `flatpak remote-list --system | awk {'print $1'}` ; do
     url=$(ostree --repo="$flatpak_repo" config get 'remote "'"$remote"'".url')
     if [[ "$url" == *"ostree.endlessm.com"* ]] ; then
         repo=${url##*/}
