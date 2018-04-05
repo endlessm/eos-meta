@@ -4,27 +4,8 @@
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-DEB_TARGET_ARCH := $(shell dpkg-architecture -q DEB_TARGET_ARCH)
-
-ifeq ($(DEB_TARGET_ARCH),amd64)
-LDSO32_SYMLINKS := ld-linux.so.2
-endif
-
-ifeq ($(DEB_TARGET_ARCH),arm64)
-LDSO32_SYMLINKS := ld-linux.so.3 ld-linux-armhf.so.3
-endif
-
 %:
 	dh $@
-
-override_dh_install:
-ifneq ($(LDSO32_SYMLINKS),)
-	for i in $(LDSO32_SYMLINKS) ; do \
-		mkdir -p debian/eos-platform-runtime/lib ; \
-		ln -sf /app/lib/$$i debian/eos-platform-runtime/lib/$$i ; \
-	done
-endif
-	dh_install
 
 override_dh_installdeb:
 	./eos-metapackage

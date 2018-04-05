@@ -21,24 +21,6 @@ Description: Target packages of the Endless distribution
  It is also used to help ensure proper upgrades, so it is recommended that
  it not be removed.
 
-Package: eos-platform-runtime
-Architecture: any
-Depends: ${misc:Depends}, ${eos:Depends}
-Conflicts: libwebkit2gtk-4.0-37 (>= 1:2.18.4),
-           libjavascriptcoregtk-4.0-18 (>= 1:2.18.4)
-Description: Target packages of the Endless platform runtime
- This metapackage depends on all packages required for the Endless
- platform runtime.
-
-Package: eos-sdk-runtime
-Architecture: any
-Depends: ${misc:Depends}, ${eos:Depends}
-Conflicts: libwebkit2gtk-4.0-37 (>= 1:2.18.4),
-           libjavascriptcoregtk-4.0-18 (>= 1:2.18.4)
-Description: Target packages of the Endless SDK runtime
- This metapackage depends on all packages required for the Endless SDK
- runtime.
-
 Package: eos-core-i386
 Architecture: i386
 Depends: ${misc:Depends}, ${eos:Depends}
