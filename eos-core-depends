@@ -182,7 +182,9 @@ patch
 # For modem support
 ppp
 printer-driver-all-enforce
+python-pip
 python3-flapjack
+python3-pip
 python3-showmehow
 rhythmbox (>= 2.99.1)
 rhythmbox-plugins

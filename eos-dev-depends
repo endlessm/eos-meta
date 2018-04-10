@@ -54,7 +54,6 @@ patchutils
 pep8
 putty
 pyflakes
-python-pip
 quilt
 screen
 sl
