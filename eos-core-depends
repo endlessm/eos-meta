@@ -152,7 +152,7 @@ imagemagick
 imagescan
 libgphoto2-l10n
 # Needed for image thumbnailer
-libgdk-pixbuf2.0-0-bin
+libgdk-pixbuf2.0-bin
 # Assuming needed for iPod support
 libgpod-common
 # Assuming useful for cups
