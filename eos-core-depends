@@ -8,11 +8,6 @@ alsa-utils
 apt
 apt-transport-https
 apt-utils
-aspell-ar
-aspell-es
-aspell-fr
-aspell-pt-br
-aspell-pt-pt
 avahi-daemon
 # For field debugging
 avahi-utils
