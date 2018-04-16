@@ -157,28 +157,6 @@ libnss-mdns
 libnss-systemd
 # For auto-unlocking keyrings
 libpam-gnome-keyring
-libreoffice
-libreoffice-gnome
-libreoffice-gtk3
-libreoffice-help-en-us
-libreoffice-help-es
-libreoffice-help-pt-br
-libreoffice-l10n-ar
-libreoffice-l10n-bn
-libreoffice-l10n-de
-libreoffice-l10n-es
-libreoffice-l10n-fr
-libreoffice-l10n-id
-libreoffice-l10n-pt
-libreoffice-l10n-pt-br
-libreoffice-l10n-ro
-libreoffice-l10n-th
-libreoffice-l10n-vi
-libreoffice-l10n-zh-cn
-libreoffice-l10n-zh-tw
-libreoffice-ogltrans
-libreoffice-script-provider-python
-libreoffice-style-tango
 # Assumed useful for apps that use libsasl2
 libsasl2-modules
 modemmanager
