@@ -691,10 +691,23 @@ let diagnostics = [
         hardwareInfo: true,
         coredumpInfo: true,
         content: function(verboseFlag) {
+            let verboseAppend = ''
             if (verboseFlag)
-                return trySpawn('journalctl --no-pager --output verbose');
-            else
-                return trySpawn('journalctl --no-pager');
+                verboseAppend = ' --output verbose';
+
+            let baseCommand = 'journalctl --no-pager' + verboseAppend;
+            let output = ''
+            if (fullJournalFlag) {
+                // get the entire journal
+                output = trySpawn(baseCommand);
+            } else {
+                // get the journal from only the previous and current boots, if
+                // they exist
+                output = trySpawn(baseCommand + ' -b -1') + '\n';
+                output += trySpawn(baseCommand + ' -b');
+            }
+
+            return output;
         },
     },
     {
@@ -709,13 +722,13 @@ let diagnostics = [
     },
 ];
 
-function dumpDiagnostics(filename, verboseFlag) {
+function dumpDiagnostics(filename, verboseFlag, fullJournalFlag) {
     let fullDump = '';
 
     fullDump += collectEosDevInfo();
 
     diagnostics.forEach(function(diag) {
-        let content = diag.content(verboseFlag);
+        let content = diag.content(verboseFlag, fullJournalFlag);
         if (!content)
             return;
 
@@ -864,6 +877,7 @@ let filename = null;
 let hardwareFlag = false;
 let coredumpsFlag = false;
 let verboseFlag = false;
+let fullJournalFlag = false;
 
 ARGV.forEach(function(arg) {
     if (arg == '-H' || arg == '--hardware')
@@ -872,6 +886,10 @@ ARGV.forEach(function(arg) {
         coredumpsFlag = true;
     else if (arg == '-v' || arg == '--verbose')
         verboseFlag = true;
+    else if (arg == '-f' || arg == '--full-journal')
+        // only include the full journal if explicitly requested to limit the
+        // resulting output size
+        fullJournalFlag = true;
     else
         filename = arg;
 });
@@ -909,5 +927,5 @@ if (!hardwareFlag && !coredumpsFlag) {
         filename = GLib.build_filenamev([GLib.get_home_dir(), basename]);
     }
 
-    dumpDiagnostics(filename, verboseFlag);
+    dumpDiagnostics(filename, verboseFlag, fullJournalFlag);
 }
