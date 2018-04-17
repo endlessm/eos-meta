@@ -46,19 +46,6 @@ eos-install-app-helper [amd64]
 eos-installer
 eos-kalite-system-helper
 eos-kalite-tools
-eos-language-pack-ar
-eos-language-pack-bn
-eos-language-pack-de
-eos-language-pack-en
-eos-language-pack-es
-eos-language-pack-fr
-eos-language-pack-id
-eos-language-pack-pt-br
-eos-language-pack-ro
-eos-language-pack-th
-eos-language-pack-vi
-eos-language-pack-zh-cn
-eos-language-pack-zh-tw
 eos-media
 eos-metrics-instrumentation
 eos-phone-home
@@ -132,6 +119,10 @@ gsfonts
 gtk2-engines-pixbuf
 gvfs-backends
 gvfs-bin
+hunspell-ar
+hunspell-en-us
+hunspell-fr
+hunspell-vi
 ibus-anthy
 ibus-avro
 ibus-cangjie
@@ -165,15 +156,13 @@ libnss-mdns
 libnss-systemd
 # For auto-unlocking keyrings
 libpam-gnome-keyring
-libreoffice
-libreoffice-gnome
-libreoffice-gtk3
-libreoffice-ogltrans
-libreoffice-script-provider-python
-libreoffice-style-tango
 # Assumed useful for apps that use libsasl2
 libsasl2-modules
 modemmanager
+myspell-es
+myspell-pt
+myspell-pt-br
+myspell-th
 nautilus
 network-manager-openvpn-gnome
 network-manager-vpnc-gnome
