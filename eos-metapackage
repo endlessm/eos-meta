@@ -80,7 +80,7 @@ sub subst_depends {
 
 	# Allow the toplevel file to be missing (e.g., -recommends)
 	@deps = get_depends("$depfile") if -e "$depfile";
-	addsubstvar($package, $var, join(', ', sort @deps));
+	addsubstvar($package, $var, join(', ', @deps));
 }
 
 foreach my $package (@{$dh{DOPACKAGES}}) {

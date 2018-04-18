@@ -4,6 +4,16 @@
 include base-depends
 include os-depends
 
+# intentionally un-sorted, to provide hunspell-dictionary early in
+# the process and avoid libenchant pulling in aspell-en and aspell
+hunspell-ar
+hunspell-en-us
+hunspell-es
+hunspell-fr
+hunspell-pt-br
+hunspell-th
+hunspell-vi
+
 alsa-utils
 apt
 apt-transport-https
@@ -119,13 +129,6 @@ gsfonts
 gtk2-engines-pixbuf
 gvfs-backends
 gvfs-bin
-hunspell-ar
-hunspell-en-us
-hunspell-es
-hunspell-fr
-hunspell-pt-br
-hunspell-th
-hunspell-vi
 ibus-anthy
 ibus-avro
 ibus-cangjie
