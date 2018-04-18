@@ -121,7 +121,10 @@ gvfs-backends
 gvfs-bin
 hunspell-ar
 hunspell-en-us
+hunspell-es
 hunspell-fr
+hunspell-pt-br
+hunspell-th
 hunspell-vi
 ibus-anthy
 ibus-avro
@@ -159,9 +162,6 @@ libpam-gnome-keyring
 # Assumed useful for apps that use libsasl2
 libsasl2-modules
 modemmanager
-myspell-es
-myspell-pt-br
-myspell-th
 nautilus
 network-manager-openvpn-gnome
 network-manager-vpnc-gnome
