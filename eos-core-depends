@@ -4,6 +4,16 @@
 include base-depends
 include os-depends
 
+# intentionally un-sorted, to provide hunspell-dictionary early in
+# the process and avoid libenchant pulling in aspell-en and aspell
+hunspell-ar
+hunspell-en-us
+hunspell-es
+hunspell-fr
+hunspell-pt-br
+hunspell-th
+hunspell-vi
+
 alsa-utils
 apt
 apt-transport-https
@@ -119,10 +129,6 @@ gsfonts
 gtk2-engines-pixbuf
 gvfs-backends
 gvfs-bin
-hunspell-ar
-hunspell-en-us
-hunspell-fr
-hunspell-vi
 ibus-anthy
 ibus-avro
 ibus-cangjie
@@ -159,10 +165,6 @@ libpam-gnome-keyring
 # Assumed useful for apps that use libsasl2
 libsasl2-modules
 modemmanager
-myspell-es
-myspell-pt
-myspell-pt-br
-myspell-th
 nautilus
 network-manager-openvpn-gnome
 network-manager-vpnc-gnome
