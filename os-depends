@@ -76,7 +76,6 @@ ostree
 p7zip-full
 parted
 policykit-1
-python-gi
 python3-gi
 pulseaudio
 pulseaudio-module-bluetooth
