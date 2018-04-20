@@ -42,6 +42,7 @@ eog
 # For flatpak-builder
 elfutils
 eos-acknowledgements
+eos-adblock-plus-extensions
 eos-b43fw-install
 eos-browser-tools
 eos-chrome-plugin-updater
