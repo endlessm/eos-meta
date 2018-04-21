@@ -167,6 +167,7 @@ libpam-gnome-keyring
 libsasl2-modules
 modemmanager
 nautilus
+nautilus-extension-brasero
 network-manager-openvpn-gnome
 network-manager-vpnc-gnome
 openprinting-ppds
