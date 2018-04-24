@@ -147,7 +147,7 @@ iio-sensor-proxy
 # Used by cups-filters
 imagemagick
 # Needed to support some Epson scanners
-imagescan
+imagescan-driver
 libgphoto2-l10n
 # Needed for image thumbnailer
 libgdk-pixbuf2.0-bin
