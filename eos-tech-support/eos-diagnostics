@@ -880,7 +880,19 @@ let verboseFlag = false;
 let fullJournalFlag = false;
 
 ARGV.forEach(function(arg) {
-    if (arg == '-H' || arg == '--hardware')
+    if (arg == '-h' || arg == '--help') {
+	print('Usage:');
+	print('  eos-diagnostics [OPTION…]');
+	print('');
+	print('Options:');
+	print('  -h, --help          Show help options');
+	print('  -H, --hardware      Include hardware info');
+	print('  -C, --coredumps     Include core dumps');
+	print('  -f, --full-journal  Include the full journal (default is last 2 boots)');
+	print('');
+	System.exit(0);
+    }
+    else if (arg == '-H' || arg == '--hardware')
         hardwareFlag = true;
     else if (arg == '-C' || arg == '--coredumps')
         coredumpsFlag = true;
