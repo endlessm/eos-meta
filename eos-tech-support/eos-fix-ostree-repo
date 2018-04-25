@@ -249,7 +249,7 @@ def mark_commits_partial(repo):
         if objtype != OSTree.ObjectType.COMMIT:
             continue
         _, commit, state = repo.load_commit(checksum)
-        if state == OSTree.RepoCommitState.REPO_COMMIT_STATE_PARTIAL:
+        if state == OSTree.RepoCommitState.PARTIAL:
             print('Commit', checksum, 'already marked as partial')
             continue
 
@@ -304,7 +304,7 @@ def pull_partial_refs(repo):
             continue
 
         _, commit, state = repo.load_commit(checksum)
-        if state != OSTree.RepoCommitState.REPO_COMMIT_STATE_PARTIAL:
+        if state != OSTree.RepoCommitState.PARTIAL:
             continue
 
         # Try to pull the full commit again.
