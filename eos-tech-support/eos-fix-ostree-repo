@@ -67,6 +67,18 @@ import sys
 import time
 
 
+# Older OSTree versions had the GI annotation wrong, and the enum
+# value was OSTree.RepoCommitState.REPO_COMMIT_STATE_PARTIAL while
+# recent versions have OSTree.RepoCommitState.PARTIAL [1].
+#
+# So we try to load OSTree.RepoCommitState.PARTIAL and, if that fails,
+# override OSTree.RepoCommitState.PARTIAL to be the old enum value.
+#
+# [1] See https://github.com/ostreedev/ostree/pull/1335
+if 'PARTIAL' not in dir(OSTree.RepoCommitState):
+    OSTree.RepoCommitState.PARTIAL = OSTree.RepoCommitState.REPO_COMMIT_STATE_PARTIAL
+
+
 # Prior to ostree-2017.1, the GI annotation for ostree_repo_list_objects
 # was wrong, making it unusable from bindings[1]. This is tricky to
 # detect since the version checking was not added until ostree-2017.3.
