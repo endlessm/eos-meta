@@ -99,6 +99,11 @@ ostree config set 'remote "eos".branches' "${new_branch};"
 ostree admin set-origin eos "$new_url" "$new_branch" \
        --set=branches="${new_branch};"
 
+# Delete the ostree-metadata, if any, because it is only valid for
+# the old repo URL, and an attempt to update it might fail if it's
+# considered a downgrade.
+ostree refs --delete eos:ostree-metadata
+
 # Adjust the frequency of update checks
 # eos-updater.conf is the old location of the config file.
 sed -i "s/IntervalDays=.*/IntervalDays=$interval_days/" /etc/eos-updater/eos-autoupdater.conf 2>/dev/null || true
