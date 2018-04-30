@@ -68,5 +68,21 @@ for remote in `flatpak remote-list --system | awk {'print $1'}` ; do
         fi
         echo "Setting flatpak $remote URL to $new_url"
         flatpak remote-modify "$remote" --url="$new_url"
+
+        # Delete the appstream data and fetch it for the new remote;
+        # otherwise an update might be rejected as a downgrade
+        # https://github.com/flatpak/flatpak/issues/1615#issuecomment-385133763
+        rm -rf "$(dirname $flatpak_repo)/appstream/$remote"
+        for arch in `flatpak --supported-arches`; do
+            ostree --repo="$flatpak_repo" refs --delete "$remote:appstream/$arch"
+            # This might fail for the secondary architecture
+            flatpak update --appstream --arch="$arch" "$remote" >/dev/null 2>&1 || true
+        done
+
+        # Do the same with ostree-metadata
+        # https://github.com/flatpak/flatpak/issues/1477#issuecomment-372167938
+        ostree --repo="$flatpak_repo" refs --delete "$remote:ostree-metadata"
+        # Try to update ostree-metadata, but don't bail on failure
+        flatpak remote-ls "$remote" >/dev/null || true
     fi
 done
