@@ -68,5 +68,43 @@ for remote in `flatpak remote-list --system | awk {'print $1'}` ; do
         fi
         echo "Setting flatpak $remote URL to $new_url"
         flatpak remote-modify "$remote" --url="$new_url"
+
+        # Update the collection ID if it's set
+        collection_id=$(ostree --repo="$flatpak_repo" config get 'remote "'"$remote"'".collection-id' 2>/dev/null || echo "")
+        if [ -n "$collection_id" ] ; then
+            # For info on the collection ID patterns, see
+            # https://phabricator.endlessm.com/w/software/ostree/infrastructure/#repository-stages
+            if [ "$STAGE" == "prod" ] ; then
+                # change e.g. com.endlessm.Dev.Apps → com.endlessm.Apps or com.endlessm.Demo.Apps → com.endlessm.Apps
+                new_collection_id=`echo "$collection_id" | sed -e "s/Dev\.//" | sed -e "s/Demo\.//"`
+            elif [ "$STAGE" == "dev" ] ; then
+                # change e.g. com.endlessm.Demo.Apps → com.endlessm.Dev.Apps or com.endlessm.Apps → com.endlessm.Dev.Apps
+                new_collection_id=`echo "$collection_id" | sed -e "s/Dev\.//" | sed -e "s/Demo\.//" | sed -e "s/com\.endlessm\./com.endlessm.Dev./"`
+            elif [ "$STAGE" == "demo" ] ; then
+                # change e.g. com.endlessm.Dev.Apps → com.endlessm.Demo.Apps or com.endlessm.Apps → com.endlessm.Demo.Apps
+                new_collection_id=`echo "$collection_id" | sed -e "s/Dev\.//" | sed -e "s/Demo\.//" | sed -e "s/com\.endlessm\./com.endlessm.Demo./"`
+            else
+                echo "Unrecognized stage '$STAGE'"
+                exit 1
+            fi
+
+            flatpak remote-modify --collection-id="$new_collection_id" "$remote"
+        fi
+
+        # Delete the appstream data and fetch it for the new remote;
+        # otherwise an update might be rejected as a downgrade
+        # https://github.com/flatpak/flatpak/issues/1615#issuecomment-385133763
+        rm -rf "$(dirname $flatpak_repo)/appstream/$remote"
+        for arch in `flatpak --supported-arches`; do
+            ostree --repo="$flatpak_repo" refs --delete "$remote:appstream/$arch"
+            # This might fail for the secondary architecture
+            flatpak update --appstream --arch="$arch" "$remote" >/dev/null 2>&1 || true
+        done
+
+        # Do the same with ostree-metadata
+        # https://github.com/flatpak/flatpak/issues/1477#issuecomment-372167938
+        ostree --repo="$flatpak_repo" refs --delete "$remote:ostree-metadata"
+        # Try to update ostree-metadata, but don't bail on failure
+        flatpak remote-ls "$remote" >/dev/null || true
     fi
 done
