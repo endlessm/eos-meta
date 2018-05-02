@@ -1,66 +1,55 @@
+# The eos-dev package is intended to be installed by developers after
+# converting the system away from ostree.
+#
+# Packages listed here should be commonly used, of high value for
+# development, and expected to be relevant to a whole group of Endless
+# developers.
+#
+# If it's a tool that's only really useful to you, or you only
+# expect it to be used occasionally, then it probably doesn't belong
+# here. But do consider adding it to eos-dev-suggests so that it
+# doesn't get purged from the distro.
+
 apt-file
 apt-utils
 autoconf
 automake
 bash-completion
-bison
-bonnie++
 build-essential
 ccache
 dconf-editor
 debian-keyring
 debian-archive-keyring
 debootstrap
-devhelp
 devscripts
 diffutils
-elinks
 emacs
 endless-ca-cert
-eos-node-modules-dev
 exuberant-ctags
-flex
-fluxbox
 gdb
 gdebi
-germinate
 git
 gitk
-glade
-gnome-api-docs
 gnome-common
 gnome-devel-docs
-gparted
-gperf
 gtk-doc-tools
 htop
 iftop
 iotop
-language-pack-es
-language-pack-pt
-lftp
-libjson-glib-doc
-locate
 lsof
-ltrace
 make
-moreutils
-nethogs
-nmap
-openssh-server
+manpages
+obs-build
 osc
-p7zip-full
 patchutils
+pbuilder
 pep8
-putty
-pyflakes
+pyflakes3
 quilt
 screen
-sl
 strace
 sysstat
 tcpdump
-tig
 tmux
 util-linux
 valgrind

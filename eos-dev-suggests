@@ -1,0 +1,17 @@
+# Packages listed here become Suggested by the eos-dev package.
+#
+# Such packages aren't installed by default when you install eos-dev.
+# The main purpose of listing packages here is so that they aren't considered
+# for deletion by scripts that look for unused packages in our distro. Such
+# scripts have special provisions to consider anything listed here as a
+# required part of our distro.
+
+alsa-tools
+awscli
+codecgraph
+d-feet
+eos-dev-kernel
+evemu
+linux-tools
+pigz
+powertop
