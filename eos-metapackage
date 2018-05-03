@@ -86,6 +86,7 @@ sub subst_depends {
 foreach my $package (@{$dh{DOPACKAGES}}) {
 	subst_depends($package, "depends", "eos:Depends");
 	subst_depends($package, "recommends", "eos:Recommends");
+	subst_depends($package, "suggests", "eos:Suggests");
 }
 
 =head1 SEE ALSO
