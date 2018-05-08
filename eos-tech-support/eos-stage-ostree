@@ -38,6 +38,22 @@ if [ $EUID != 0 ] ; then
     exit 1
 fi
 
+# Get the OS product.major version to build the branch series from. By
+# default, the system updates from the product version (e.g., eos3).
+major_version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
+product_version=${major_version%%.*}
+series="eos${product_version}"
+
+# On 3.4+, eos3a is used as the series as the 3.3 to 3.4 transition
+# implemented a checkpoint on the eos3 branch.
+#
+# https://phabricator.endlessm.com/T21855
+case "$major_version" in
+    3.[4-9]|3.[1-9][0-9])
+        series=eos3a
+        ;;
+esac
+
 if [ "$STAGE" == "dev" ] ; then
     if [ -z "$PASSWORD" ] ; then
 	echo "Error: missing required PASSWORD for dev stage" >&2
@@ -45,23 +61,18 @@ if [ "$STAGE" == "dev" ] ; then
     fi
     base_url="https://endless:${PASSWORD}@origin.ostree.endlessm.com/staging/dev"
     new_collection_id="com.endlessm.Dev.Os"
-    # Get the OS product.major version, as dev stages stay
-    # on the major version (e.g., eos3.2)
-    version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
+    # dev stages stay on the major version (e.g., eos3.2)
+    series="eos${major_version}"
     # Check for an update every time the updater runs
     interval_days=0
 elif [ "$STAGE" == "demo" ] ; then
     base_url="https://ostree.endlessm.com/staging/demo"
     new_collection_id="com.endlessm.Demo.Os"
-    # Get the OS product version (e.g., eos3)
-    version=$(. /etc/os-release && echo $VERSION | cut -d. -f1)
     # Check for an update every time the updater runs
     interval_days=0
 elif [ "$STAGE" == "prod" ] ; then
     base_url="https://ostree.endlessm.com/ostree"
     new_collection_id="com.endlessm.Os"
-    # Get the OS product version (e.g., eos3)
-    version=$(. /etc/os-release && echo $VERSION | cut -d. -f1)
     # By default we check for updates every two weeks on production
     interval_days=14
 else
@@ -73,9 +84,9 @@ fi
 refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
 branch=${refspec#*:}
 
-# Construct the new branch with the product or product.major version
-# depending on the stage.
-new_branch="${branch%/*}/eos${version}"
+# Construct the new branch with the series depending on the stage.
+new_branch="${branch%/*}/${series}"
+echo "Using OSTree branch $new_branch"
 
 # Get the current URL and convert to the new stage.
 url=$(ostree config get 'remote "eos".url')
