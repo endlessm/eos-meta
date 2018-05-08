@@ -1,0 +1,42 @@
+#!/bin/bash
+set -e
+
+echo "This script adds the Debian repository to your apt config."
+echo "The resulting configuration prefers the Endless repository where"
+echo "possible, even if a package in Endless is older than in Debian."
+echo "However, but packages not found in the Endless repo will be automatically"
+echo "downloaded from Debian".
+echo
+echo "Although this may work fine in some cases, you're likely to find issues"
+echo "where a package in Debian is somehow incompatible with Endless packages"
+echo "and this will most frequently appear as dependency resolution issues."
+echo "As such, this is an unsupported, developer-only tool."
+echo
+echo "Additionally, apt will only work after you have taken the usual steps of"
+echo "making it available (e.g. eos-convert-system, eos-dev-unlock, etc)"
+echo
+
+if [[ $# < 1 ]]; then
+	echo "Usage: $0 <DEB_DISTRO>"
+	echo "DEB_DISTRO example values: stable, testing, unstable"
+	exit 1
+fi
+
+distro=$1
+
+cat > /etc/apt/preferences.d/eos-enable-debian-apt <<EOF
+# Prioritise packages from Debian lower than the default value of 500.
+# This means that packages from this repo will only be used if the
+# requested package does not exist in the Endless repo, or if the user
+# specifically requests them from Debian.
+Package: *
+Pin: release o=Debian
+Pin-Priority: 400
+EOF
+
+cat > /etc/apt/sources.list.d/debian-$distro.list << EOF
+deb http://deb.debian.org/debian $distro main contrib non-free
+deb-src http://deb.debian.org/debian $distro main contrib non-free
+EOF
+
+echo "Debian $distro enabled"
