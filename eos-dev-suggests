@@ -6,12 +6,17 @@
 # scripts have special provisions to consider anything listed here as a
 # required part of our distro.
 
+ack-grep
 alsa-tools
 awscli
 codecgraph
 d-feet
 eos-dev-kernel
-evemu
+evemu-tools
+gnome-desktop-testing
+gnome-tweak-tool
+gparted
 linux-tools
+nmap
 pigz
 powertop
