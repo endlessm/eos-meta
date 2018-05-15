@@ -8,6 +8,8 @@
 
 ack-grep
 alsa-tools
+ansible
+at
 awscli
 codecgraph
 d-feet
@@ -16,7 +18,18 @@ evemu-tools
 gnome-desktop-testing
 gnome-tweak-tool
 gparted
+jq
+kbd
+libvirt
 linux-tools
+logrotate
+multistrap
 nmap
+pesign
+phabricator
 pigz
+python-boto
+python-boto3
 powertop
+resolvconf
+x11-apps
