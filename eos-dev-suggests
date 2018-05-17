@@ -6,6 +6,7 @@
 # scripts have special provisions to consider anything listed here as a
 # required part of our distro.
 
+arcanist
 ack-grep
 alsa-tools
 ansible
@@ -19,16 +20,15 @@ gnome-tweak-tool
 gparted
 jq
 kbd
-libvirt
 linux-tools
 logrotate
 multistrap
 nmap
 pesign
-phabricator
 pigz
-python-boto
-python-boto3
+python3-boto
+python3-boto3
 powertop
+qemu-utils
 resolvconf
 x11-apps
