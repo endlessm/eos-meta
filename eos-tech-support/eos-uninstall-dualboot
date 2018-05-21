@@ -159,7 +159,7 @@ if [ "$label_type" = "dos" ]; then
     # Get the start of the first partition from sfdisk output
     # Note that sfdisk --dump lists partitions in numerical order, not on-disk order.
     # Units are sectors of 512 bytes.
-    start="$(python -c 'import re, sys; print(512 * min(map(int,
+    start="$(python3 -c 'import re, sys; print(512 * min(map(int,
         re.findall(r"start=\s*(\d+)", open(sys.argv[1]).read()))))' "$table")"
 
     boottrack_size="$(stat $boottrack_path --format=%s)"
