@@ -52,6 +52,7 @@ eos-companion-app-os-integration
 eos-discovery-feed
 eos-event-recorder-daemon
 eos-exploration-center
+eos-flatpak-autoinstall
 eos-gates
 eos-google-chrome-helper [amd64]
 eos-install-app-helper [amd64]
