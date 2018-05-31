@@ -20,7 +20,7 @@ gnome-tweak-tool
 gparted
 jq
 kbd
-linux-tools
+linux-tools-3.10
 logrotate
 multistrap
 nmap
@@ -31,4 +31,5 @@ python3-boto3
 powertop
 qemu-utils
 resolvconf
+shim
 x11-apps
