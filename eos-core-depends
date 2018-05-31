@@ -108,7 +108,6 @@ gdb
 gedit
 # For showing the keyboard layout from the control center
 gkbd-capplet
-gnome-accessibility-themes
 gnome-calculator
 gnome-clocks
 gnome-contacts
