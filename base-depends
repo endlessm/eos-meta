@@ -6,12 +6,12 @@ eos-icon-theme
 fonts-lato
 fonts-liberation
 fonts-wqy-microhei
-gnome-themes-standard
 gstreamer1.0-libav
 gstreamer1.0-plugins-good
 gstreamer1.0-plugins-ugly-lame
 gstreamer1.0-pulseaudio
 gstreamer1.0-tools
+highcontrast-icon-theme
 ibus-gtk3
 libcanberra-gtk3-module
 libcanberra-pulse
