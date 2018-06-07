@@ -96,14 +96,15 @@ class EosDownloadImage(object):
         # Check the status of an existing download
         dest_size = 0
         if os.path.exists(dest):
+            dest_stat = os.stat(dest)
+            dest_size = dest_stat.st_size
+
             if src_mtime is None:
                 # Assume it's a partial download; the signature may prove that wrong
                 outdated = False
             else:
-                dest_stat = os.stat(dest)
                 dest_mtime = datetime.datetime.fromtimestamp(dest_stat.st_mtime,
                                                              datetime.timezone.utc)
-                dest_size = dest_stat.st_size
 
                 # Is the existing file outdated? Strip off microseconds since
                 # one or the other is likely to not support it
