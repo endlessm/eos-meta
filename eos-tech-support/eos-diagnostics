@@ -462,6 +462,10 @@ let diagnostics = [
         content: function() { return trySpawn('ostree admin status'); },
     },
     {
+        title: 'OSTree repository configuration',
+        content: function() { return tryReadFile('/ostree/repo/config'); },
+    },
+    {
         title: 'Product identification',
         hardwareInfo: true,
         content: function() { return collectBoardInfo(); },
