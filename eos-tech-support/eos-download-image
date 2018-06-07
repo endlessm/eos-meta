@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # vim: fileencoding=utf-8 sts=4 sw=4 et
 import argparse
+import collections
 import datetime
 import dateutil.parser
 import distutils.version
@@ -131,7 +132,7 @@ class EosDownloadImage(object):
 
         # Break the download up into ranges if it exceeds the CDN maximum
         # size.
-        ranges = []
+        ranges = collections.deque()
         start_byte = dest_size
         remaining = src_size - dest_size
         while remaining > 0:
@@ -153,7 +154,8 @@ class EosDownloadImage(object):
 
             received = dest_size
             progress(dest, int(100 * received / src_size))
-            for start, stop in ranges:
+            while ranges:
+                start, stop = ranges.popleft()
                 headers['Range'] = 'bytes={}-{}'.format(start, stop)
                 resp = self.session.get(src, headers=headers, stream=True,
                                         timeout=TIMEOUT)
@@ -163,6 +165,13 @@ class EosDownloadImage(object):
                     received += len(chunk)
                     f.write(chunk)
                     progress(dest, int(100 * received / src_size))
+
+                if received != stop + 1:
+                    ranges.appendleft((received, stop))
+
+        if received != src_size:
+            log('Received up to', received, 'but target size was', src_size)
+            exit(1)
 
     def ensure_keyring(self):
         if os.path.isfile(KEYRING_SYSTEM_PATH):
