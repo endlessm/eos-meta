@@ -547,6 +547,11 @@ let diagnostics = [
         content: function() { return tryReadFile('/ostree/repo/config'); },
     },
     {
+        title: 'OSTree repository configuration (extra SD)',
+        content: function() { return tryReadFile('/var/endless-extra/flatpak/repo/config',
+                                                 'not a split system (or SD card missing)'); },
+    },
+    {
         title: 'Product identification',
         hardwareInfo: true,
         content: function() { return collectBoardInfo(); },
