@@ -160,9 +160,11 @@ TABLE=$(sfdisk -d "$DEVICE")
 HEADER=$(echo "$TABLE" | grep -v '^/')
 PARTS=$(echo "$TABLE" | grep '^/' | sed -e 's/.*: //')
 
-# Grab the last sector and add one to get the start of our exfat partition
-START=$(echo "$HEADER" | grep 'last-lba' | sed -e 's/^last-lba: //')
-START=$(($START + 1))
+# Grab the start and size of the last partition; add them to get the start of
+# our exFAT partition.
+ROOT_START=$(echo "$PARTS" | sed -n -e '$ s/.*start=[ ]\+\([0-9]\+\).*$/\1/p')
+ROOT_SIZE=$(echo "$PARTS" | sed -n -e '$ s/.*size=[ ]\+\([0-9]\+\).*$/\1/p')
+START=$(( ROOT_START + ROOT_SIZE ))
 
 # Remove the last-lba line so that we fill the disk
 HEADER=$(echo "$HEADER" | sed -e '/^last-lba:/d')
