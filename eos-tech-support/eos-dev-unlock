@@ -1,6 +1,35 @@
 #!/bin/bash -e
-# Use "ostree admin unlock" to create writable /usr overlay.
-# Also make basic tweaks so that apt works in this setup.
+
+function warning_blob() {
+    echo "This script uses \"ostree admin unlock\" to create a writable /usr"
+    echo "overlay, and makes some other basic tweaks so that apt works in this"
+    echo "setup. The changes made to the overlay will be lost on reboot."
+    echo ""
+    echo "WARNING: If you're not an Endless developer you will not be able to"
+    echo "meaningfully using apt."
+    echo ""
+}
+
+if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
+    echo "Usage:"
+    echo "   $0"
+    echo ""
+    warning_blob
+    exit 0
+fi
+
+warning_blob
+read -p "Are you sure you want to proceed? [y/n] "
+response="${REPLY,,}" # to lower
+if [[ ! "$response" =~ ^(yes|y)$ ]]; then
+    exit 1
+fi
+
+# Check that script was run with superuser privileges.
+if [[ $EUID != 0 ]]; then
+    echo "$0 requires superuser privileges."
+    exit 1
+fi
 
 systemctl stop eos-autoupdater.timer
 systemctl stop eos-autoupdater.service
