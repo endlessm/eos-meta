@@ -12,12 +12,12 @@ set -o pipefail
 # in physical order so Windows can mount the image
 # partition.
 
-EOS_WRITE_IMAGE=$(dirname $0)/eos-write-image
-if [ ! -f $EOS_WRITE_IMAGE ]; then
+EOS_WRITE_IMAGE=$(dirname "$0")/eos-write-image
+if [ ! -f "$EOS_WRITE_IMAGE" ]; then
     EOS_WRITE_IMAGE='eos-write-image'
 fi
-EOS_DOWNLOAD_IMAGE=$(dirname $0)/eos-download-image
-if [ ! -f $EOS_DOWNLOAD_IMAGE ]; then
+EOS_DOWNLOAD_IMAGE=$(dirname "$0")/eos-download-image
+if [ ! -f "$EOS_DOWNLOAD_IMAGE" ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
@@ -141,7 +141,7 @@ if [ ! -z "$FETCH_LATEST" ]; then
     fi
 fi
 
-if [ ! -f "$INSTALLER_IMAGE" -o ! -f "$OS_IMAGE" ]; then
+if [ ! -f "$INSTALLER_IMAGE" ] || [ ! -f "$OS_IMAGE" ]; then
     echo "Error: --installer and --os-image are both required if --latest is not specified" >&2
     echo >&2
     usage
