@@ -147,6 +147,7 @@ iio-sensor-proxy
 imagemagick
 # Needed to support some Epson scanners
 imagescan-driver
+libblockdev-crypto2
 libgphoto2-l10n
 # Needed for image thumbnailer
 libgdk-pixbuf2.0-bin
