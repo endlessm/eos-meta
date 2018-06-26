@@ -14,7 +14,7 @@ import sys
 import urllib.parse
 
 INTERNAL_BASE_URL = "http://images.endlessm-sf.com"
-PUBLIC_BASE_URL = "https://d1anzknqnc1kmb.cloudfront.net"
+PUBLIC_BASE_URL = "https://images-dl.endlessm.com"
 KEYRING_FILENAME = "eos-image-keyring.gpg"
 KEYRING_URL = PUBLIC_BASE_URL + "/" + KEYRING_FILENAME
 KEYRING_SYSTEM_PATH = "/usr/share/keyrings/eos-image-keyring.gpg"
@@ -79,8 +79,13 @@ class EosDownloadImage(object):
         headers['Accept-Encoding'] = 'identity'
 
         # Make a HEAD request to get the size and mtime
-        resp = self.session.head(src, headers=headers, timeout=TIMEOUT)
+        resp = self.session.head(src, headers=headers, timeout=TIMEOUT,
+                                 allow_redirects=True)
         if resp.status_code == 200:
+            if src != resp.url:
+                log("Followed redirect to", resp.url)
+                src = resp.url
+
             src_mtime = dateutil.parser.parse(resp.headers['Last-Modified'])
             src_size = int(resp.headers['Content-Length'])
         elif resp.status_code == 403:
@@ -322,6 +327,8 @@ class EosDownloadImage(object):
             base=self.base, product=self.args.product)
         log("Fetching manifest from", manifest_url)
         response = self.session.get(manifest_url, timeout=TIMEOUT)
+        if response.url != manifest_url:
+            log("Followed redirect to", response.url)
 
         try:
             response.raise_for_status()
