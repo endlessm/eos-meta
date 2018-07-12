@@ -187,7 +187,7 @@ function collectMmcDevice(dir, level) {
 
     let info;
     while ((info = fileEnum.next_file(null))) {
-        let fileType = info.get_file_type('standard::type');
+        let fileType = info.get_file_type();
         if (info.get_is_symlink() || fileType != Gio.FileType.DIRECTORY)
             continue;
         output += collectMmcDevice(fileEnum.get_child(info), level + 1);
