@@ -56,10 +56,9 @@ libpam-systemd
 linux-firmware
 # Kernel package. All arm installs use platform specific kernels, so
 # those appear in the platform specific -depends files. For amd64,
-# prefer the linux-signed-image variant, which contains the kernel
-# signed for UEFI. The -64 variant is a 64 bit kernel that we install on
-# i386.
-linux-signed-image-generic [amd64] | linux-image-generic-64 [i386]
+# use the linux-signed-image variant, which contains the kernel
+# signed for UEFI.
+linux-signed-image-generic [amd64]
 lsb-base
 lsb-release
 mobile-broadband-provider-info
