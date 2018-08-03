@@ -163,6 +163,7 @@ libnss-systemd
 libpam-gnome-keyring
 # Assumed useful for apps that use libsasl2
 libsasl2-modules
+libu2f-udev
 modemmanager
 nautilus
 nautilus-extension-brasero
