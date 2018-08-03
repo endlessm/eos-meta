@@ -194,6 +194,7 @@ tracker-miner-fs
 ttf-ancient-fonts
 ttf-femkeklaver
 yelp
+u2f-hidraw-policy
 unrar
 # For data transfer with iOS devices
 usbmuxd
