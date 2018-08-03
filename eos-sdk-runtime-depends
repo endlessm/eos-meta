@@ -21,6 +21,7 @@ git
 gperf
 gtk-3-examples
 gtk-doc-tools
+intltool
 libalut-dev
 libasound2-dev
 libatkmm-1.6-dev
