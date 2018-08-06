@@ -543,6 +543,15 @@ let diagnostics = [
         content: function() { return trySpawn('ostree admin status'); },
     },
     {
+        title: 'OSTree refs',
+        content: function() {
+            let output = trySpawn('ostree refs');
+            let refs = output.split('\n');
+            refs.sort();
+            return refs.join('\n');
+        },
+    },
+    {
         title: 'OSTree repository configuration',
         content: function() { return tryReadFile('/ostree/repo/config'); },
     },
