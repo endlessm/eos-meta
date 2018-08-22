@@ -6,6 +6,7 @@ cryptsetup
 dbus-user-session
 dbus-x11
 dconf-cli
+dirmngr
 dosfstools
 dracut
 eject
