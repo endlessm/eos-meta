@@ -13,10 +13,14 @@ function collectGraphicsRenderer() {
         '</interface>' +
         '</node>';
 
-    let sessionProxyProto = Gio.DBusProxy.makeProxyWrapper(iface);
-    let sessionProxy = new sessionProxyProto(Gio.DBus.session,
+    let sessionProxy = null;
+    try {
+        let sessionProxyProto = Gio.DBusProxy.makeProxyWrapper(iface);
+        sessionProxy = new sessionProxyProto(Gio.DBus.session,
                                              'org.gnome.SessionManager',
                                              '/org/gnome/SessionManager');
+    } catch (e) {
+    }
 
     let output = 'Renderer: ';
     if (sessionProxy)
