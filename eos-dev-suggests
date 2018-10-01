@@ -6,10 +6,10 @@
 # scripts have special provisions to consider anything listed here as a
 # required part of our distro.
 
-arcanist
 ack-grep
 alsa-tools
 ansible
+arcanist
 at
 awscli
 codecgraph
@@ -26,9 +26,9 @@ multistrap
 nmap
 pesign
 pigz
+powertop
 python3-boto
 python3-boto3
-powertop
 qemu-utils
 resolvconf
 shim
