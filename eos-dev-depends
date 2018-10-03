@@ -18,8 +18,8 @@ bash-completion
 build-essential
 ccache
 dconf-editor
-debian-keyring
 debian-archive-keyring
+debian-keyring
 debootstrap
 devscripts
 diffutils
