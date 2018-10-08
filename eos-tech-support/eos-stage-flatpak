@@ -96,7 +96,7 @@ for remote in `flatpak remote-list --system | awk {'print $1'}` ; do
         # https://github.com/flatpak/flatpak/issues/1615#issuecomment-385133763
         rm -rf "$(dirname $flatpak_repo)/appstream/$remote"
         for arch in `flatpak --supported-arches`; do
-            ostree --repo="$flatpak_repo" refs --delete "$remote:appstream/$arch"
+            ostree --repo="$flatpak_repo" refs --delete "$remote:appstream/$arch" "$remote:appstream2/$arch"
             # This might fail for the secondary architecture
             flatpak update --appstream --arch="$arch" "$remote" >/dev/null 2>&1 || true
         done
