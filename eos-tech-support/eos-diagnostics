@@ -53,6 +53,7 @@ function collectBoardInfo() {
     try {
         let [res, contents] = GLib.file_get_contents('/proc/device-tree/compatible');
         output += 'compatible: ' + contents;
+        output = output.replace(/\0/g, ' ');
     } catch (e) { }
 
     return output;
