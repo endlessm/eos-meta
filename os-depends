@@ -18,6 +18,7 @@ eos-default-settings
 eos-factory-tools
 eos-keyring
 eos-license-service
+eos-payg-nonfree
 eos-plymouth-theme
 eos-tech-support
 eos-updater
