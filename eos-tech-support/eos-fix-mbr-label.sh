@@ -30,3 +30,5 @@ fi
 sed -i -e 's/\(start=[ ]*\)144585\(.*\), size=[ ]*[^,]*/\1131072\2/' partitions.txt
 sfdisk --force --no-reread ${root_disk} < partitions.txt
 rm partitions.txt
+udevadm settle
+lsblk -f ${root_disk}
