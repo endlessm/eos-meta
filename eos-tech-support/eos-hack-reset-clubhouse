@@ -1,0 +1,18 @@
+#!/bin/bash
+
+echo "Killing com.endlessm.Clubhouse"
+gdbus call --session \
+    --dest com.endlessm.Clubhouse \
+    --object-path /com/endlessm/Clubhouse \
+    --method org.gtk.Actions.Activate quit [] []
+
+echo "Resetting game state"
+gdbus call --session \
+    --dest com.endlessm.GameStateService \
+    --object-path /com/endlessm/GameStateService \
+    --method com.endlessm.GameStateService.Reset
+
+echo "Resetting desktop icons"
+eos-reset-desktop
+
+echo "Done"
