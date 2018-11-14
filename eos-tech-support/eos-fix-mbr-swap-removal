@@ -1,4 +1,20 @@
 #!/bin/bash -e
+# Copyright (C) 2018 Endless Mobile, Inc.
+# Licensed under the GPLv2.
+#
+# eos-fix-mbr-swap-removal: Fix a MBR partition table that was corrupted during
+# swap reclaiming.
+#
+# Since we disabled the use of a swap partition on Endless systems, the
+# eos-reclaim-swap service removes the unused swap partition, if existent, and
+# extends the root partition and filesystem to make use of that space. But on
+# some systems with an MBR partition table, eos-reclaim-swap ends up corrupting
+# the partition table in a way that leaves the system unable to boot. This
+# script can be used from a live environment to fix the partition table and
+# make the system able to boot again.
+#
+# https://phabricator.endlessm.com/T24454
+# https://phabricator.endlessm.com/T24493
 
 if [[ ${#} -ne 1 ]] ; then
     echo "Usage: ${0} DEVICE"
