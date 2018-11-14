@@ -5,30 +5,33 @@ if [[ ${#} -ne 1 ]] ; then
     exit 1
 fi
 
+PARTITIONS_FILE=$(mktemp --tmpdir $(basename ${0})-XXXXXXXXXX)
+chmod 644 ${PARTITIONS_FILE}
+
 root_disk=${1}
-sfdisk -d ${root_disk} > partitions.txt
+sfdisk -d ${root_disk} > ${PARTITIONS_FILE}
 
 # Check this is a MBR partiton table
-label_type=$(sed -n -e 's/^label: [ ]*\(.*\)$/\1/p' partitions.txt)
+label_type=$(sed -n -e 's/^label: [ ]*\(.*\)$/\1/p' ${PARTITIONS_FILE})
 if [[ ${label_type} != "dos" ]] ; then
     echo "Error: This is not a MBR partition table"
     echo
-    cat partitions.txt
+    cat ${PARTITIONS_FILE}
     exit 2
 fi
 
 # Check that the partition starting at 144585 is a bootable Linux partition
-type83_bootable=$(sed -n -e 's/^.*start=[ ]*144585,.*\(type=83, bootable\).*$/\1/p' partitions.txt)
+type83_bootable=$(sed -n -e 's/^.*start=[ ]*144585,.*\(type=83, bootable\).*$/\1/p' ${PARTITIONS_FILE})
 if [[ ${type83_bootable} != "type=83, bootable" ]] ; then
     echo "Error: The partition starting at 144585 is not a bootable Linux partition"
     echo
-    cat partitions.txt
+    cat ${PARTITIONS_FILE}
     exit 3
 fi
 
 # Change the starting of the bootable Linux partition from 144585 to 131072
-sed -i -e 's/\(start=[ ]*\)144585\(.*\), size=[ ]*[^,]*/\1131072\2/' partitions.txt
-sfdisk --force --no-reread ${root_disk} < partitions.txt
-rm partitions.txt
+sed -i -e 's/\(start=[ ]*\)144585\(.*\), size=[ ]*[^,]*/\1131072\2/' ${PARTITIONS_FILE}
+sfdisk --force --no-reread ${root_disk} < ${PARTITIONS_FILE}
+rm ${PARTITIONS_FILE}
 udevadm settle
 lsblk -f ${root_disk}
