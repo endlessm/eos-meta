@@ -57,6 +57,8 @@ exit_error() {
     exit ${2}
 }
 
+echo "Running $(basename ${0}). Logs will be available on ${LOG_FILE} after this program finishes."
+
 if [[ ${#} -eq 1 ]] ; then
     disks=${1}
     print_log "Using disk specified by user: ${disks}."
@@ -66,7 +68,7 @@ else
 fi
 
 for disk in ${disks} ; do
-    sfdisk -d ${disk} > ${PARTITIONS_FILE}
+    sfdisk -d ${disk} > ${PARTITIONS_FILE} 2>> ${LOG_FILE} || true
 
     # Check if this is a MBR partiton table
     label_type=$(sed -n -e 's/^label: [ ]*\(.*\)$/\1/p' ${PARTITIONS_FILE})
