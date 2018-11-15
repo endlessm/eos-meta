@@ -16,10 +16,14 @@
 # https://phabricator.endlessm.com/T24454
 # https://phabricator.endlessm.com/T24493
 
-if [[ ${#} -ne 1 ]] ; then
-    echo "Usage: ${0} DEVICE"
+if [[ ${#} -gt 1 ]] ; then
+    echo "Usage: ${0} [DEVICE]"
+    echo "If DEVICE is not specified, we will attempt to auto-detect it."
     exit 1
 fi
+
+PARTITION_START=131072
+CORRUPTED_START=144585
 
 WORKDIR=$(mktemp --directory --tmpdir $(basename ${0})-XXXXXXXXXX)
 chmod 755 ${WORKDIR}
@@ -43,22 +47,43 @@ exit_error() {
     exit ${2}
 }
 
-root_disk=${1}
-sfdisk -d ${root_disk} > ${PARTITIONS_FILE}
-
-# Check this is a MBR partiton table
-label_type=$(sed -n -e 's/^label: [ ]*\(.*\)$/\1/p' ${PARTITIONS_FILE})
-if [[ ${label_type} != "dos" ]] ; then
-    exit_error "Error: This is not a MBR partition table." 2
+if [[ ${#} -eq 1 ]] ; then
+    disks=${1}
+    print_log "Using disk specified by user: ${disks}."
+else
+    disks=$(echo $(lsblk --nodeps --noheadings --list --output NAME  | sed -e 's:\(.*\):/dev/\1:'))
+    print_log "Found disks: ${disks}."
 fi
 
-# Check that the partition starting at 144585 is a bootable Linux partition
-type83_bootable=$(sed -n -e 's/^.*start=[ ]*144585,.*\(type=83, bootable\).*$/\1/p' ${PARTITIONS_FILE})
-if [[ ${type83_bootable} != "type=83, bootable" ]] ; then
-    exit_error "Error: The partition starting at 144585 is not a bootable Linux partition." 3
+for disk in ${disks} ; do
+    sfdisk -d ${disk} > ${PARTITIONS_FILE}
+
+    # Check if this is a MBR partiton table
+    label_type=$(sed -n -e 's/^label: [ ]*\(.*\)$/\1/p' ${PARTITIONS_FILE})
+    if [[ ${label_type} != "dos" ]] ; then
+        print_log_with_partitions "${disk}: This is not a MBR partition table."
+        continue
+    fi
+    print_log "Found MBR on ${disk}."
+
+    # Check that the partition starting at CORRUPTED_START is a bootable Linux partition
+    type83_bootable=$(sed -n -e 's/^.*start=[ ]*144585,.*\(type=83, bootable\).*$/\1/p' ${PARTITIONS_FILE})
+    if [[ ${type83_bootable} != "type=83, bootable" ]] ; then
+        print_log_with_partitions "${disk}: The partition starting at ${CORRUPTED_START} is not a bootable Linux partition."
+        continue
+    fi
+    print_log "Found a bootable type 83 partition starting at ${CORRUPTED_START} on ${disk}."
+
+    root_disk=${disk}
+    print_log "Found ${root_disk} with eos-reclaim-swap corruption characteristics."
+    break
+done
+
+if [[ -z ${root_disk} ]] ; then
+    exit_error "No disk matches the eos-reclaim-swap corruption characteristics." 2
 fi
 
-# Change the starting of the bootable Linux partition from 144585 to 131072
+# Change the starting of the bootable Linux partition from CORRUPTED_START to PARTITION_START
 print_log_with_partitions "Original partition table:"
 sed -i -e 's/\(start=[ ]*\)144585\(.*\), size=[ ]*[^,]*/\1131072\2/' ${PARTITIONS_FILE}
 print_log_with_partitions "New partition table:"
