@@ -51,9 +51,9 @@ print_log_with_partitions() {
 
 exit_error() {
     print_log_with_partitions "Error: ${1}"
-    rm ${PARTITIONS_FILE}
     echo "Error: ${1}" > /dev/stderr
     echo "Logs saved to ${LOG_FILE}."
+    rm -f ${PARTITIONS_FILE}
     exit ${2}
 }
 
@@ -116,7 +116,7 @@ print_log_with_partitions "Original partition table:"
 sed -i -e 's/\(start=[ ]*\)144585\(.*\), size=[ ]*[^,]*/\1131072\2/' ${PARTITIONS_FILE}
 print_log_with_partitions "New partition table:"
 print_log "$(sfdisk --force --no-reread ${root_disk} < ${PARTITIONS_FILE} 2>&1)"
-rm ${PARTITIONS_FILE}
+echo "Partition table fixed, logs saved to ${LOG_FILE}."
 udevadm settle
 print_log "$(lsblk -f ${root_disk})"
-echo "Partition table fixed, logs saved to ${LOG_FILE}."
+rm -f ${PARTITIONS_FILE}
