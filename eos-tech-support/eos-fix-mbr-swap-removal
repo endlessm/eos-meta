@@ -1,0 +1,120 @@
+#!/bin/bash -e
+# Copyright (C) 2018 Endless Mobile, Inc.
+# Licensed under the GPLv2.
+#
+# eos-fix-mbr-swap-removal: Fix a MBR partition table that was corrupted during
+# swap reclaiming.
+#
+# Since we disabled the use of a swap partition on Endless systems, the
+# eos-reclaim-swap service removes the unused swap partition, if existent, and
+# extends the root partition and filesystem to make use of that space. But on
+# some systems with an MBR partition table, eos-reclaim-swap ends up corrupting
+# the partition table in a way that leaves the system unable to boot. This
+# script can be used from a live environment to fix the partition table and
+# make the system able to boot again.
+#
+# https://phabricator.endlessm.com/T24454
+# https://phabricator.endlessm.com/T24493
+
+if [[ ${#} -gt 1 ]] ; then
+    echo "Usage: ${0} [DEVICE]"
+    echo "If DEVICE is not specified, we will attempt to auto-detect it."
+    exit 1
+fi
+
+PARTITION_START=131072
+CORRUPTED_START=144585
+
+# From https://ext4.wiki.kernel.org/index.php/Ext4_Disk_Layout
+SB_OFFSET=1024
+FSMAGIC_OFFSET=56
+LABEL_OFFSET=120
+EXT4_MAGIC="53EF"
+EXT4_MAGIC_LEN=2
+
+FS_LABEL="ostree"
+FS_LABEL_LEN=6
+
+WORKDIR=$(mktemp --directory --tmpdir $(basename ${0})-XXXXXXXXXX)
+chmod 755 ${WORKDIR}
+PARTITIONS_FILE="${WORKDIR}/partitions.txt"
+LOG_FILE="${WORKDIR}/$(basename ${0})-logs-$(date --iso-8601=seconds).txt"
+
+print_log() {
+    echo "${1}" >> ${LOG_FILE}
+}
+
+print_log_with_partitions() {
+    print_log "${1}"
+    cat ${PARTITIONS_FILE} >> ${LOG_FILE}
+}
+
+exit_error() {
+    print_log_with_partitions "Error: ${1}"
+    rm ${PARTITIONS_FILE}
+    echo "Error: ${1}" > /dev/stderr
+    echo "Logs saved to ${LOG_FILE}."
+    exit ${2}
+}
+
+if [[ ${#} -eq 1 ]] ; then
+    disks=${1}
+    print_log "Using disk specified by user: ${disks}."
+else
+    disks=$(echo $(lsblk --nodeps --noheadings --list --output NAME  | sed -e 's:\(.*\):/dev/\1:'))
+    print_log "Found disks: ${disks}."
+fi
+
+for disk in ${disks} ; do
+    sfdisk -d ${disk} > ${PARTITIONS_FILE}
+
+    # Check if this is a MBR partiton table
+    label_type=$(sed -n -e 's/^label: [ ]*\(.*\)$/\1/p' ${PARTITIONS_FILE})
+    if [[ ${label_type} != "dos" ]] ; then
+        print_log_with_partitions "${disk}: This is not a MBR partition table."
+        continue
+    fi
+    print_log "Found MBR on ${disk}."
+
+    # Check that the partition starting at CORRUPTED_START is a bootable Linux partition
+    type83_bootable=$(sed -n -e 's/^.*start=[ ]*144585,.*\(type=83, bootable\).*$/\1/p' ${PARTITIONS_FILE})
+    if [[ ${type83_bootable} != "type=83, bootable" ]] ; then
+        print_log_with_partitions "${disk}: The partition starting at ${CORRUPTED_START} is not a bootable Linux partition."
+        continue
+    fi
+    print_log "Found a bootable type 83 partition starting at ${CORRUPTED_START} on ${disk}."
+
+    # Check the filesystem type from the superblock
+    fs_magic=$(dd if=${disk} bs=1 count=${EXT4_MAGIC_LEN} skip=$((512*${PARTITION_START}+${SB_OFFSET}+${FSMAGIC_OFFSET})) 2> /dev/null | hexdump -e '/1 "%02X"')
+    if [[ ${fs_magic} != ${EXT4_MAGIC} ]] ; then
+        print_log_with_partitions "${disk}: Could not find the Ext4 magic number on the partition starting at ${PARTITION_START}."
+        continue
+    fi
+    print_log "Found a Ext4 magic on the partition starting at ${CORRUPTED_START} on ${disk}."
+
+    # Check the filesystem label from the superblock
+    fs_label=$(dd if=${disk} bs=1 count=${FS_LABEL_LEN} skip=$((512*${PARTITION_START}+${SB_OFFSET}+${LABEL_OFFSET})) 2> /dev/null | hexdump -e '8/1 "%c"')
+    if [[ ${fs_label} != ${FS_LABEL} ]] ; then
+        print_log_with_partitions "${disk}: Could not find the \"${FS_LABEL}\" label on the partition starting at ${PARTITION_START}."
+        continue
+    fi
+    print_log "Found the partition starting at ${CORRUPTED_START} on ${disk} has label \"${fs_label}\"."
+
+    root_disk=${disk}
+    print_log "Found ${root_disk} with eos-reclaim-swap corruption characteristics."
+    break
+done
+
+if [[ -z ${root_disk} ]] ; then
+    exit_error "No disk matches the eos-reclaim-swap corruption characteristics." 2
+fi
+
+# Change the starting of the bootable Linux partition from CORRUPTED_START to PARTITION_START
+print_log_with_partitions "Original partition table:"
+sed -i -e 's/\(start=[ ]*\)144585\(.*\), size=[ ]*[^,]*/\1131072\2/' ${PARTITIONS_FILE}
+print_log_with_partitions "New partition table:"
+print_log "$(sfdisk --force --no-reread ${root_disk} < ${PARTITIONS_FILE} 2>&1)"
+rm ${PARTITIONS_FILE}
+udevadm settle
+print_log "$(lsblk -f ${root_disk})"
+echo "Partition table fixed, logs saved to ${LOG_FILE}."
