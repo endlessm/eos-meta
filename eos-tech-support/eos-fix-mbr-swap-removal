@@ -25,6 +25,16 @@ fi
 PARTITION_START=131072
 CORRUPTED_START=144585
 
+# From https://ext4.wiki.kernel.org/index.php/Ext4_Disk_Layout
+SB_OFFSET=1024
+FSMAGIC_OFFSET=56
+LABEL_OFFSET=120
+EXT4_MAGIC="53EF"
+EXT4_MAGIC_LEN=2
+
+FS_LABEL="ostree"
+FS_LABEL_LEN=6
+
 WORKDIR=$(mktemp --directory --tmpdir $(basename ${0})-XXXXXXXXXX)
 chmod 755 ${WORKDIR}
 PARTITIONS_FILE="${WORKDIR}/partitions.txt"
@@ -73,6 +83,22 @@ for disk in ${disks} ; do
         continue
     fi
     print_log "Found a bootable type 83 partition starting at ${CORRUPTED_START} on ${disk}."
+
+    # Check the filesystem type from the superblock
+    fs_magic=$(dd if=${disk} bs=1 count=${EXT4_MAGIC_LEN} skip=$((512*${PARTITION_START}+${SB_OFFSET}+${FSMAGIC_OFFSET})) 2> /dev/null | hexdump -e '/1 "%02X"')
+    if [[ ${fs_magic} != ${EXT4_MAGIC} ]] ; then
+        print_log_with_partitions "${disk}: Could not find the Ext4 magic number on the partition starting at ${PARTITION_START}."
+        continue
+    fi
+    print_log "Found a Ext4 magic on the partition starting at ${CORRUPTED_START} on ${disk}."
+
+    # Check the filesystem label from the superblock
+    fs_label=$(dd if=${disk} bs=1 count=${FS_LABEL_LEN} skip=$((512*${PARTITION_START}+${SB_OFFSET}+${LABEL_OFFSET})) 2> /dev/null | hexdump -e '8/1 "%c"')
+    if [[ ${fs_label} != ${FS_LABEL} ]] ; then
+        print_log_with_partitions "${disk}: Could not find the \"${FS_LABEL}\" label on the partition starting at ${PARTITION_START}."
+        continue
+    fi
+    print_log "Found the partition starting at ${CORRUPTED_START} on ${disk} has label \"${fs_label}\"."
 
     root_disk=${disk}
     print_log "Found ${root_disk} with eos-reclaim-swap corruption characteristics."
