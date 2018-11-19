@@ -22,8 +22,10 @@ if [[ ${#} -gt 1 ]] ; then
     exit 1
 fi
 
-PARTITION_START=131072
-CORRUPTED_START=144585
+PARTITION_START_EOS2=194560
+CORRUPTED_START_EOS2=208845
+PARTITION_START_EOS3=131072
+CORRUPTED_START_EOS3=144585
 
 # From https://ext4.wiki.kernel.org/index.php/Ext4_Disk_Layout
 SB_OFFSET=1024
@@ -78,29 +80,40 @@ for disk in ${disks} ; do
     fi
     print_log "Found MBR on ${disk}."
 
-    # Check that the partition starting at CORRUPTED_START is a bootable Linux partition
-    type83_bootable=$(sed -n -e 's/^.*start=[ ]*144585,.*\(type=83, bootable\).*$/\1/p' ${PARTITIONS_FILE})
-    if [[ ${type83_bootable} != "type=83, bootable" ]] ; then
-        print_log_with_partitions "${disk}: The partition starting at ${CORRUPTED_START} is not a bootable Linux partition."
-        continue
+    # Look for a partition starting at CORRUPTED_START_EOS3
+    corrupted_partition_eos3=$(sed -n -e 's/^.*start=[ ]*144585,.*\(type=83, bootable\).*$/\1/p' ${PARTITIONS_FILE})
+    if [[ ${corrupted_partition_eos3} == "type=83, bootable" ]] ; then
+        corrupted_start=${CORRUPTED_START_EOS3}
+        partition_start=${PARTITION_START_EOS3}
+    else
+        print_log_with_partitions "${disk}: No partition starting at ${CORRUPTED_START_EOS3} or it is not a bootable Linux partition."
+        corrupted_partition_eos2=$(sed -n -e 's/^.*start=[ ]*208845,.*\(type=83\).*$/\1/p' ${PARTITIONS_FILE})
+        if [[ ${corrupted_partition_eos2} == "type=83" ]] ; then
+            corrupted_start=${CORRUPTED_START_EOS2}
+            partition_start=${PARTITION_START_EOS2}
+        else
+            print_log_with_partitions "${disk}: No partition starting at ${CORRUPTED_START_EOS2} or it is not a Linux partition."
+            continue
+        fi
     fi
-    print_log "Found a bootable type 83 partition starting at ${CORRUPTED_START} on ${disk}."
+    print_log "Found a Linux partition starting at ${corrupted_start} on ${disk}."
+    print_log "Looking for a Ext4 fs starting from ${partition_start} on ${disk}."
 
     # Check the filesystem type from the superblock
-    fs_magic=$(dd if=${disk} bs=1 count=${EXT4_MAGIC_LEN} skip=$((512*${PARTITION_START}+${SB_OFFSET}+${FSMAGIC_OFFSET})) 2> /dev/null | hexdump -e '/1 "%02X"')
+    fs_magic=$(dd if=${disk} bs=1 count=${EXT4_MAGIC_LEN} skip=$((512*${partition_start}+${SB_OFFSET}+${FSMAGIC_OFFSET})) 2> /dev/null | hexdump -e '/1 "%02X"')
     if [[ ${fs_magic} != ${EXT4_MAGIC} ]] ; then
-        print_log_with_partitions "${disk}: Could not find the Ext4 magic number on the partition starting at ${PARTITION_START}."
+        print_log_with_partitions "${disk}: Could not find the Ext4 magic number from a partition starting at ${partition_start}."
         continue
     fi
-    print_log "Found a Ext4 magic on the partition starting at ${CORRUPTED_START} on ${disk}."
+    print_log "Found Ext4 magic from a partition starting at ${partition_start} on ${disk}."
 
     # Check the filesystem label from the superblock
-    fs_label=$(dd if=${disk} bs=1 count=${FS_LABEL_LEN} skip=$((512*${PARTITION_START}+${SB_OFFSET}+${LABEL_OFFSET})) 2> /dev/null | hexdump -e '8/1 "%c"')
+    fs_label=$(dd if=${disk} bs=1 count=${FS_LABEL_LEN} skip=$((512*${partition_start}+${SB_OFFSET}+${LABEL_OFFSET})) 2> /dev/null | hexdump -e '8/1 "%c"')
     if [[ ${fs_label} != ${FS_LABEL} ]] ; then
-        print_log_with_partitions "${disk}: Could not find the \"${FS_LABEL}\" label on the partition starting at ${PARTITION_START}."
+        print_log_with_partitions "${disk}: Could not find the \"${FS_LABEL}\" Ext4 label from a partition starting at ${partition_start}."
         continue
     fi
-    print_log "Found the partition starting at ${CORRUPTED_START} on ${disk} has label \"${fs_label}\"."
+    print_log "Found the \"${FS_LABEL}\" Ext4 label from a partition starting at ${partition_start} on ${disk}."
 
     root_disk=${disk}
     print_log "Found ${root_disk} with eos-reclaim-swap corruption characteristics."
@@ -111,9 +124,14 @@ if [[ -z ${root_disk} ]] ; then
     exit_error "No disk matches the eos-reclaim-swap corruption characteristics." 2
 fi
 
-# Change the starting of the bootable Linux partition from CORRUPTED_START to PARTITION_START
+# Change the starting of the bootable Linux partition from corrupted_start to partition_start
+print_log "Changing partition start from ${corrupted_start} to ${partition_start}."
 print_log_with_partitions "Original partition table:"
-sed -i -e 's/\(start=[ ]*\)144585\(.*\), size=[ ]*[^,]*/\1131072\2/' ${PARTITIONS_FILE}
+if [[ ${corrupted_start} -eq ${CORRUPTED_START_EOS3} ]] ; then
+    sed -i -e 's/\(start=[ ]*\)144585\(.*\), size=[ ]*[^,]*/\1131072\2/' ${PARTITIONS_FILE}
+elif [[ ${corrupted_start} -eq ${CORRUPTED_START_EOS2} ]] ; then
+    sed -i -e 's/\(start=[ ]*\)208845\(.*\), size=[ ]*[^,]*/\1194560\2/' ${PARTITIONS_FILE}
+fi
 print_log_with_partitions "New partition table:"
 print_log "$(sfdisk --force --no-reread ${root_disk} < ${PARTITIONS_FILE} 2>&1)"
 echo "Partition table fixed, logs saved to ${LOG_FILE}."
