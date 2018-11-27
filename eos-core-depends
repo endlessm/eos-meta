@@ -126,6 +126,7 @@ gnome-user-share
 gsfonts
 gvfs-backends
 gvfs-bin
+htop
 ibus-anthy
 ibus-avro
 ibus-cangjie
@@ -196,10 +197,12 @@ u2f-hidraw-policy
 unrar
 # For data transfer with iOS devices
 usbmuxd
+vainfo
 vinagre
 vino
 whiptail
 xapian-bridge
+xinput
 # Assuming useful for Orca screen reader
 xbrlapi
 xdg-desktop-portal
