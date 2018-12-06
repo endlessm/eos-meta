@@ -6,11 +6,14 @@ gdbus call --session \
     --object-path /com/endlessm/Clubhouse \
     --method org.gtk.Actions.Activate quit [] []
 
-echo "Resetting game state"
+echo "Resetting com.endlessm.GameStateService"
 gdbus call --session \
     --dest com.endlessm.GameStateService \
     --object-path /com/endlessm/GameStateService \
     --method com.endlessm.GameStateService.Reset
+
+echo "Removing com.endlessm.Fizzics state"
+rm -f ~/.var/app/com.endlessm.Fizzics/data/webkitgtk/localstorage/*
 
 echo "Resetting desktop icons"
 eos-reset-desktop
