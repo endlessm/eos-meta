@@ -18,4 +18,8 @@ rm -f ~/.var/app/com.endlessm.Fizzics/data/webkitgtk/localstorage/*
 echo "Resetting desktop icons"
 eos-reset-desktop
 
+echo "Resetting cursor"
+gsettings reset org.gnome.desktop.interface cursor-size
+gsettings reset org.gnome.desktop.interface cursor-theme
+
 echo "Done"
