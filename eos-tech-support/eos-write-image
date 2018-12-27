@@ -22,9 +22,9 @@ Options:
    -f,--force   don't ask to proceed with writing
    --sparse     use dd sparse conversion option
    --debug      turn on debugging messages
-   --removable  device is removable (remove fallback.efi);
+   --removable  device is removable (remove fallback from ESP);
                 not supported if DEVICE is '-'
-   --fixed      device is not removable (don't remove fallback.efi)
+   --fixed      device is not removable (don't remove fallback from ESP)
    -h,--help    show this message
 Note:
    If neither --removable nor --fixed is specified, 'lsblk -o HOTPLUG' is used
@@ -222,7 +222,7 @@ else
     partprobe "$DEVICE"
     udevadm settle
 
-    # If removable device, delete $ESP/EFI/BOOT/fallback.efi
+    # If removable device, delete fallback from the ESP
     if [ "$REMOVABLE" = "1" ]; then
         # Assume ESP is the first partition
         case "$DEVICE" in
@@ -244,12 +244,25 @@ else
         then
             ESP_BOOT="${ESP_MP}/EFI/BOOT"
             ESP_ENDLESS="${ESP_MP}/EFI/endless"
-            FALLBACK="${ESP_BOOT}/fallback.efi"
-            MOKMANAGER="${ESP_ENDLESS}/MokManager.efi"
+            FALLBACK_OLD="${ESP_BOOT}/fallback.efi"
+            FALLBACK_NEW="${ESP_BOOT}/fbx64.efi"
+            MOKMANAGER_OLD="${ESP_ENDLESS}/MokManager.efi"
+            MOKMANAGER_NEW="${ESP_ENDLESS}/mmx64.efi"
             GRUB="${ESP_ENDLESS}/grubx64.efi"
 
-            if [ ! -f "$FALLBACK" ]; then
-                echo "$FALLBACK not found" >&2
+            echo "Checking ESP layout" >&2
+            if [ -f "$FALLBACK_OLD" ]; then
+                echo "Found $FALLBACK_OLD" >&2
+                FALLBACK=$FALLBACK_OLD
+                MOKMANAGER=$MOKMANAGER_OLD
+            elif [ -f "$FALLBACK_NEW" ]; then
+                echo "Found $FALLBACK_NEW" >&2
+                FALLBACK=$FALLBACK_NEW
+                MOKMANAGER=$MOKMANAGER_NEW
+            fi
+
+            if [ -z "$FALLBACK" ]; then
+                echo "Neither $FALLBACK_OLD nor $FALLBACK_NEW were found" >&2
             else
                 rm -v "$FALLBACK"
                 mv -v "$MOKMANAGER" "$ESP_BOOT"
