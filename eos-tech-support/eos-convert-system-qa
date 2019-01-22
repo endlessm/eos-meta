@@ -65,6 +65,7 @@ fi
 if $JOURNAL; then
     echo "Configuring systemd journal to be persistent."
     mkdir /var/log/journal
+    systemd-tmpfiles --create --prefix /var/log/journal
 fi
 
 # Enable systemd coredumps storage

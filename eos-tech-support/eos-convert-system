@@ -124,6 +124,7 @@ eos-convert-passwd --root=/sysroot
 
 # Make the systemd journal persistent
 mkdir -p /var/log/journal
+systemd-tmpfiles --create --prefix /var/log/journal
 
 # Enable systemd coredumps storage
 eos-enable-coredumps /sysroot/etc
