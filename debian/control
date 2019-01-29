@@ -199,7 +199,10 @@ Description: EndlessOS Kernel Team Development Tools
 
 Package: eos-tech-support
 Architecture: all
-Depends: ${misc:Depends}, ${eos:Depends}, usbutils
+Depends: ${eos:Depends},
+         ${misc:Depends},
+         ostree (>= 2018.8),
+         usbutils,
 Description: EndlessOS Technical Support Tools
  This is a collection of technical support tools that are installed by default
  with the EndlessOS operating system.  They are not required as part of the
