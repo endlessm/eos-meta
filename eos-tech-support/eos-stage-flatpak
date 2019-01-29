@@ -58,7 +58,7 @@ else
 fi
 
 for remote in `flatpak remote-list --system | awk {'print $1'}` ; do
-    url=$(ostree --repo="$flatpak_repo" config get 'remote "'"$remote"'".url')
+    url=$(ostree --repo="$flatpak_repo" config get --group 'remote "'"$remote"'"' 'url')
     if [[ "$url" == *"ostree.endlessm.com"* ]] ; then
         repo=${url##*/}
         new_url="${base_url}/${repo}"
@@ -70,7 +70,7 @@ for remote in `flatpak remote-list --system | awk {'print $1'}` ; do
         flatpak remote-modify "$remote" --url="$new_url"
 
         # Update the collection ID if it's set
-        collection_id=$(ostree --repo="$flatpak_repo" config get 'remote "'"$remote"'".collection-id' 2>/dev/null || echo "")
+        collection_id=$(ostree --repo="$flatpak_repo" config get --group 'remote "'"$remote"'"' 'collection-id' 2>/dev/null || echo "")
         if [ -n "$collection_id" ] ; then
             # For info on the collection ID patterns, see
             # https://phabricator.endlessm.com/w/software/ostree/infrastructure/#repository-stages
