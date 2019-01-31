@@ -2,7 +2,7 @@
 adduser
 amd64-microcode [!armhf]
 bluez
-cryptsetup
+cryptsetup-run
 dbus-user-session
 dbus-x11
 dconf-cli
