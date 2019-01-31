@@ -8,7 +8,6 @@ fonts-liberation
 fonts-wqy-microhei
 gstreamer1.0-libav
 gstreamer1.0-plugins-good
-gstreamer1.0-plugins-ugly-lame
 gstreamer1.0-pulseaudio
 gstreamer1.0-tools
 gstreamer1.0-vaapi
