@@ -141,7 +141,7 @@ cat_image() {
     MIME_TYPE="$(file --brief --mime-type "$IMAGE")"
     if [[ "$MIME_TYPE" =~ xz$ ]]; then
         # Image is xzipped, xz has its own rate meter
-        xzcat -v "$IMAGE"
+        xzcat -T 0 -v "$IMAGE"
     elif [[ "$MIME_TYPE" =~ gzip$ ]]; then
         # Image is gzipped
         # The following would calculate the original size
