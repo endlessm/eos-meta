@@ -101,6 +101,8 @@ fonts-vlgothic
 fonts-wqy-zenhei
 foomatic-db-compressed-ppds
 fprintd
+# For rootless podman
+fuse-overlayfs
 gdb
 gedit
 # For showing the keyboard layout from the control center
@@ -172,6 +174,7 @@ openprinting-ppds
 openssh-server
 # For flatpak-builder
 patch
+podman
 # For modem support
 ppp
 printer-driver-all-enforce
@@ -182,6 +185,8 @@ rhythmbox-plugins
 rtkit
 shotwell
 simple-scan
+# For rootless podman
+slirp4netns
 smbclient
 strace
 system-config-printer-gnome
@@ -194,6 +199,8 @@ tracker-miner-fs
 ttf-ancient-fonts
 ttf-femkeklaver
 u2f-hidraw-policy
+# For rootless podman
+uidmap
 unrar
 # For data transfer with iOS devices
 usbmuxd
