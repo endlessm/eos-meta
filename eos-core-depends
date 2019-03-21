@@ -152,7 +152,7 @@ libgphoto2-l10n
 # Assuming needed for iPod support
 libgpod-common
 # Assuming useful for cups
-libmagickcore-6.q16-3-extra
+libmagickcore-6.q16-6-extra
 # Assuming needed for MTP support
 libmtp-runtime
 # For DNS lookup of .local domains
