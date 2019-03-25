@@ -2,6 +2,9 @@
 *.swp
 *~
 debian/*substvars
+debian/.debhelper
 debian/eos-apps
 debian/eos-core
 debian/eos-dev
+debian/eos-dev-kernel
+debian/eos-dev-kernel-amd64
