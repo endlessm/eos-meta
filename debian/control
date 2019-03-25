@@ -4,7 +4,9 @@ Priority: optional
 Maintainer: EndlessM Maintainers <maintainers@endlessm.com>
 Uploaders: Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Hector Oron <hector.oron@collabora.co.uk>, Srdjan Grubor <sgnn7@sgnn7.org>
 Standards-Version: 3.9.3
-Build-Depends: debhelper (>= 9)
+Build-Depends: debhelper (>= 9),
+               libdpkg-perl,
+               meson,
 Homepage: http://www.endlessm.com
 
 Package: eos-core

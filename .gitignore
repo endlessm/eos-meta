@@ -8,3 +8,4 @@ debian/eos-core
 debian/eos-dev
 debian/eos-dev-kernel
 debian/eos-dev-kernel-amd64
+obj-*
