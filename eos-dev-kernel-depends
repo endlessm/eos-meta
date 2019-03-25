@@ -18,7 +18,7 @@ make
 patchutils
 strace
 tig
-util-linux
+util-linux (>= 2.32)
 valgrind
 vim
 zsh
