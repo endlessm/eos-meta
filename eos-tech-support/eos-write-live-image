@@ -30,6 +30,7 @@ ARGS=$(getopt -o o:x:lp:r:nms:wL:fh \
     -l size: \
     -l fill \
     -l writable \
+    -l no-bios \
     -l label: \
     -l force \
     -l debug \
@@ -42,6 +43,7 @@ MBR=
 EXPAND=
 SIZE=
 WRITABLE=
+BIOS=true
 FORCE=
 PERSONALITY=base
 PRODUCT=eos
@@ -72,6 +74,7 @@ Options:
         --fill               Expand the image to fill the target disk
     -w, --writable           Allow image to be modified when run (which
                              prevents installing it later)
+        --no-bios            Do not create a BIOS boot partition
     -f, --force              don't ask to proceed before writing
     -h, --help               Show this message
 
@@ -171,6 +174,10 @@ while true; do
             shift
             FORCE=true
             ;;
+        --no-bios)
+            shift
+            BIOS=
+            ;;
         --debug)
             shift
             set -x
@@ -258,6 +265,11 @@ if [ -z "$FETCH_LATEST" ]; then
     fi
 fi
 
+if [ ! "$BIOS" ] && [ "$MBR" ]; then
+    echo "--no-bios and --mbr cannot be used together" >&2
+    exit 1
+fi
+
 if [ -n "$SIZE" ]; then
     SIZE_DESC=$SIZE
 else
@@ -273,6 +285,7 @@ echo
 echo "       Endless OS image: ${OS_IMAGE:-latest $PRODUCT $PERSONALITY image}"
 echo "  Installer for Windows: ${WINDOWS_TOOL:-latest release}"
 echo "      Image target size: ${SIZE_DESC}"
+echo "  Create BIOS partition: ${BIOS:-false}"
 echo "                 Target: ${OUTPUT}"
 echo
 
@@ -367,17 +380,26 @@ else
     # It is important that the offset of the BIOS boot partition matches that
     # used in the Endless OS image builder, since it is embedded in the GRUB
     # image.
-    sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
+    if [ "$BIOS" ]; then
+        sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
 2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
 3 : size=1MiB, type=$PARTITION_BIOS_BOOT_GUID
 1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
 EFI_PARTITIONS
+    else
+        sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
+2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
+1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
+EFI_PARTITIONS
+    fi
     udevadm settle
     partprobe "$OUTPUT"
     PARTMAP=$(sfdisk --dump "$OUTPUT")
     DEVICE_IMAGES=$(find_by_type "$PARTMAP" "$PARTITION_BASIC_DATA_GUID")
     DEVICE_EFI=$(find_by_type "$PARTMAP" "$PARTITION_SYSTEM_GUID")
-    DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
+    if [ "$BIOS" ]; then
+        DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
+    fi
 fi
 
 # Give udisks a chance to notice the new partitions
@@ -473,7 +495,9 @@ else
     unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${OUTPUT}" bs=446 count=1
     udevadm settle  # udev recreates device files after any write to the device
     # The rest of GRUB goes into a dedicated BIOS-boot partition
-    unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
+    if [ "$BIOS" ]; then
+        unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
+    fi
 fi
 
 udevadm settle
