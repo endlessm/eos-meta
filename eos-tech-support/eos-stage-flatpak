@@ -1,5 +1,10 @@
 #!/bin/bash -e
 
+ARGS=$(getopt -o r:h -l remote-name: -l help -n "$0" -- "$@")
+eval set -- "$ARGS"
+
+REMOTE_NAME=
+
 function usage {
     cat <<EOF
 Usage:
@@ -10,8 +15,32 @@ Arguments:
                 - demo: beta testing in advance of production releases
                 - prod: full production releases for general availability
     PASSWORD  Development password (for staging branch only)
+
+Options:
+    -r, --remote-name REMOTE_NAME  Name of the flatpak remote to stage; if
+                                   unspecified, all remotes configured in the
+                                   system repository will be staged
+    -h, --help                     Show this message
 EOF
 }
+
+while true; do
+    case "$1" in
+        -r|--remote-name)
+            shift
+            REMOTE_NAME="$1"
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
 
 if [ $# -lt 1 ] || [ $# -gt 2 ] ; then
     if [ $# -lt 1 ] ; then
@@ -57,7 +86,16 @@ else
     flatpak_repo=/var/lib/flatpak/repo
 fi
 
+remote_found=
 for remote in `flatpak remote-list --system | awk {'print $1'}` ; do
+    if [ -n "$REMOTE_NAME" ]; then
+        if [ "$remote" != "$REMOTE_NAME" ]; then
+            continue
+        else
+            remote_found=true
+        fi
+    fi
+
     url=$(ostree --repo="$flatpak_repo" config get --group 'remote "'"$remote"'"' 'url')
     if [[ "$url" == *"ostree.endlessm.com"* ]] ; then
         repo=${url##*/}
@@ -108,3 +146,8 @@ for remote in `flatpak remote-list --system | awk {'print $1'}` ; do
         flatpak remote-ls "$remote" >/dev/null || true
     fi
 done
+
+if [ -n "$REMOTE_NAME" ] && [ -z "$remote_found" ]; then
+    echo "Could not find remote $REMOTE_NAME" >&2
+    exit 1
+fi
