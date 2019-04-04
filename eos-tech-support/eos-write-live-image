@@ -19,7 +19,7 @@ if [ ! -f "$EOS_DOWNLOAD_IMAGE" ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o o:x:lp:r:nmwL:fh \
+ARGS=$(getopt -o o:x:lp:r:nms:wL:fh \
     -l os-image: \
     -l windows-tool: \
     -l latest \
@@ -27,7 +27,10 @@ ARGS=$(getopt -o o:x:lp:r:nmwL:fh \
     -l product: \
     -l ntfs \
     -l mbr \
+    -l size: \
+    -l fill \
     -l writable \
+    -l no-bios \
     -l label: \
     -l force \
     -l debug \
@@ -37,7 +40,10 @@ eval set -- "$ARGS"
 
 NTFS=
 MBR=
+EXPAND=
+SIZE=
 WRITABLE=
+BIOS=true
 FORCE=
 PERSONALITY=base
 PRODUCT=eos
@@ -64,8 +70,11 @@ Options:
     -p, --personality        Fetch a different personality (default: $PERSONALITY)
     -r, --product            Fetch a different product (default: $PRODUCT)
     -L, --label LABEL        Autorun.inf label (default: Endless OS)
+    -s, --size SIZE          Expand the image to desired size in bytes
+        --fill               Expand the image to fill the target disk
     -w, --writable           Allow image to be modified when run (which
                              prevents installing it later)
+        --no-bios            Do not create a BIOS boot partition
     -f, --force              don't ask to proceed before writing
     -h, --help               Show this message
 
@@ -80,6 +89,13 @@ function check_exists() {
     if [ ! -f "$1" ]; then
         echo "$2 $1 does not exist or is not a file" >&2
         exit 1
+    fi
+}
+
+function cleanup() {
+    udisks_unmount "$DEVICE_IMAGES"
+    if [ ! "$MBR" ]; then
+        udisks_unmount "$DEVICE_EFI"
     fi
 }
 
@@ -139,6 +155,16 @@ while true; do
             shift
             WRITABLE=true
             ;;
+        --fill)
+            shift
+            EXPAND=true
+            ;;
+        -s|--size)
+            shift
+            EXPAND=true
+            SIZE="$1"
+            shift
+            ;;
         -L|--label)
             shift
             LABEL="$1"
@@ -147,6 +173,10 @@ while true; do
         -f|--force)
             shift
             FORCE=true
+            ;;
+        --no-bios)
+            shift
+            BIOS=
             ;;
         --debug)
             shift
@@ -209,6 +239,10 @@ else
     dependencies[$MKFS_IMAGES]='exfat-utils'
 fi
 
+if [ "$EXPAND" ]; then
+    dependencies[truncate]='coreutils'
+fi
+
 for command in "${!dependencies[@]}"; do
     if ! which "$command" >/dev/null 2>&1; then
         echo "$command is not installed... aborting!" >&2
@@ -231,10 +265,27 @@ if [ -z "$FETCH_LATEST" ]; then
     fi
 fi
 
+if [ ! "$BIOS" ] && [ "$MBR" ]; then
+    echo "--no-bios and --mbr cannot be used together" >&2
+    exit 1
+fi
+
+if [ -n "$SIZE" ]; then
+    SIZE_DESC=$SIZE
+else
+    if [ -n "$EXPAND" ]; then
+        SIZE_DESC="fill disk"
+    else
+        SIZE_DESC="n/a"
+    fi
+fi
+
 echo "Summary:"
 echo
 echo "       Endless OS image: ${OS_IMAGE:-latest $PRODUCT $PERSONALITY image}"
 echo "  Installer for Windows: ${WINDOWS_TOOL:-latest release}"
+echo "      Image target size: ${SIZE_DESC}"
+echo "  Create BIOS partition: ${BIOS:-false}"
 echo "                 Target: ${OUTPUT}"
 echo
 
@@ -329,17 +380,26 @@ else
     # It is important that the offset of the BIOS boot partition matches that
     # used in the Endless OS image builder, since it is embedded in the GRUB
     # image.
-    sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
+    if [ "$BIOS" ]; then
+        sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
 2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
 3 : size=1MiB, type=$PARTITION_BIOS_BOOT_GUID
 1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
 EFI_PARTITIONS
+    else
+        sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
+2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
+1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
+EFI_PARTITIONS
+    fi
     udevadm settle
     partprobe "$OUTPUT"
     PARTMAP=$(sfdisk --dump "$OUTPUT")
     DEVICE_IMAGES=$(find_by_type "$PARTMAP" "$PARTITION_BASIC_DATA_GUID")
     DEVICE_EFI=$(find_by_type "$PARTMAP" "$PARTITION_SYSTEM_GUID")
-    DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
+    if [ "$BIOS" ]; then
+        DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
+    fi
 fi
 
 # Give udisks a chance to notice the new partitions
@@ -389,13 +449,40 @@ fi
 
 "$EOS_WRITE_IMAGE" "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
 
+if [ "$EXPAND" ]; then
+    IMAGE_BYTES=$(du -b "${DIR_IMAGES_ENDLESS}/endless.img" | cut -f1)
+    FREE_SPACE_BYTES=$(df -P -B1 "$DIR_IMAGES_ENDLESS" | awk 'NR==2 {print $4}')
+
+    if [ -n "$SIZE" ]; then
+        if [ $SIZE -lt $IMAGE_BYTES ]; then
+            echo "Cannot expand the image to $SIZE bytes, minimum size is $IMAGE_BYTES bytes" >&2
+            cleanup
+            exit 1
+        fi
+
+        # Expand the image to the provided size
+        EXTRA_BYTES=$(($SIZE - $IMAGE_BYTES))
+
+        if [ $EXTRA_BYTES -gt $FREE_SPACE_BYTES ]; then
+            echo "Cannot expand the image to $SIZE bytes, only $FREE_SPACE_BYTES bytes available" >&2
+            cleanup
+            exit 1
+        fi
+    else
+        # Expand the image to take all the space on the drive
+        SIZE=$(($IMAGE_BYTES + $FREE_SPACE_BYTES))
+    fi
+
+    if [ $SIZE -gt $IMAGE_BYTES ]; then
+        echo "Expanding the image from $IMAGE_BYTES to $SIZE bytes"
+        truncate --size "$SIZE" "${DIR_IMAGES_ENDLESS}/endless.img"
+    fi
+fi
+
 echo
 echo "Finalizing"
 
-udisks_unmount "$DEVICE_IMAGES"
-if [ ! "$MBR" ]; then
-    udisks_unmount "$DEVICE_EFI"
-fi
+cleanup
 
 if [ "$MBR" ]; then
     # Bootstrap code, which will jump to sector 1
@@ -408,7 +495,9 @@ else
     unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${OUTPUT}" bs=446 count=1
     udevadm settle  # udev recreates device files after any write to the device
     # The rest of GRUB goes into a dedicated BIOS-boot partition
-    unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
+    if [ "$BIOS" ]; then
+        unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
+    fi
 fi
 
 udevadm settle
