@@ -21,7 +21,7 @@ gnome-tweak-tool
 gparted
 jq
 kbd
-linux-tools-3.10
+linux-tools-generic
 logrotate
 multistrap
 nmap
