@@ -44,6 +44,7 @@ EXPAND=
 SIZE=
 WRITABLE=
 BIOS=true
+WINDOWS_TOOL_PROVIDED=
 FORCE=
 PERSONALITY=base
 PRODUCT=eos
@@ -127,6 +128,7 @@ while true; do
         -x|--windows-tool)
             shift
             WINDOWS_TOOL="$1"
+            WINDOWS_TOOL_PROVIDED=true
             shift
             ;;
         -l|--latest)
@@ -432,6 +434,9 @@ if [ ! "$WRITABLE" ]; then
     cp "${BOOT_ZIP}" "${BOOT_ZIP}.asc" "${EXTRACTED_SIGNATURE}" \
         "$DIR_IMAGES_ENDLESS/"
     echo "$OS_IMAGE_UNCOMPRESSED_BASENAME" > "${DIR_IMAGES_ENDLESS}/live"
+fi
+
+if [ ! "$WRITABLE" ] || [ "$WINDOWS_TOOL_PROVIDED" ]; then
     cp "$WINDOWS_TOOL" "$DIR_IMAGES/"
     WINDOWS_TOOL_BASENAME="$(basename "$WINDOWS_TOOL")"
     sed 's/$/\r/' <<AUTORUN_INF | iconv -f utf-8 -t utf-16 > "${DIR_IMAGES}/autorun.inf"
