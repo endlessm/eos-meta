@@ -51,7 +51,7 @@ strace
 sysstat
 tcpdump
 tmux
-util-linux
+util-linux (>= 2.32)
 valgrind
 vim
 x11-utils

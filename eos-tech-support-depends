@@ -1,9 +1,11 @@
 bash-completion
 eos-image-keyring
 file
+gjs
 iw
 lshw
 pv
+python3
 python3-dateutil
 python3-requests
 screen

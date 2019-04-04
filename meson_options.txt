@@ -1,0 +1,5 @@
+option('check-deps',
+  type : 'boolean',
+  value : true,
+  description : 'Checks that all listed external packages are installable',
+)

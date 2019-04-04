@@ -10,10 +10,13 @@ eos-metapackage - create metapackages from depends files
 use strict;
 
 use Debian::Debhelper::Dh_Lib;
+use Dpkg::Deps qw( deps_parse deps_iterate );
 
 =head1 SYNOPSIS
 
 B<eos-metapackage> [S<B<debhelper options>>]
+
+B<eos-metapackage --check-params>
 
 =head1 DESCRIPTION
 
@@ -30,6 +33,10 @@ The format of the dependency files is one package per line. Lines
 beginning with "#" are skipped. Lines beginning with "include" will read
 in the referenced file.
 
+If run with C<--check-params>, rather than populating substvar files, the
+program will check whether all external packages for the current
+architecture listed in dependency files are installable.
+
 =head1 EXAMPLES
 
 eos-metapackage must be called before C<dh_installdeb>.
@@ -40,7 +47,10 @@ eos-metapackage must be called before C<dh_installdeb>.
 
 =cut
 
-init();
+my $CheckDeps = 0;
+init(options => {
+	"check-deps" => \$CheckDeps,
+});
 
 sub get_depends {
 	my $name=shift;
@@ -71,16 +81,52 @@ sub get_depends {
 	return @deps;
 }
 
+sub check_installable {
+	my ($depfile, $deps) = @_;
+	my @cmd;
+	my %options = (
+		# ignore packages for foreign architectures; they may not be
+		# installable on this architecture, and that's OK.
+		reduce_restrictions => 1,
+	);
+
+	verbose_print("checking all packages in $depfile are installable");
+	deps_iterate(deps_parse($deps, %options), sub {
+		my ($d) = @_;
+		my $package = $d->{package};
+
+		if (grep { $package eq $_ } @{$dh{DOPACKAGES}}) {
+			verbose_print("skipping '$package' which comes from this project");
+		} else {
+			push @cmd, $package;
+		}
+
+		return 1; # keep iteratin'
+	});
+
+	if (@cmd > 0) {
+		unshift(@cmd, ("apt-get", "install", "--download-only", "--dry-run", "--quiet"));
+		doit(@cmd);
+	}
+}
+
 sub subst_depends {
 	my $package=shift;
 	my $type=shift;
 	my $var=shift;
 	my $depfile="$package-$type";
 	my @deps;
+	my $deps;
 
 	# Allow the toplevel file to be missing (e.g., -recommends)
 	@deps = get_depends("$depfile") if -e "$depfile";
-	addsubstvar($package, $var, join(', ', @deps));
+	$deps = join(', ', @deps);
+
+	if ($CheckDeps) {
+		check_installable($depfile, $deps);
+	} else {
+		addsubstvar($package, $var, $deps);
+	}
 }
 
 foreach my $package (@{$dh{DOPACKAGES}}) {
