@@ -1,6 +1,6 @@
 # rockchip/rk3288 hardware specific packages
 linux-image-4.4.0-1-rockchip
-u-boot-rockchip
+u-boot-rockchip-jerry
 cgpt
 flashrom
 ectool
