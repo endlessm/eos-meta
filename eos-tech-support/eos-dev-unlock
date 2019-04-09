@@ -3,7 +3,9 @@
 function warning_blob() {
     echo "This script uses \"ostree admin unlock\" to create a writable /usr"
     echo "overlay, and makes some other basic tweaks so that apt works in this"
-    echo "setup. The changes made to the overlay will be lost on reboot."
+    echo "setup. By default, the changes made to the overlay will be lost on"
+    echo "reboot; passing --hotfix will make the changes persist across "
+    echo "reboot, and clone the current deployment as the rollback deployment."
     echo ""
     echo "WARNING: If you're not an Endless developer you will not be able to"
     echo "meaningfully using apt."
@@ -12,7 +14,7 @@ function warning_blob() {
 
 if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
     echo "Usage:"
-    echo "   $0"
+    echo "   $0 [--hotfix]"
     echo ""
     warning_blob
     exit 0
@@ -35,7 +37,7 @@ systemctl stop eos-autoupdater.timer
 systemctl stop eos-autoupdater.service
 systemctl stop eos-updater.service
 
-ostree admin unlock
+ostree admin unlock "$@"
 
 # Some tweaks to make apt work
 if [ ! -d /var/cache/debconf ]; then
