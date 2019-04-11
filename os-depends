@@ -12,7 +12,6 @@ dracut
 eject
 efibootmgr [amd64]
 eos-boot-helper
-eos-composite-mode
 eos-default-background
 eos-default-settings
 eos-factory-tools
