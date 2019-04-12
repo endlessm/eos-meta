@@ -165,6 +165,8 @@ libpam-gnome-keyring
 # Assumed useful for apps that use libsasl2
 libsasl2-modules
 modemmanager
+# For mouse accessibility options in gnome-settings-daemon
+mousetweaks
 nautilus
 nautilus-extension-brasero
 network-manager-openvpn-gnome
