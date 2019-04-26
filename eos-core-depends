@@ -200,6 +200,7 @@ strace
 system-config-printer-gnome
 system-config-printer-udev
 systemd-coredump
+toolbox
 totem
 totem-plugins
 tracker
