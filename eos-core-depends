@@ -107,6 +107,7 @@ gdb
 gedit
 # For showing the keyboard layout from the control center
 gkbd-capplet
+gnome-bluetooth
 gnome-calculator
 gnome-clocks
 gnome-contacts
@@ -130,6 +131,7 @@ gsfonts
 gstreamer1.0-gl
 gvfs-backends
 gvfs-bin
+hplip
 htop
 ibus-anthy
 ibus-avro

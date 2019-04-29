@@ -36,7 +36,10 @@ gir1.2-flatpak-1.0
 gir1.2-ostree-1.0
 gnome-session
 gnome-shell (>= 3.22.3)
-gnupg
+gnupg-l10n
+gpg
+gpg-agent
+gpgv
 # Could just be i386 amd64, but theoretically supports other arches
 grub2 [!armhf]
 grub-efi-amd64-image-signed [amd64 i386]
