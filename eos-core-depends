@@ -36,6 +36,7 @@ debconf-i18n
 dnsmasq-base
 # For brasero video DVD functionality
 dvdauthor
+e2fsprogs-l10n
 # For flatpak-builder
 elfutils
 eog
@@ -114,6 +115,7 @@ gnome-disk-utility
 gnome-font-viewer
 gnome-getting-started-docs
 gnome-initial-setup
+gnome-keyring-pkcs11
 gnome-logs
 gnome-online-accounts
 gnome-orca
@@ -125,6 +127,7 @@ gnome-terminal
 gnome-user-guide
 gnome-user-share
 gsfonts
+gstreamer1.0-gl
 gvfs-backends
 gvfs-bin
 htop
@@ -149,6 +152,7 @@ imagescan-driver
 libblockdev-crypto2
 # Needed for image thumbnailer
 libgdk-pixbuf2.0-bin
+libgpg-error-l10n
 libgphoto2-l10n
 # Assuming needed for iPod support
 libgpod-common
