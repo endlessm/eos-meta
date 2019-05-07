@@ -27,6 +27,7 @@ exfat-utils
 fake-hwclock
 file
 fonts-dejavu
+fscrypt
 gdisk
 gdm3
 geoclue-2.0
@@ -55,6 +56,7 @@ less
 # Needed to make gdb useful
 libc-dbg
 libpam-fprintd
+libpam-fscrypt
 libpam-runtime
 libpam-systemd
 linux-firmware
