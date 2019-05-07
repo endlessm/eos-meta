@@ -33,3 +33,4 @@ qemu-utils
 resolvconf
 shim
 x11-apps
+ubuntu-keyring
