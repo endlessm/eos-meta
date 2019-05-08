@@ -6,6 +6,31 @@
 # scripts have special provisions to consider anything listed here as a
 # required part of our distro.
 
+# Robert McQueen is prototyping these container-based development tools.
+# They will probably be added to the ostree once ready.
+toolbox
+buildah
+
+# Robert McQueen is prototyping this for encrypted home directories.
+# It will probably be added to the ostree once ready.
+fscrypt
+
+# Matthew Leeds is working on flatpak functionality that would use this
+bindfs
+
+# Dan Nicholson points out that this is used by osc for handling
+# control.tar.xz files, useful for development.
+python-lzma
+
+# Dan Nicholson requests this for ancillary tools, e.g. it's useful for
+# running obs-add-package or jenkins-infra locally.
+ubuntu-keyring
+
+# Daniel Drake is working on aarch64 bringup which needs this arch-specific
+# dependency. (aarch64 packages are not yet published)
+skales
+
+# Other
 ack-grep
 alsa-tools
 ansible
@@ -33,4 +58,3 @@ qemu-utils
 resolvconf
 shim
 x11-apps
-ubuntu-keyring
