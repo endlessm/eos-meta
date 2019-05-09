@@ -1,0 +1,70 @@
+# The eos-toolbox-dev package is intended to be included in the eos-toolbox
+# container images as a way to provide the base development packages needed
+# for common development.
+#
+# Packages listed here should be commonly used, of high value for
+# development, and expected to be relevant to a whole group of Endless
+# developers.
+#
+# Some packages included in the eos-dev package (e.g. gnome dev packages)
+# are not included here on purpose given they increase the container image
+# size quite substantially. Developers that need the extra packages can
+# still install them manually using apt-get from an eos-toolbox container.
+
+acl
+apt-file
+apt-utils
+autoconf
+automake
+bash-completion
+buildah
+build-essential
+ca-certificates
+ccache
+curl
+dbus
+debootstrap
+devscripts
+diffutils
+endless-ca-cert
+findutils
+flatpak-xdg-utils
+gdb
+git
+gnupg
+hostname
+htop
+iftop
+iotop
+less
+libcap2-bin
+libnss-myhostname
+locales-all
+lsof
+make
+man-db
+manpages
+meson
+net-tools
+obs-build
+openssh-client
+osc
+passwd
+patchutils
+pbuilder
+pycodestyle
+podman
+procps
+python3
+quilt
+rsync
+strace
+sudo
+time
+traceroute
+unzip
+util-linux
+wget
+xzdec
+xz-utils
+zip
