@@ -1,5 +1,6 @@
 #!/usr/bin/env gjs
 
+const ByteArray = imports.byteArray;
 const Gio = imports.gi.Gio;
 const GLib = imports.gi.GLib;
 const Lang = imports.lang;
@@ -42,19 +43,17 @@ function collectBoardInfo() {
     let output = '';
     dmi_info.forEach(function(name) {
         let file = '/sys/devices/virtual/dmi/id/' + name;
+        let contents = tryReadFile(file);
 
-        try {
-            let [res, contents] = GLib.file_get_contents(file);
+        if (contents) {
             output += name + ': ' + contents;
-        } catch (e) {
         }
     });
 
-    try {
-        let [res, contents] = GLib.file_get_contents('/proc/device-tree/compatible');
-        output += 'compatible: ' + contents;
-        output = output.replace(/\0/g, ' ');
-    } catch (e) { }
+    let deviceTreeCompatible = tryReadFile('/proc/device-tree/compatible');
+    if (deviceTreeCompatible) {
+        output += 'compatible: ' + deviceTreeCompatible.replace(/\0/g, ' ');
+    }
 
     return output;
 }
@@ -394,7 +393,7 @@ function collectPrintersInfo() {
         let [res, stdout, stderr, exitStatus] = GLib.spawn_sync(null, argv, envp,
                                                                 GLib.SpawnFlags.DEFAULT,
                                                                 null);
-        output += stdout;
+        output += ByteArray.toString(stdout);
     } catch (e) {
         output += 'error ocurred querying CUPS status: ' + e + '\n';
     }
@@ -416,13 +415,7 @@ function collectPrintersInfo() {
             for (let i = 0; i < ppd_path.length; i++)
                 output += '-';
             output += '-\n';
-
-            try {
-                let [res, contents] = GLib.file_get_contents(ppd_path);
-                output += contents;
-            } catch (e) {
-                output += 'not available\n';
-            }
+            output += tryReadFile(ppd_path, 'not available\n');
         }
     } catch (e) {
         output += 'Unable to find installed PPD files: ' + e + '\n';
@@ -432,34 +425,27 @@ function collectPrintersInfo() {
 }
 
 function collectTemperatureInfo() {
-    try {
-        let [res, tempInput] = GLib.file_get_contents('/sys/class/thermal/thermal_zone0/temp');
+    let tempInput = tryReadFile('/sys/class/thermal/thermal_zone0/temp');
+    if (tempInput) {
         let temperature = parseInt(tempInput);
         let temperatureStr = (temperature / 1000).toString() + '°C';
         return ((temperature > 0) ? ('+') : ('-')) + temperatureStr + '\n';
-    } catch (e) {
+    } else {
         return 'No temperature information available\n';
     }
 }
 
 function collectChromiumPluginsInfo() {
-    let oldVersion = null;
-    try {
-        let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/VERSION.txt');
-        oldVersion = version + ' (via old updater)\n';
-    } catch(e) {
-        oldVersion = null;
+    let oldVersion = tryReadFile('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/VERSION.txt');
+    if (oldVersion) {
+        oldVersion += ' (via old updater)\n';
     }
 
     let flashOutput = 'Flash Version: ';
     let flashPath = Gio.file_new_for_path('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/libpepflashplayer.so');
     if (flashPath.query_exists(null)) {
-        try {
-            let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Flash_VERSION.txt');
-            flashOutput += version + '\n';
-        } catch(e) {
-            flashOutput += (oldVersion != null) ? oldVersion : 'not available\n';
-        }
+        flashOutput += tryReadFile('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Flash_VERSION.txt',
+                                   'not available') + '\n';
     } else {
         flashOutput += 'not installed\n';
     }
@@ -467,12 +453,8 @@ function collectChromiumPluginsInfo() {
     let widevineOutput = 'Widevine Version: ';
     let widevinePath = Gio.file_new_for_path('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/libwidevinecdm.so');
     if (widevinePath.query_exists(null)) {
-        try {
-            let [res, version] = GLib.file_get_contents('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Widevine_VERSION.txt');
-            widevineOutput += version + '\n';
-        } catch(e) {
-            widevineOutput += (oldVersion != null) ? oldVersion : 'not available\n';
-        }
+        widevineOutput += tryReadFile('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Widevine_VERSION.txt',
+                                      'not available') + '\n';
     } else {
         widevineOutput += 'not installed\n';
     }
@@ -502,7 +484,7 @@ function isCoredumpdEnabled() {
 function trySpawn(command) {
     try {
         let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync(command);
-        return stdout.toString();
+        return ByteArray.toString(stdout);
     } catch (e) {
         return '';
     }
@@ -511,7 +493,7 @@ function trySpawn(command) {
 function tryReadFile(filename, fallbackMessage) {
     try {
         let [res, contents] = GLib.file_get_contents(filename);
-        return contents.toString();
+        return ByteArray.toString(contents);
     } catch (e) {
         return (fallbackMessage) ? fallbackMessage : '';
     }
