@@ -3,6 +3,7 @@ attr
 bzip2
 ca-certificates
 eos-icon-theme
+fonts-freefont-ttf
 fonts-lato
 fonts-liberation
 fonts-wqy-microhei
@@ -33,6 +34,5 @@ lzma
 mawk
 netbase
 sound-theme-freedesktop
-ttf-freefont
 xdg-utils
 xz-utils
