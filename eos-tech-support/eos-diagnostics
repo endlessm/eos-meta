@@ -684,6 +684,12 @@ let diagnostics = [
         },
     },
     {
+        title: 'Flatpak history',
+        content() {
+            return trySpawn('flatpak history --columns=all');
+        }
+    },
+    {
         title: 'Processes',
         content: function() { return trySpawn('ps aux'); },
     },
