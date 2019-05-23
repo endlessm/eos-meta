@@ -17,7 +17,6 @@ apt-utils
 autoconf
 automake
 bash-completion
-buildah
 build-essential
 ca-certificates
 ccache
