@@ -53,6 +53,7 @@ patchutils
 pbuilder
 pycodestyle
 podman
+podman-docker
 procps
 python3
 quilt
