@@ -45,28 +45,6 @@ Description: Target packages of the Endless distribution for amd64
  .
  This set provides the platform specific package list for amd64.
 
-Package: eos-core-odroidu2
-Architecture: armhf
-Depends: ${misc:Depends}, ${eos:Depends}
-Description: Target packages of the Endless distribution for odroidu2
- This package depends on all packages required for the Endless OS core images
- .
- It is also used to help ensure proper upgrades, so it is recommended that
- it not be removed.
- .
- This set provides the platform specific package list for armhf-odroidu2.
-
-Package: eos-core-sqwerty
-Architecture: armhf
-Depends: ${misc:Depends}, ${eos:Depends}
-Description: Target packages of the Endless distribution for sqwerty
- This package depends on all packages required for the Endless OS core images
- .
- It is also used to help ensure proper upgrades, so it is recommended that
- it not be removed.
- .
- This set provides the platform specific package list for armhf-sqwerty.
-
 Package: eos-core-ec100
 Architecture: armhf
 Depends: ${misc:Depends}, ${eos:Depends}
@@ -88,17 +66,6 @@ Description: Target packages of the Endless distribution for S905X-based boards
  it not be removed.
  .
  This set provides the platform specific package list for armhf-s905x
-
-Package: eos-core-rk3288
-Architecture: armhf
-Depends: ${misc:Depends}, ${eos:Depends}
-Description: Target packages of the Endless distribution for rk3288-based boards
- This package depends on all packages required for the Endless OS core images
- .
- It is also used to help ensure proper upgrades, so it is recommended that
- it not be removed.
- .
- This set provides the platform specific package list for armhf-rk3288
 
 Package: eos-core-nexthw
 Architecture: amd64
