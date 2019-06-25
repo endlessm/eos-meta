@@ -73,8 +73,6 @@ file-roller
 flatpak
 flatpak-builder
 fonts-arabeyes
-fonts-arphic-ukai
-fonts-arphic-uming
 fonts-crosextra-caladea
 fonts-crosextra-carlito
 fonts-droid-fallback
@@ -85,8 +83,7 @@ fonts-kacst
 fonts-khmeros
 fonts-knda
 fonts-linuxlibertine
-fonts-nanum
-fonts-nanum-coding
+fonts-noto-cjk
 fonts-noto-mono
 fonts-ocr-a
 fonts-paktype
@@ -96,10 +93,7 @@ fonts-sil-gentium
 fonts-sil-gentium-basic
 fonts-sil-padauk
 fonts-thai-tlwg
-fonts-unfonts-core
 fonts-uralic
-fonts-vlgothic
-fonts-wqy-zenhei
 foomatic-db-compressed-ppds
 fprintd
 # For rootless podman
