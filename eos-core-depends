@@ -191,6 +191,8 @@ simple-scan
 # For rootless podman
 slirp4netns
 smbclient
+sound-icons
+speech-dispatcher-espeak-ng
 strace
 system-config-printer-gnome
 system-config-printer-udev
