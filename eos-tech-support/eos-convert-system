@@ -130,10 +130,10 @@ systemd-tmpfiles --create --prefix /var/log/journal
 eos-enable-coredumps /sysroot/etc
 
 # Put the kernels/initramfs in the expected place by Debian
-for orig in ${OSTREE_DEPLOY_CURRENT}/boot/{vmlinuz,initramfs}*; do
+for orig in ${OSTREE_DEPLOY_CURRENT}/usr/lib/modules/*/{vmlinuz,initramfs}*; do
   new="${orig##*/}"
   new="${new%-*}"
-  new="${new/initramfs/initrd.img}"
+  new="${new/initramfs.img/initrd.img}"
   cp -pax "$orig" "/boot/$new"
 done
 
