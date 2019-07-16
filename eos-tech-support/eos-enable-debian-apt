@@ -4,7 +4,7 @@ set -e
 echo "This script adds the Debian repository to your apt config."
 echo "The resulting configuration prefers the Endless repository where"
 echo "possible, even if a package in Endless is older than in Debian."
-echo "However, but packages not found in the Endless repo will be automatically"
+echo "However, packages not found in the Endless repo will be automatically"
 echo "downloaded from Debian".
 echo
 echo "Although this may work fine in some cases, you're likely to find issues"
