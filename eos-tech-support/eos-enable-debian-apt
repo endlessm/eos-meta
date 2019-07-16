@@ -16,7 +16,7 @@ echo "Additionally, apt will only work after you have taken the usual steps of"
 echo "making it available (e.g. eos-convert-system, eos-dev-unlock, etc)"
 echo
 
-if [[ $# -lt 1 ]] || [[ $1 == -* ]]; then
+if [[ $# -ne 1 ]] || [[ $1 == -* ]]; then
 	echo "Usage: $0 <DEB_DISTRO>"
 	echo "DEB_DISTRO example values: stable, testing, unstable"
 	exit 1
