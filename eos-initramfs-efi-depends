@@ -1,0 +1,5 @@
+eos-boot-helper
+dracut
+ostree
+dracut-network
+systemd
