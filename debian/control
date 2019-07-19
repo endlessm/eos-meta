@@ -217,3 +217,10 @@ Depends: ${misc:Depends}, ${eos:Depends}
 Description: EndlessOS Development Tools for eos-toolbox container images
  This is a collection of development tools included in the eos-toolbox
  container images
+
+Package: eos-initramfs-efi
+Architecture: all
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: EndlessOS Combined Initramfs and Kernel EFI Binary Requirements
+ This is a collection of packages that must be installed before dracut
+ can properly generate our combined initramfs and kernel efi binary.
