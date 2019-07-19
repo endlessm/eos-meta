@@ -86,6 +86,7 @@ pulseaudio
 pulseaudio-module-bluetooth
 shim-efi-image-signed [amd64]
 spice-vdagent
+spice-webdavd
 sudo
 systemd-sysv
 # ARM boot loader
