@@ -2,6 +2,8 @@
 adduser
 amd64-microcode [!armhf]
 bluez
+# Used for the initial hardware evaluation
+checkbox-ng
 cryptsetup-run
 dbus-user-session
 dbus-x11
@@ -28,6 +30,8 @@ fake-hwclock
 file
 fonts-dejavu
 fscrypt
+# Used for the initial hardware evaluation
+fwts
 gdisk
 gdm3
 geoclue-2.0
@@ -45,6 +49,8 @@ gpgv
 grub2 [!armhf]
 grub-efi-amd64-image-signed [amd64 i386]
 grub-efi-ia32-image [amd64 i386]
+# Used for the initial hardware evaluation
+hdparm
 # Required for unknown reasons (see T19310)
 im-config
 intel-microcode [!armhf]
@@ -67,6 +73,8 @@ linux-firmware
 linux-signed-image-generic [amd64]
 lsb-base
 lsb-release
+# Used for the initial hardware evaluation
+mesa-utils
 mobile-broadband-provider-info
 net-tools
 network-manager
@@ -80,11 +88,15 @@ openssh-client
 ostree
 p7zip-full
 parted
+# Used for the initial hardware evaluation
+plainbox-provider-checkbox
 policykit-1
 python3-gi
 pulseaudio
 pulseaudio-module-bluetooth
 shim-efi-image-signed [amd64]
+# Used for the initial hardware evaluation
+smartmontools
 spice-vdagent
 sudo
 systemd-sysv
