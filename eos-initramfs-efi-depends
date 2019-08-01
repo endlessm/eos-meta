@@ -1,8 +1,11 @@
-eos-plymouth-theme
-plymouth
+amd64-microcode
+dracut
+dracut-network
 e2fsprogs
 eos-boot-helper
-dracut
+eos-plymouth-theme
+intel-microcode
+iucode-tool
 ostree
-dracut-network
+plymouth
 systemd
