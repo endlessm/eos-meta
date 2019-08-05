@@ -71,6 +71,7 @@ linux-firmware
 # use the linux-signed-image variant, which contains the kernel
 # signed for UEFI.
 linux-signed-image-generic [amd64]
+linux-image-generic [arm64]
 lsb-base
 lsb-release
 # Used for the initial hardware evaluation
