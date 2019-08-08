@@ -84,6 +84,7 @@ ntfs-3g
 nvidia-driver-bin [!armhf]
 nvidia-kernel-drivers [!armhf]
 nvidia-kernel-drivers-blob-signed [!armhf]
+nvidia-modprobe [!armhf]
 ntp
 openssh-client
 ostree
