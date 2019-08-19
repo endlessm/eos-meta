@@ -136,6 +136,11 @@ for orig in ${OSTREE_DEPLOY_CURRENT}/usr/lib/modules/*; do
   cp -pax "$orig/initramfs.img" "/boot/initrd.img-$ver"
 done
 
+# Put the efi_binaries directory back where it came from
+if [ -d "${OSTREE_DEPLOY_CURRENT}"/usr/lib/efi_binaries ]; then
+  cp -pax "${OSTREE_DEPLOY_CURRENT}"/usr/lib/efi_binaries /boot/efi
+fi
+
 if [ -L /boot/uEnv.txt ] ; then 
   # Running on ARM
   ln -r -s /boot/vmlinuz* /boot/vmlinuz
