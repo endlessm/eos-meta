@@ -71,7 +71,7 @@ Description: Target packages of the Endless distribution for odroidu2
 Package: eos-core-s905x
 Architecture: armhf
 Depends: ${misc:Depends}, ${eos:Depends}
-Provides: eos-core-libretech_cc
+Provides: eos-core-libretech-cc
 Description: Target packages of the Endless distribution for S905X-based boards
  This package depends on all packages required for the Endless OS core images
  .
