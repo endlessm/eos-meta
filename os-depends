@@ -1,6 +1,6 @@
 # Dependencies shared between OS metapackages
 adduser
-amd64-microcode [!armhf]
+amd64-microcode [amd64]
 bluez
 # Used for the initial hardware evaluation
 checkbox-ng
@@ -46,14 +46,14 @@ gpg
 gpg-agent
 gpgv
 # Could just be i386 amd64, but theoretically supports other arches
-grub2 [!armhf]
+grub2 [amd64]
 grub-efi-amd64-image-signed [amd64 i386]
 grub-efi-ia32-image [amd64 i386]
 # Used for the initial hardware evaluation
 hdparm
 # Required for unknown reasons (see T19310)
 im-config
-intel-microcode [!armhf]
+intel-microcode [amd64]
 iproute2
 # NetworkManager uses this to avoid IP address conflicts
 iputils-arping
@@ -81,10 +81,10 @@ net-tools
 network-manager
 network-manager-gnome
 ntfs-3g
-nvidia-driver-bin [!armhf]
-nvidia-kernel-drivers [!armhf]
-nvidia-kernel-drivers-blob-signed [!armhf]
-nvidia-modprobe [!armhf]
+nvidia-driver-bin [amd64]
+nvidia-kernel-drivers [amd64]
+nvidia-kernel-drivers-blob-signed [amd64]
+nvidia-modprobe [amd64]
 ntp
 openssh-client
 ostree
@@ -117,12 +117,12 @@ xdg-user-dirs-gtk
 xserver-xorg
 xserver-xorg-input-libinput
 # Some of these are really specific to x86, but just keep them off of arm for now
-xserver-xorg-video-amdgpu [!armhf]
-xserver-xorg-video-fbdev [!armhf]
-xserver-xorg-video-intel [!armhf]
-xserver-xorg-video-nouveau [!armhf]
-xserver-xorg-video-nvidia [!armhf]
-xserver-xorg-video-qxl [!armhf]
-xserver-xorg-video-radeon [!armhf]
-xserver-xorg-video-vesa [!armhf]
-xserver-xorg-video-vmware [!armhf]
+xserver-xorg-video-amdgpu [amd64]
+xserver-xorg-video-fbdev [amd64]
+xserver-xorg-video-intel [amd64]
+xserver-xorg-video-nouveau [amd64]
+xserver-xorg-video-nvidia [amd64]
+xserver-xorg-video-qxl [amd64]
+xserver-xorg-video-radeon [amd64]
+xserver-xorg-video-vesa [amd64]
+xserver-xorg-video-vmware [amd64]

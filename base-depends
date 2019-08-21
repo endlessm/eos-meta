@@ -25,7 +25,7 @@ libgles2 [!armhf]
 libglib2.0-data
 libglu1-mesa [!armhf]
 libgl1-mesa-dri
-libgl1-nvidia-glvnd-glx [!armhf]
+libgl1-nvidia-glvnd-glx [amd64]
 libglx-mesa0
 libnss-altfiles
 libnss-myhostname

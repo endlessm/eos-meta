@@ -45,7 +45,7 @@ eos-acknowledgements
 eos-adblock-plus-extensions
 eos-b43fw-install
 eos-browser-tools
-eos-chrome-plugin-updater
+eos-chrome-plugin-updater [amd64 armhf]
 eos-codecs-manager
 eos-discovery-feed
 eos-event-recorder-daemon
