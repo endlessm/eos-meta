@@ -3,6 +3,8 @@ dracut
 dracut-network
 e2fsprogs
 eos-boot-helper
+eos-paygd
+eos-payg-nonfree
 eos-plymouth-theme
 intel-microcode
 iucode-tool
