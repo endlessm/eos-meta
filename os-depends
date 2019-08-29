@@ -102,6 +102,8 @@ smartmontools
 spice-vdagent
 spice-webdavd
 sudo
+# Used for booting unified kernel EFI image on PAYG
+systemd-boot-signed [amd64]
 systemd-sysv
 # ARM boot loader
 u-boot-tools [armhf]
