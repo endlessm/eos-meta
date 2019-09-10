@@ -29,6 +29,7 @@ exuberant-ctags
 gdb
 git
 gitk
+git-buildpackage
 gnome-common
 gnome-devel-docs
 gtk-doc-tools
