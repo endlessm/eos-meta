@@ -38,6 +38,8 @@ dnsmasq-base
 # For brasero video DVD functionality
 dvdauthor
 e2fsprogs-l10n
+# For PAYG secure boot key management
+efitools [amd64]
 # For flatpak-builder
 elfutils
 eog
