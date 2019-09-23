@@ -21,6 +21,7 @@ apt-utils
 avahi-daemon
 # For field debugging
 avahi-utils
+baobab
 bluez-obexd
 bolt
 brasero
