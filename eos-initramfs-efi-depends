@@ -9,5 +9,6 @@ eos-plymouth-theme
 intel-microcode
 iucode-tool
 ostree
+ostree-boot
 plymouth
 systemd

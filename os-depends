@@ -88,6 +88,7 @@ nvidia-modprobe [amd64]
 ntp
 openssh-client
 ostree
+ostree-boot
 p7zip-full
 parted
 # Used for the initial hardware evaluation
