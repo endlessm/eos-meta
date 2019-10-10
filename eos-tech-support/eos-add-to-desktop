@@ -4,12 +4,28 @@
 # The appname.dekstop file must already exist (typically in
 # /usr/share/applications or ~/.local/share/applications)
 
+
+sys_desktop_dir="/usr/share/applications/$1.desktop"
+local_desktop_dir="$HOME/.local/share/applications/$1.desktop"
+
 if [ $# -lt 1 ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
     echo "Usage:"
-    echo "   `basename $0` appid"
+    echo -e "   $(basename $0) appid\n"  # Gravemarks is deprecated
     echo "Where:"
-    echo "   appid = application id (where desktop file is named appid.desktop)"
+    echo "   appid = application id (is the launcher filename without .desktop extension)"
+    echo -e "\nExample:"
+    echo -e "   $(basename $0) my-custom-app\n"
+    echo  "Will search for 'my-custom-app.desktop' in"
+    echo  "   *  $(dirname $sys_desktop_dir)"
+    echo  "   *  $(dirname $local_desktop_dir)"
     exit
+fi
+
+if [ ! -f "$sys_desktop_dir" ] && [ ! -f "$local_desktop_dir" ]; then
+    echo "File $(basename $sys_desktop_dir) does not exist from any of these directories:"
+    echo  "   *  $(dirname $sys_desktop_dir)"
+    echo  "   *  $(dirname $local_desktop_dir)"
+    exit 1
 fi
 
 APPID="$1"
