@@ -23,70 +23,87 @@ def print_deployments(deployments):
         print(' Deploy serial:', deploy.get_deployserial())
         print(' Boot serial:', deploy.get_bootserial())
 
-aparser = ArgumentParser(
-    description='Rollback to previous OSTree deployment'
-)
-aparser.add_argument('--sysroot', help='path to OSTree sysroot')
-args = aparser.parse_args()
+def get_sysroot(args):
+    sysroot_file = None
+    if args.sysroot is not None:
+        sysroot_file = Gio.File.new_for_path(args.sysroot)
+    sysroot = OSTree.Sysroot.new(sysroot_file)
+    sysroot.load()
+    sysroot_path = sysroot.get_path().get_path()
+    return(sysroot, sysroot_path)
 
-if os.getuid() != 0:
-    print('Program requires superuser privileges')
-    sys.exit(1)
+def lock_sysroot(sysroot, sysroot_path):
+    # Lock the sysroot, waiting up to 5 minutes, to acquire an exclusive multi-process write.
+    wait = 5 * 60
+    while True:
+        locked = sysroot.try_lock()
+        if locked:
+            break
+        if wait <= 0:
+            print('Could not lock OSTree sysroot', sysroot_path,
+                  file=sys.stderr)
+            sys.exit(1)
 
-print()
-response = input('Are you sure you want to rollback to the previous OS version? [y/N] ')
-response = response.lower()
-if response != 'yes' and response != 'y':
-    sys.exit(1)
+        # Try again in 1 second
+        if wait % 60 == 0:
+            minutes = wait / 60
+            print('Waiting', minutes, 'minute' + 's' if minutes > 1 else '',
+                  'to acquire OSTree sysroot lock for', sysroot_path)
+        wait -= 1
+        time.sleep(1)
 
-sysroot_file = None
-if args.sysroot is not None:
-    sysroot_file = Gio.File.new_for_path(args.sysroot)
-sysroot = OSTree.Sysroot.new(sysroot_file)
-sysroot.load()
-sysroot_path = sysroot.get_path().get_path()
-
-# Lock the sysroot, waiting up to 5 minutes
-wait = 5 * 60
-while True:
-    locked = sysroot.try_lock()
-    if locked:
-        break
-    if wait <= 0:
-        print('Could not lock OSTree sysroot', sysroot_path,
+def get_deployments(sysroot):
+    deployments = sysroot.get_deployments()
+    print()
+    print('Old deployments...')
+    print_deployments(deployments)
+    if len(deployments) == 0:
+        print('No OSTree deployments found', file=sys.stderr)
+        sys.exit(1)
+    elif len(deployments) == 1:
+        print('Only one OSTree deployment found, cannot rollback',
               file=sys.stderr)
         sys.exit(1)
+    return(deployments)
 
-    # Try again in 1 second
-    if wait % 60 == 0:
-        minutes = wait / 60
-        print('Waiting', minutes, 'minute' + 's' if minutes > 1 else '',
-              'to acquire OSTree sysroot lock for', sysroot_path)
-    wait -= 1
-    time.sleep(1)
+def build_new_deployments(deployments, sysroot):
+    # Construct the new deployment list with the previous deployment first,
+    # rotating so that the current deployment is at the end of the list
+    new_deployments = deployments[1:] + [deployments[0]]
+    print()
+    print('New deployments...')
+    print_deployments(new_deployments)
 
-deployments = sysroot.get_deployments()
-print()
-print('Old deployments...')
-print_deployments(deployments)
-if len(deployments) == 0:
-    print('No OSTree deployments found', file=sys.stderr)
-    sys.exit(1)
-elif len(deployments) == 1:
-    print('Only one OSTree deployment found, cannot rollback',
-          file=sys.stderr)
-    sys.exit(1)
+    # Now write the new deployments
+    print()
+    sysroot.write_deployments(new_deployments)
 
-# Construct the new deployment list with the previous deployment first,
-# rotating so that the current deployment is at the end of the list
-new_deployments = deployments[1:] + [deployments[0]]
-print()
-print('New deployments...')
-print_deployments(new_deployments)
+def main():
+    aparser = ArgumentParser(
+        description='Rollback to previous OSTree deployment'
+    )
+    aparser.add_argument('--sysroot', help='path to OSTree sysroot')
+    args = aparser.parse_args('')
 
-# Now write the new deployments
-print()
-sysroot.write_deployments(new_deployments)
+    if os.getuid() != 0:
+        print('Program requires superuser privileges')
+        sys.exit(1)
 
-print()
-print('Rollback complete. Please reboot the computer to start the previous OS version.')
+    print()
+
+    response = input('Are you sure you want to rollback to the previous OS version? [y/N] ')
+    response = response.lower()
+    if response != 'yes' and response != 'y':
+        sys.exit(1)
+
+    print('A rollback to the previous OS version will be performed')
+
+    sysroot, sysroot_path = get_sysroot(args);
+    lock_sysroot(sysroot, sysroot_path);
+    deployments = get_deployments(sysroot);
+    build_new_deployments(deployments, sysroot);
+
+    print()
+    print('Rollback complete. Please reboot the computer to start the previous OS version.')
+
+main()
