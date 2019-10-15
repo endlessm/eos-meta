@@ -28,7 +28,9 @@ def get_sysroot(args):
     if args.sysroot is not None:
         sysroot_file = Gio.File.new_for_path(args.sysroot)
     sysroot = OSTree.Sysroot.new(sysroot_file)
-    sysroot.load()
+    if sysroot.load() is False:
+        print(Glib.Error.message)
+        sys.exit(1)
     sysroot_path = sysroot.get_path().get_path()
     return(sysroot, sysroot_path)
 
@@ -76,7 +78,9 @@ def build_new_deployments(deployments, sysroot):
 
     # Now write the new deployments
     print()
-    sysroot.write_deployments(new_deployments)
+    if sysroot.write_deployments(new_deployments) is False:
+        print(Glib.Error.message)
+        sys.exit(1)
 
 def main():
     aparser = ArgumentParser(
