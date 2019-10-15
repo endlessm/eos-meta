@@ -86,19 +86,20 @@ def main():
     aparser = ArgumentParser(
         description='Rollback to previous OSTree deployment'
     )
-    aparser.add_argument('--sysroot', help='path to OSTree sysroot')
-    args = aparser.parse_args('')
+    aparser.add_argument('--sysroot', dest='sysroot', default=None, help='path to OSTree sysroot')
+    aparser.add_argument('--yes', '-y', dest='conformity', action='store_true', help='Assume conformity for rollback')
+    args = aparser.parse_args()
 
     if os.getuid() != 0:
         print('Program requires superuser privileges')
         sys.exit(1)
 
     print()
-
-    response = input('Are you sure you want to rollback to the previous OS version? [y/N] ')
-    response = response.lower()
-    if response != 'yes' and response != 'y':
-        sys.exit(1)
+    if not args.conformity:
+        response = input('Are you sure you want to rollback to the previous OS version? [y/N] ')
+        response = response.lower()
+        if response != 'yes' and response != 'y':
+            sys.exit(1)
 
     print('A rollback to the previous OS version will be performed')
 
