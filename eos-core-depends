@@ -201,6 +201,7 @@ strace
 system-config-printer-gnome
 system-config-printer-udev
 systemd-coredump
+thermald [amd64]
 toolbox
 totem
 totem-plugins
