@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
-# Adds an application to the dekstop
-# The appname.dekstop file must already exist (typically in
+# Adds an application to the desktop
+# The appname.desktop file must already exist (typically in
 # /usr/share/applications or ~/.local/share/applications)
 
 if [ $# -lt 1 ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
