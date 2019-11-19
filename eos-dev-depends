@@ -17,7 +17,6 @@ automake
 bash-completion
 build-essential
 ccache
-dconf-editor
 debian-archive-keyring
 debian-keyring
 debootstrap
