@@ -562,7 +562,8 @@ let diagnostics = [
         hardwareInfo: true,
         content: function() {
             return trySpawn('free -mh') + '\n' +
-                   tryReadFile('/proc/meminfo');
+                   tryReadFile('/proc/meminfo') + '\n' +
+                   trySpawn('zramctl --output-all');
         },
     },
     {
