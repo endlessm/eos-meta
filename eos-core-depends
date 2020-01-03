@@ -60,6 +60,7 @@ eos-install-app-helper [amd64]
 eos-installer
 eos-kalite-system-helper
 eos-kalite-tools
+eos-kolibri-system-helper
 eos-media
 eos-metrics-instrumentation
 eos-phone-home
