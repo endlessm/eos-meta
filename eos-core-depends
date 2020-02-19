@@ -211,7 +211,6 @@ tracker
 tracker-miner-fs
 ttf-ancient-fonts
 ttf-femkeklaver
-u2f-hidraw-policy
 # For rootless podman
 uidmap
 unrar
