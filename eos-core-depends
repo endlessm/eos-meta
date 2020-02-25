@@ -187,6 +187,7 @@ ppp
 printer-driver-all-enforce
 python3-flapjack
 python3-pip
+python3-venv
 rhythmbox (>= 2.99.1)
 rhythmbox-plugins
 rtkit
