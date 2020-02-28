@@ -7,7 +7,8 @@
 
 if [ $# -lt 1 ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
     echo "Usage:"
-    echo "   `basename $0` appid"
+    echo "   $(basename $0) appid"
+    echo ""
     echo "Where:"
     echo "   appid = application id (where desktop file is named appid.desktop)"
     exit
