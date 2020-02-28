@@ -2,6 +2,7 @@
 
 # Adds an application to the desktop
 # The appname.desktop file must already exist (typically in
+# /var/lib/flatpak/exports/share/applications/ or
 # /usr/share/applications or ~/.local/share/applications)
 
 if [ $# -lt 1 ] || [ $1 == "-h" ] || [ $1 == "--help" ]; then
