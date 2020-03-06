@@ -56,6 +56,7 @@ eos-exploration-center
 eos-flatpak-autoinstall
 eos-gates
 eos-google-chrome-helper [amd64]
+eos-hack-extension
 eos-install-app-helper [amd64]
 eos-installer
 eos-kalite-system-helper
