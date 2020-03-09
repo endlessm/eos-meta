@@ -182,6 +182,7 @@ openprinting-ppds
 openssh-server
 # For flatpak-builder
 patch
+pipewire
 podman
 podman-docker
 # For modem support
