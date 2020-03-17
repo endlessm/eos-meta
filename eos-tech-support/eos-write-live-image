@@ -19,7 +19,7 @@ if [ ! -f "$EOS_DOWNLOAD_IMAGE" ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o o:x:lp:r:nms:wL:fh \
+ARGS=$(getopt -o o:x:lp:r:nms:wL:fPh \
     -l os-image: \
     -l windows-tool: \
     -l latest \
@@ -34,6 +34,7 @@ ARGS=$(getopt -o o:x:lp:r:nms:wL:fh \
     -l label: \
     -l force \
     -l debug \
+    -l persistent \
     -l help \
     -n "$0" -- "$@")
 eval set -- "$ARGS"
@@ -50,6 +51,7 @@ PERSONALITY=base
 PRODUCT=eos
 LABEL=
 DEBUG=
+PERSISTENT=
 
 usage() {
     local SELF
@@ -77,6 +79,7 @@ Options:
                              prevents installing it later)
         --no-bios            Do not create a BIOS boot partition
     -f, --force              don't ask to proceed before writing
+    -P, --persistent         Allocate space for persistent storage
     -h, --help               Show this message
 
 Developer options (you probably don't want to use these):
@@ -175,6 +178,10 @@ while true; do
         -f|--force)
             shift
             FORCE=true
+            ;;
+        -P|--persistent)
+            shift
+            PERSISTENT=true
             ;;
         --no-bios)
             shift
@@ -482,6 +489,17 @@ if [ "$EXPAND" ]; then
         echo "Expanding the image from $IMAGE_BYTES to $SIZE bytes"
         truncate --size "$SIZE" "${DIR_IMAGES_ENDLESS}/endless.img"
     fi
+fi
+
+if [ "$PERSISTENT" ]; then
+    # we need 512 byte alignment for device mapper, so let's do this in KBytes.
+    FREE_SPACE_KBYTES=$(df -P -B1 "$DIR_IMAGES_ENDLESS" | awk 'NR==2 {print $4}')
+    let FREE_SPACE_KBYTES=FREE_SPACE_KBYTES/1024
+    echo "Creating ${FREE_SPACE_KBYTES}K bytes persistent storage file."
+    echo "This will not be fast."
+
+    echo "endless_live_storage_marker" > "${DIR_IMAGES_ENDLESS}/persistent.img"
+    truncate -s ${FREE_SPACE_KBYTES}K "${DIR_IMAGES_ENDLESS}/persistent.img"
 fi
 
 echo
