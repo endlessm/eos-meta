@@ -86,6 +86,7 @@ nvidia-kernel-drivers [amd64]
 nvidia-kernel-drivers-blob-signed [amd64]
 nvidia-modprobe [amd64]
 ntp
+open-vm-tools-desktop [amd64]
 openssh-client
 ostree
 ostree-boot
