@@ -1,6 +1,9 @@
 #!/bin/bash -e
 #
-# Enables coredumps and adjusts storage path to work with coredumpcl
+# Enables coredumps and adjusts storage path to work with coredumpctl. This
+# takes effect immediately without requiring a reboot, persists across reboots,
+# and no crash metrics are collected once this is enabled. Coredumps can be
+# found in /var/lib/systemd/coredump/.
 #
 # Copyright (C) 2017 Endless Mobile, Inc.
 #
