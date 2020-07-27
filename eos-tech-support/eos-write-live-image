@@ -492,14 +492,25 @@ if [ "$EXPAND" ]; then
 fi
 
 if [ "$PERSISTENT" ]; then
-    # we need 512 byte alignment for device mapper, so let's do this in KBytes.
-    FREE_SPACE_KBYTES=$(df -P -B1 "$DIR_IMAGES_ENDLESS" | awk 'NR==2 {print $4}')
-    let FREE_SPACE_KBYTES=FREE_SPACE_KBYTES/1024
-    echo "Creating ${FREE_SPACE_KBYTES}K bytes persistent storage file."
-    echo "This will not be fast."
+    # we want at least 16M free for log files, but more importantly we want at
+    # least 1G of free space if we're to make any persistent storage at all.
+    # So, let's have df report the size in 16M blocks, leave two free for logs,
+    # and only make space if we have more than 66 in all (because 64*16 is 1024).
+    # These numbers seem high because df always rounds up, so if we had 65
+    # blocks free and made a 64 block persistent storage file, we could end
+    # up with a single free byte.
+    FREE_BLOCKS=$(df -P -B16M "$DIR_IMAGES_ENDLESS" | awk 'NR==2 {print $4}')
 
-    echo "endless_live_storage_marker" > "${DIR_IMAGES_ENDLESS}/persistent.img"
-    truncate -s ${FREE_SPACE_KBYTES}K "${DIR_IMAGES_ENDLESS}/persistent.img"
+    if [ "$FREE_BLOCKS" -gt "66" ]; then
+        let FREE_SPACE_MBYTES=(FREE_BLOCKS - 2)*16
+        echo "Creating ${FREE_SPACE_MBYTES}M bytes persistent storage file."
+        echo "This will not be fast."
+
+        echo "endless_live_storage_marker" > "${DIR_IMAGES_ENDLESS}/persistent.img"
+        truncate -s ${FREE_SPACE_MBYTES}M "${DIR_IMAGES_ENDLESS}/persistent.img"
+    else
+        echo "Not enough free space to create persistent storage"
+    fi
 fi
 
 echo
