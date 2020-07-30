@@ -19,7 +19,7 @@ if [ ! -f "$EOS_DOWNLOAD_IMAGE" ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o o:x:lp:r:nms:wL:fPh \
+ARGS=$(getopt -o o:x:lp:r:nms:wL:fPe:h \
     -l os-image: \
     -l windows-tool: \
     -l latest \
@@ -35,6 +35,7 @@ ARGS=$(getopt -o o:x:lp:r:nms:wL:fPh \
     -l force \
     -l debug \
     -l persistent \
+    -l extra-data: \
     -l help \
     -n "$0" -- "$@")
 eval set -- "$ARGS"
@@ -46,6 +47,7 @@ SIZE=
 WRITABLE=
 BIOS=true
 WINDOWS_TOOL_PROVIDED=
+EXTRA_DATA_PATHS=()
 FORCE=
 PERSONALITY=base
 PRODUCT=eos
@@ -80,6 +82,8 @@ Options:
         --no-bios            Do not create a BIOS boot partition
     -f, --force              don't ask to proceed before writing
     -P, --persistent         Allocate space for persistent storage
+    -e, --extra-data PATH    A local path to copy to the live partition, it can
+                             be used multiple times
     -h, --help               Show this message
 
 Developer options (you probably don't want to use these):
@@ -132,6 +136,11 @@ while true; do
             shift
             WINDOWS_TOOL="$1"
             WINDOWS_TOOL_PROVIDED=true
+            shift
+            ;;
+        -e|--extra-data)
+            shift
+            EXTRA_DATA_PATHS+=("$1")
             shift
             ;;
         -l|--latest)
@@ -441,6 +450,11 @@ if [ ! "$WRITABLE" ]; then
     cp "${BOOT_ZIP}" "${BOOT_ZIP}.asc" "${EXTRACTED_SIGNATURE}" \
         "$DIR_IMAGES_ENDLESS/"
     echo "$OS_IMAGE_UNCOMPRESSED_BASENAME" > "${DIR_IMAGES_ENDLESS}/live"
+
+    for EXTRA_DATA_PATH in "${EXTRA_DATA_PATHS[@]}"; do
+        echo "Copying '$EXTRA_DATA_PATH'"
+        cp -r "$EXTRA_DATA_PATH" "$DIR_IMAGES/"
+    done
 fi
 
 if [ ! "$WRITABLE" ] || [ "$WINDOWS_TOOL_PROVIDED" ]; then
