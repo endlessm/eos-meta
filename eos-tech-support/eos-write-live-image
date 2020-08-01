@@ -35,6 +35,7 @@ ARGS=$(getopt -o o:x:lp:r:nms:wL:fPe:h \
     -l force \
     -l debug \
     -l persistent \
+    -l persistent-size: \
     -l extra-data: \
     -l help \
     -n "$0" -- "$@")
@@ -54,6 +55,7 @@ PRODUCT=eos
 LABEL=
 DEBUG=
 PERSISTENT=
+PERSISTENT_SIZE=
 
 usage() {
     local SELF
@@ -81,7 +83,13 @@ Options:
                              prevents installing it later)
         --no-bios            Do not create a BIOS boot partition
     -f, --force              don't ask to proceed before writing
-    -P, --persistent         Allocate space for persistent storage
+    -P, --persistent         Allocate space for persistent storage, always leaving
+                             between 16-32MB for logs from the Endless OS
+                             installer tool for Windows
+    -S, --persistent-size    Size to allocate for persistent storage, in megabytes
+                             (min 1024, max and default is to use all available
+                             space for persistent storage, still leaving 16-32MB
+                             for logs)
     -e, --extra-data PATH    A local path to copy to the live partition, it can
                              be used multiple times
     -h, --help               Show this message
@@ -191,6 +199,11 @@ while true; do
         -P|--persistent)
             shift
             PERSISTENT=true
+            ;;
+        -S|--persistent-size)
+            shift
+            PERSISTENT_SIZE="$1"
+            shift
             ;;
         --no-bios)
             shift
@@ -515,8 +528,18 @@ if [ "$PERSISTENT" ]; then
     # up with a single free byte.
     FREE_BLOCKS=$(df -P -B16M "$DIR_IMAGES_ENDLESS" | awk 'NR==2 {print $4}')
 
+    if [ "$PERSISTENT_SIZE" ] && [ "$PERSISTENT_SIZE" -lt "1024" ]; then
+        echo "The specified persistent storage size is less than 1024MB, using 1024MB."
+        PERSISTENT_SIZE="1024"
+    fi
+
     if [ "$FREE_BLOCKS" -gt "66" ]; then
         let FREE_SPACE_MBYTES=(FREE_BLOCKS - 2)*16
+
+        if [ "$PERSISTENT_SIZE" ] && [ "$PERSISTENT_SIZE" -lt "$FREE_SPACE_MBYTES" ]; then
+            FREE_SPACE_MBYTES=$PERSISTENT_SIZE
+        fi
+
         echo "Creating ${FREE_SPACE_MBYTES}M bytes persistent storage file."
         echo "This will not be fast."
 
