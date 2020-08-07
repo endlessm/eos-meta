@@ -1,0 +1,260 @@
+#!/bin/bash -e
+set -o pipefail
+
+eos_write_live_image=$(dirname "$0")/eos-write-live-image
+if [ ! -f "$eos_write_live_image" ]; then
+    eos_write_live_image='eos-write-live-image'
+fi
+
+kiwix_windows_url=http://download.kiwix.org/release/kiwix-desktop/kiwix-desktop_windows_x64.zip
+kiwix_macos_url=https://download.kiwix.org/release/kiwix-desktop-macos/kiwix-desktop-macos.dmg
+
+# TODO: use real URLs when LE have the official builds
+kolibri_windows_url=http://eor-desktop:8000/Kolibri-0.14.0-win-signed.zip
+kolibri_macos_url=http://eor-desktop:8000/kolibri-macos.zip
+
+kiwix_windows_lnk_base64_data=$(cat <<BASE64
+TAAAAAEUAgAAAAAAwAAAAAAAAEbjAggAIAAAAKzpU1dkYNYBFChhV2Rg1gEUKGFXZGDWASiTRgAAAAAA
+AQAAAAAAAAAAAAAAAAAAAOsAFAAfUOBP0CDqOmkQotgIACswMJ0ZAC9DOlwAAAAAAAAAAAAAAAAAAAAA
+AAAAVgAxAAAAAAD7UCmkEABXaW5kb3dzAEAACQAEAO++c06sJPtQKaQuAAAACiMKAAAABQAAAAAAAAAA
+AAAAAAAAANWztQBXAGkAbgBkAG8AdwBzAAAAFgBmADIAKJNGAPZQe6EgAGV4cGxvcmVyLmV4ZQAASgAJ
+AAQA7772UHuh9lB7oS4AAADmvAsAAAAPAAAAAAAIAQAAAAAAAAAA7PhqAGUAeABwAGwAbwByAGUAcgAu
+AGUAeABlAAAAHAAAAEYAAAAcAAAAAQAAABwAAAAtAAAAAAAAAEUAAAARAAAAAwAAAJhEo1YQAAAAAEM6
+XFdpbmRvd3NcZXhwbG9yZXIuZXhlAAAiACIALgBrAGkAdwBpAHgALQB3AGkAbgBkAG8AdwBzAFwAawBp
+AHcAaQB4AC0AZABlAHMAawB0AG8AcAAuAGUAeABlACIAKwBIADoAXABjAG8AbgB0AGUAbgB0AFwALgBr
+AGkAdwBpAHgALQB3AGkAbgBkAG8AdwBzAFwAawBpAHcAaQB4AC0AZABlAHMAawB0AG8AcAAuAGUAeABl
+ABQDAAABAACgJXdpbmRpciVcZXhwbG9yZXIuZXhlAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlAHcAaQBuAGQAaQByACUAXABlAHgAcABsAG8AcgBl
+AHIALgBlAHgAZQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAEAAAAAUAAKAkAAAAgwAAABwAAAALAACgBPSL80Md8kKTBWfeCyj8I4MAAABgAAAAAwAA
+oFgAAAAAAAAAZW9yLWRlc2t0b3AAAAAAAGQqq0TgGO9FqpScQ8hGw/nLU69AttLqEZ2pXPNwjc3iZCqr
+ROAY70WqlJxDyEbD+ctTr0C20uoRnalc83CNzeKvAQAACQAAoGUAAAAxU1BT7TC92kMAiUen+NATpHNm
+IkkAAABkAAAAAB8AAAAcAAAALgBrAGkAdwBpAHgALQB3AGkAbgBkAG8AdwBzACAAKABIADoAXABjAG8A
+bgB0AGUAbgB0ACkAAAAAAAAAuQAAADFTUFMw8SW370caEKXxAmCMnuusNQAAAAoAAAAAHwAAABIAAABr
+AGkAdwBpAHgALQBkAGUAcwBrAHQAbwBwAC4AZQB4AGUAAAAVAAAADwAAAABAAAAAADYwNLpa1gEVAAAA
+DAAAAAAVAAAA+AlKAAAAAAApAAAABAAAAAAfAAAACwAAAEEAcABsAGkAYwBhAGMAaQDzAG4AAAAAABUA
+AAAOAAAAAEAAAAAAvcM3ulrWAQAAAACFAAAAMVNQU6ZqYyg9ldIRtdYAwE/ZGNBpAAAAHgAAAAAfAAAA
+LAAAAEgAOgBcAGMAbwBuAHQAZQBuAHQAXAAuAGsAaQB3AGkAeAAtAHcAaQBuAGQAbwB3AHMAXABrAGkA
+dwBpAHgALQBkAGUAcwBrAHQAbwBwAC4AZQB4AGUAAAAAAAAAAAAAAAAAAAA=
+BASE64
+)
+
+kolibri_windows_lnk_base64_data=$(cat <<BASE64
+TAAAAAEUAgAAAAAAwAAAAAAAAEbjAggAIAAAAKzpU1dkYNYBFChhV2Rg1gEUKGFXZGDWASiTRgAAAAAA
+AQAAAAAAAAAAAAAAAAAAAOsAFAAfUOBP0CDqOmkQotgIACswMJ0ZAC9DOlwAAAAAAAAAAAAAAAAAAAAA
+AAAAVgAxAAAAAAD7UCmkEABXaW5kb3dzAEAACQAEAO++c06sJPtQKaQuAAAACiMKAAAABQAAAAAAAAAA
+AAAAAAAAANWztQBXAGkAbgBkAG8AdwBzAAAAFgBmADIAKJNGAPZQe6EgAGV4cGxvcmVyLmV4ZQAASgAJ
+AAQA7772UHuh9lB7oS4AAADmvAsAAAAPAAAAAAAIAQAAAAAAAAAA7PhqAGUAeABwAGwAbwByAGUAcgAu
+AGUAeABlAAAAHAAAAEYAAAAcAAAAAQAAABwAAAAtAAAAAAAAAEUAAAARAAAAAwAAAJhEo1YQAAAAAEM6
+XFdpbmRvd3NcZXhwbG9yZXIuZXhlAAAeACIALgBrAG8AbABpAGIAcgBpAC0AdwBpAG4AZABvAHcAcwBc
+AEsAbwBsAGkAYgByAGkALgBlAHgAZQAiAD8ASAA6AFwAYwBvAG4AdABlAG4AdABcAC4AawBvAGwAaQBi
+AHIAaQAtAHcAaQBuAGQAbwB3AHMAXABrAG8AbABpAGIAcgBpAFwAYwBvAHIAZQBcAHMAdABhAHQAaQBj
+AFwAYQBzAHMAZQB0AHMAXABsAG8AZwBvAC4AaQBjAG8AFAMAAAEAAKAld2luZGlyJVxleHBsb3Jlci5l
+eGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ACUAdwBpAG4AZABpAHIAJQBcAGUAeABwAGwAbwByAGUAcgAuAGUAeABlAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAABQAAoCQAAACDAAAAHAAA
+AAsAAKAE9IvzQx3yQpMFZ94LKPwjgwAAAGAAAAADAACgWAAAAAAAAABlb3ItZGVza3RvcAAAAAAAZCqr
+ROAY70WqlJxDyEbD+ctTr0C20uoRnalc83CNzeJkKqtE4BjvRaqUnEPIRsP5y1OvQLbS6hGdqVzzcI3N
+4gAAAAA=
+BASE64
+)
+
+kiwix_library_xml=$(cat <<XML
+<library version="20110515">
+    <book
+        id="97e3f348-38f4-6787-b95d-1e4886bd803c"
+        path="../.kiwix/files/com.endlessm.encyclopedia.en-openzim-subscription/1.zim"
+        title="EndlessOS selection for English encyclopedia app"
+        description="EndlessOS selection for English encyclopedia app"
+        language="eng" creator="Wikipedia" publisher="Kiwix"
+        name="wikipedia_en_endless" flavour="_maxi"
+        tags="wikipedia;_category:wikipedia;_pictures:yes;_videos:no;_details:yes;_ftindex:yes"
+        date="2020-07-01" articleCount="50001" mediaCount="457288" size="6402513"
+        faviconMimeType="image/png"
+        favicon="iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAACXBIWXMAAAsSAAALEgHS3X78AAAFVklEQVRo3u1Ye6hlUxhfe+9zb3krEhOihm40MqOUyCMNkiJM5DZmTBh37fO65wwZUR7hPxnmDw1p8IeIlMdoGv7gDnFRZiQRNRFGHmXIPO7M3n7ft761z7f32Wcy5/4xV+1Vv9be31l7re/9fesYU41qVKMa1ahGNarx/xlp7OYkds/+3c9zl3GbYz7Aeyj0gGkr56gQ6YRjXlkgUs+jzPzEbA5o9Q5gk1rWTkQH0ZxAU0LrrbMHrnXeQ5jHfAje12LeDowLLRzKAolVB4hZ9+O/kQjnmJtwDJL5+xhXwsJlamqPy4HvoLg0vduk+O0tWRcN7UIkvTp8PnA1aDdhvg64ADhhgDChZlQznjHV+/1YYH3aAONNoA3E5jMIcJrsFyR2FsxjPgZ4GYfs5AMmgRYfQvgD9I+Bx4Er8H5YQeMRBWbSyKwa5nzdmhWgbWem3Z77gIcgTOCZ15nIZycf7Oxe4sbK1ZUb1c0oaSPtygGecS9IV9ABGvzbNmywDkxdkt7Wp/Gaej8PTGzm/UTr/B6bhSUKJIZDb9lSZTfE8sXUi4cWM0dMW/MucCVwLnARaMsxP4F5GtjJAnUEdV6/BfS7gHmK8VOB5/j3lriLNb8DE2pNLZc0CpkIwpBST4KSFmJehDUnqrgN8xaIzUZmyJrvKUPsJ+DHsKaDNR8Ae/kbb5nY/AWsxe+PsBt6F3QWW+/jSJiOJOtEBabHQGsAr+D5K6z7E9iD9z30jPOnQb9G1RLejKT5PF3FArwhh4wIPRSTRemyvkyzCPQH2ALWzLC221lwemtO4dAzFYMjEi+hcqHjQLOYp4BdLPgqQUdc2Fu9Lc/wmMz94P8jeNgqArwmB4Xik/naYHmtLkRHgcF1wvDuLMPErDXab5ozWYlVQT87dd/+xowpt8S534L+EnAv9l+OeRnWPol5h1g0AcZ0JppiV4AllLvUfCErHBzigEvxzYscEz5AnQtuBd7L/L6VaYwYmiSBgXOw5lUWsKOynTU/iAtejPnQAYXxev7O7fmg9r3HhEi4veTDI4DzgYeBL9hdvGmdxonxFT4D4X0xBH+bteXh4uSXLHachXax8qy5BTiyqCixOrlwTao6ecY37C2x8xZvgdOBGWFmHxZTqnsGeBbYhPdtzHRHac2a3WByQ+KKnj44UIqZzwHf4PX/8B4kgGN8L9AtMD1KSFRbkfbc2BU72s8J8E6uucKCGzKzdlUg3SmzY3qG64U19wNnFIuZBLzP64eDthr4iX1W1QJVzKhAbgSWUiEt7OfjLhJ39vtuIX4gyJtl1XgB8BTwqfjt18CHYgmLTc4qpD1feIJCAbuRi91kLjO9n1LsWLOSXa6pUrAT6Gfgefy+BJg3oGu4kD2lwwKsGdgP+VYXJo8GBFMW3IWsRHViQ1bNXQGjfL6khJnFoL/Ql4Va0rqQq7gstRpoAmt4bV0siSrff9HwgRPnb1C+HiQuAw3q7e/hPN7KNP43vruPaorvd3w3WxDkeOx5B+ibOE22lAt3C2jLHJtHc0rH4uKdwGR1QAtY77XgSa8BozL/CW/ezLISpclTCp1rXillwlhzMjDObmzNR8CPwA5Rxq/Sztys2/Zhr4befW7Nmr62NHmxubbY7+QU0+jrOgMJ/qDkrKMTy5lsTLf0cjma1d02kOcv6VIi6fFpyjxZDvdC0qWn3q8tBHjxxub7m0jajfLraVk3ekA3uFhdxGNzGZ5fB65S7lEr5vD/pJhmvxsnLrsF2X2A6ONu7VCXn6Il+ipnzzJz92+SJM7dd0Mp7+EwWj/of07py/3QWaEa1ahGNapRjWpU4+CNfwFKm+jnNVvQhQAAAABJRU5ErkJggg=="
+    />
+</library>
+XML
+)
+
+args=$(getopt -o t:h \
+    -l tmp-dir: \
+    -l debug \
+    -l help \
+    -n "$0" -- "$@")
+eval set -- "$args"
+
+tmp_dir=/var/tmp/eos-usb-internet-writer-tmp
+debug=
+
+usage() {
+    local self
+    self=$(basename "$0")
+    cat <<EOF
+Usage:
+    $self [options] -- IMAGE_OPTIONS
+
+Arguments:
+    IMAGE_OPTIONS       Everything after -- is forwarded to the $eos_write_live_image
+                        command, appended to the $self command internal options (which
+                        are the options required to copy the Software and content files
+                        to the USB key).
+
+Options:
+    -t, --tmp-dir PATH  Temporary directory to use for downloading files and
+                        save the USB key files to copy, user is in charge of
+                        cleaning this directory if required, the command will
+                        try to reuse all the content from this directory.
+                        (default: $tmp_dir)
+        --debug         Enable debugging output
+    -h, --help          Show this message
+EOF
+}
+
+while true; do
+    case "$1" in
+        -t|--tmp-dir)
+            shift
+            tmp_dir="${1%/}"
+            shift
+            ;;
+        --debug)
+            shift
+            set -x
+            debug=--debug
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+    esac
+done
+
+workspace_dir="$tmp_dir/workspace"
+downloads_dir="$tmp_dir/downloads"
+kolibri_home=$(realpath "$workspace_dir/.kolibri")
+
+if ! hash 7z 2> /dev/null; then
+    echo "$0: You need to install p7zip-full to decompress macOS DMG packages"
+    exit 1
+fi
+
+apfs_mount_command=
+apfs_root_dir=
+if hash apfs-fuse 2> /dev/null; then
+    apfs_mount_command="apfs-fuse"
+    apfs_root_dir="root"
+elif hash fsapfsmount 2> /dev/null; then
+    apfs_mount_command="fsapfsmount"
+    apfs_root_dir="."
+else
+    echo "$0: You need to install a package like apfs-fuse or libfsapfs-utils to deal with macOS software packages" > /dev/stderr
+    exit 1
+fi
+
+run_kolibri() {
+    KOLIBRI_HOME="$kolibri_home" flatpak run \
+        --filesystem="$kolibri_home" \
+        --command=/app/libexec/kolibri \
+        org.learningequality.Kolibri "$@"
+}
+
+check_installed_flatpak() {
+    if ! flatpak info "$1" &> /dev/null ; then
+        echo "$0: You have to install $1 Flatpak to use this command" > /dev/stderr
+        return 1
+    fi
+}
+
+# Check for required Flatpaks
+check_installed_flatpak com.endlessm.encyclopedia.en.Content
+check_installed_flatpak org.learningequality.Kolibri
+
+# Prepare tmp directory
+mkdir -p "$workspace_dir" "$downloads_dir"
+
+# Download Software packages
+wget -c -O "$downloads_dir/kiwix-win.zip" "$kiwix_windows_url"
+wget -c -O "$downloads_dir/kiwix-macos.dmg" "$kiwix_macos_url"
+wget -c -O "$downloads_dir/kolibri-win.zip" "$kolibri_windows_url"
+wget -c -O "$downloads_dir/kolibri-macos.zip" "$kolibri_macos_url"
+
+# Copy Kiwix for Windows
+rm -rf "$workspace_dir/.kiwix-windows"
+unzip "$downloads_dir/kiwix-win.zip" -d "$workspace_dir"
+mv "$workspace_dir"/kiwix-desktop_windows* "$workspace_dir/.kiwix-windows"
+echo "$kiwix_library_xml" > "$workspace_dir/.kiwix-windows/library.xml"
+echo "$kiwix_windows_lnk_base64_data" | base64 -d > "$workspace_dir/Kiwix for Windows.lnk"
+
+# Copy Kiwix for macOS
+# TODO: Add support for auto loading ZIM files from USB key
+rm -rf "$workspace_dir/Kiwix for macOS.app"
+umount "$downloads_dir/kiwix-macos/mount" || true
+rm -rf "$downloads_dir/kiwix-macos"
+mkdir -p "$downloads_dir/kiwix-macos/mount"
+7z x -o"$downloads_dir/kiwix-macos" "$downloads_dir/kiwix-macos.dmg"
+$apfs_mount_command "$downloads_dir/kiwix-macos/4.Apple_APFS" "$downloads_dir/kiwix-macos/mount"
+cp -Lr "$downloads_dir/kiwix-macos/mount/$apfs_root_dir/Kiwix.app" "$workspace_dir/Kiwix for macOS.app"
+umount "$downloads_dir/kiwix-macos/mount"
+
+# Copy Kolibri for Windows
+rm -rf "$workspace_dir/.kolibri-windows"
+unzip "$downloads_dir/kolibri-win.zip" -d "$workspace_dir"
+mv "$workspace_dir/Kolibri" "$workspace_dir/.kolibri-windows"
+echo "$kolibri_windows_lnk_base64_data" | base64 -d > "$workspace_dir/Kolibri for Windows.lnk"
+
+# Copy Kolibri for macOS
+rm -rf "$workspace_dir/Kolibri for macOS.app"
+unzip "$downloads_dir/kolibri-macos.zip" -d "$workspace_dir"
+# Dereference symbolic links while renaming the package to make it look prettier
+cp -Lr "$workspace_dir/Kolibri.app" "$workspace_dir/Kolibri for macOS.app"
+rm -rf "$workspace_dir/Kolibri.app"
+
+# Copy ZIM files
+rm -rf "$workspace_dir/.kiwix"
+mkdir -p "$workspace_dir/.kiwix/flatpak"
+cp -Lr "$(flatpak info -l com.endlessm.encyclopedia.en.Content)"/* "$workspace_dir/.kiwix/flatpak"
+
+# Setup Kolibri home
+# TODO: Install the actual content when ready
+mkdir -p "$kolibri_home"
+
+run_kolibri manage importchannel network 9a46768f1ea24daa86ae693e4a04d04b
+run_kolibri manage importcontent network 9a46768f1ea24daa86ae693e4a04d04b
+
+# TODO: Uncomment this when ready
+# run_kolibri manage importchannel network 42139b9ac5194fc6a721f8747e5521b9
+# run_kolibri manage importcontent network 42139b9ac5194fc6a721f8747e5521b9
+
+# Write USB key
+extra_data=()
+while IFS= read -r -d '' path
+do
+    extra_data+=("--extra-data" "$path")
+done < <(find "$workspace_dir" -mindepth 1 -maxdepth 1 -print0)
+
+sudo $eos_write_live_image $debug "${extra_data[@]}" "$@"
