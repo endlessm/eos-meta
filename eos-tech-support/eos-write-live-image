@@ -10,6 +10,8 @@ set -o pipefail
 # the image partition. Additional images copied to the image partition will be
 # detected by the installer, but will not be bootable.
 
+ISO_MOUNTPOINT="/run/media/eos-write-live-image"
+
 EOS_WRITE_IMAGE=$(dirname "$0")/eos-write-image
 if [ ! -f "$EOS_WRITE_IMAGE" ]; then
     EOS_WRITE_IMAGE='eos-write-image'
@@ -282,10 +284,9 @@ for command in "${!dependencies[@]}"; do
     fi
 done
 
-# If the given OS image is an ISO, short-circuit and write it straight to disk
 if [ -f "$OS_IMAGE" ] && \
    [ "$(file --brief --mime-type "$OS_IMAGE")" = "application/x-iso9660-image" ]; then
-    exec "$EOS_WRITE_IMAGE" $DEBUG "$OS_IMAGE" "$OUTPUT"
+    ISO=true
 fi
 
 if [ -z "$FETCH_LATEST" ]; then
@@ -362,8 +363,13 @@ fi
 
 check_exists "$OS_IMAGE" "image"
 
-# If image does not have a .gz or .xz suffix, assume it is already uncompressed
-OS_IMAGE_UNCOMPRESSED="${OS_IMAGE%.?z}"
+# If image does not have a .gz, .xz or .iso suffix, assume it is the
+# uncompressed .img
+if [ "$ISO" ]; then
+    OS_IMAGE_UNCOMPRESSED="${OS_IMAGE%.iso}.img"
+else
+    OS_IMAGE_UNCOMPRESSED="${OS_IMAGE%.?z}"
+fi
 OS_IMAGE_UNCOMPRESSED_BASENAME="$(basename "${OS_IMAGE_UNCOMPRESSED}")"
 
 EXTRACTED_SIGNATURE="${OS_IMAGE_UNCOMPRESSED}.asc"
@@ -449,7 +455,7 @@ udevadm settle
 DIR_IMAGES=$(udisks_mount "$DEVICE_IMAGES")
 
 echo
-echo "Copying files"
+echo "Copying boot files"
 
 DIR_IMAGES_ENDLESS="${DIR_IMAGES}/endless"
 mkdir "$DIR_IMAGES_ENDLESS"
@@ -471,6 +477,8 @@ if [ ! "$WRITABLE" ]; then
 fi
 
 if [ ! "$WRITABLE" ] || [ "$WINDOWS_TOOL_PROVIDED" ]; then
+    echo "Copying Windows-specific files"
+
     cp "$WINDOWS_TOOL" "$DIR_IMAGES/"
     WINDOWS_TOOL_BASENAME="$(basename "$WINDOWS_TOOL")"
     sed 's/$/\r/' <<AUTORUN_INF | iconv -f utf-8 -t utf-16 > "${DIR_IMAGES}/autorun.inf"
@@ -486,7 +494,19 @@ VideoFiles=false
 AUTORUN_INF
 fi
 
-"$EOS_WRITE_IMAGE" "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
+echo "Copying image files"
+if [ "$ISO" ]; then
+    # Loop-mount the ISO and copy the endless.squash and  directory
+    mkdir -p "$ISO_MOUNTPOINT"
+    mount -o loop "$OS_IMAGE" "$ISO_MOUNTPOINT"
+    cp "$ISO_MOUNTPOINT/endless/endless.squash" \
+       "$ISO_MOUNTPOINT/endless/${OS_IMAGE_UNCOMPRESSED_BASENAME%.img}.squash.asc" \
+       "$DIR_IMAGES_ENDLESS"
+    umount "$ISO_MOUNTPOINT"
+    rmdir "$ISO_MOUNTPOINT"
+else
+    "$EOS_WRITE_IMAGE" "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
+fi
 
 if [ "$EXPAND" ]; then
     IMAGE_BYTES=$(du -b "${DIR_IMAGES_ENDLESS}/endless.img" | cut -f1)
