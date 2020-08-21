@@ -102,6 +102,7 @@ fonts-sil-padauk
 fonts-thai-tlwg
 fonts-uralic
 foomatic-db-compressed-ppds
+force-quit-dialog-extension
 fprintd
 # For rootless podman
 fuse-overlayfs
