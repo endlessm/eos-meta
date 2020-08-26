@@ -275,7 +275,7 @@ if [ "$EXPAND" ]; then
 fi
 
 for command in "${!dependencies[@]}"; do
-    if ! which "$command" >/dev/null 2>&1; then
+    if ! command -v "$command" >/dev/null 2>&1; then
         echo "$command is not installed... aborting!" >&2
         echo "Try 'sudo apt-get install ${dependencies[$command]}'" >&2
         exit 1
@@ -343,7 +343,7 @@ if [ ! "$FORCE" ]; then
     fi
 fi
 
-if [ ! -z "$FETCH_LATEST" ]; then
+if [ -n "$FETCH_LATEST" ]; then
     if [ -z "$OS_IMAGE" ]; then
         OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --personality "${PERSONALITY}" --product "${PRODUCT}")
         if [ -z "$LABEL" ]; then
@@ -459,7 +459,7 @@ DIR_IMAGES_ENDLESS="${DIR_IMAGES}/endless"
 mkdir "$DIR_IMAGES_ENDLESS"
 unzip -q -d "${DIR_IMAGES_ENDLESS}" "${BOOT_ZIP}" "grub/*"
 
-if [ ! -z "$DIR_EFI" ]; then
+if [ -n "$DIR_EFI" ]; then
     unzip -q -d "${DIR_EFI}" "${BOOT_ZIP}" "EFI/*"
 fi
 
@@ -511,26 +511,26 @@ if [ "$EXPAND" ]; then
     FREE_SPACE_BYTES=$(df -P -B1 "$DIR_IMAGES_ENDLESS" | awk 'NR==2 {print $4}')
 
     if [ -n "$SIZE" ]; then
-        if [ $SIZE -lt $IMAGE_BYTES ]; then
+        if [ "$SIZE" -lt "$IMAGE_BYTES" ]; then
             echo "Cannot expand the image to $SIZE bytes, minimum size is $IMAGE_BYTES bytes" >&2
             cleanup
             exit 1
         fi
 
         # Expand the image to the provided size
-        EXTRA_BYTES=$(($SIZE - $IMAGE_BYTES))
+        EXTRA_BYTES=$((SIZE - IMAGE_BYTES))
 
-        if [ $EXTRA_BYTES -gt $FREE_SPACE_BYTES ]; then
+        if [ "$EXTRA_BYTES" -gt "$FREE_SPACE_BYTES" ]; then
             echo "Cannot expand the image to $SIZE bytes, only $FREE_SPACE_BYTES bytes available" >&2
             cleanup
             exit 1
         fi
     else
         # Expand the image to take all the space on the drive
-        SIZE=$(($IMAGE_BYTES + $FREE_SPACE_BYTES))
+        SIZE=$((IMAGE_BYTES + FREE_SPACE_BYTES))
     fi
 
-    if [ $SIZE -gt $IMAGE_BYTES ]; then
+    if [ $SIZE -gt "$IMAGE_BYTES" ]; then
         echo "Expanding the image from $IMAGE_BYTES to $SIZE bytes"
         truncate --size "$SIZE" "${DIR_IMAGES_ENDLESS}/endless.img"
     fi
