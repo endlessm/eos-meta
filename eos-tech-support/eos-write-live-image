@@ -37,7 +37,7 @@ ARGS=$(getopt -o o:x:lp:r:nms:wL:fPe:h \
     -l force \
     -l debug \
     -l persistent \
-    -l persistent-size: \
+    -l free-space: \
     -l extra-data: \
     -l help \
     -n "$0" -- "$@")
@@ -56,7 +56,7 @@ PERSONALITY=base
 PRODUCT=eos
 LABEL=
 PERSISTENT=
-PERSISTENT_SIZE=
+PERSISTENT_FREE_SPACE=
 
 usage() {
     local SELF
@@ -84,13 +84,12 @@ Options:
                              prevents installing it later)
         --no-bios            Do not create a BIOS boot partition
     -f, --force              don't ask to proceed before writing
-    -P, --persistent         Allocate space for persistent storage, always leaving
-                             between 16-32MB for logs from the Endless OS
+    -P, --persistent         Allocate space for persistent storage, leaving a
+                             few megabytes for logs from the Endless OS
                              installer tool for Windows
-    -S, --persistent-size    Size to allocate for persistent storage, in megabytes
-                             (min 1024, max and default is to use all available
-                             space for persistent storage, still leaving 16-32MB
-                             for logs)
+    -S, --free-space SIZE    With --persistent, leave SIZE megabytes free on
+                             the partition, rather than consuming almost all
+                             free space
     -e, --extra-data PATH    A local path to copy to the live partition, it can
                              be used multiple times
     -h, --help               Show this message
@@ -201,9 +200,9 @@ while true; do
             shift
             PERSISTENT=true
             ;;
-        -S|--persistent-size)
+        -S|--free-space)
             shift
-            PERSISTENT_SIZE="$1"
+            PERSISTENT_FREE_SPACE="$1"
             shift
             ;;
         --no-bios)
@@ -537,35 +536,28 @@ if [ "$EXPAND" ]; then
 fi
 
 if [ "$PERSISTENT" ]; then
-    # we want at least 16M free for log files, but more importantly we want at
-    # least 1G of free space if we're to make any persistent storage at all.
-    # So, let's have df report the size in 16M blocks, leave two free for logs,
-    # and only make space if we have more than 66 in all (because 64*16 is 1024).
-    # These numbers seem high because df always rounds up, so if we had 65
-    # blocks free and made a 64 block persistent storage file, we could end
-    # up with a single free byte.
-    FREE_BLOCKS=$(df -P -B16M "$DIR_IMAGES_ENDLESS" | awk 'NR==2 {print $4}')
-
-    if [ "$PERSISTENT_SIZE" ] && [ "$PERSISTENT_SIZE" -lt "1024" ]; then
-        echo "The specified persistent storage size is less than 1024MB, using 1024MB."
-        PERSISTENT_SIZE="1024"
+    # We always want at least 16MB for log files, regardless of what the user
+    # asked for.
+    if (( "${PERSISTENT_FREE_SPACE:-0}" < 16 )); then
+        PERSISTENT_FREE_SPACE=16
     fi
 
-    if [ "$FREE_BLOCKS" -gt "66" ]; then
-        let FREE_SPACE_MBYTES=(FREE_BLOCKS - 2)*16
+    FREE_MB=$(df -P -B1M "$DIR_IMAGES_ENDLESS" | awk 'NR==2 {print $4}')
+    # df always rounds up, so leave an extra 1MB to compensate.
+    PERSISTENT_SIZE_MB=$(( FREE_MB - (PERSISTENT_FREE_SPACE + 1) ))
 
-        if [ "$PERSISTENT_SIZE" ] && [ "$PERSISTENT_SIZE" -lt "$FREE_SPACE_MBYTES" ]; then
-            FREE_SPACE_MBYTES=$PERSISTENT_SIZE
-        fi
 
-        echo "Creating ${FREE_SPACE_MBYTES}M bytes persistent storage file."
-        echo "This will not be fast."
-
-        echo "endless_live_storage_marker" > "${DIR_IMAGES_ENDLESS}/persistent.img"
-        truncate -s ${FREE_SPACE_MBYTES}M "${DIR_IMAGES_ENDLESS}/persistent.img"
-    else
-        echo "Not enough free space to create persistent storage"
+    if (( PERSISTENT_SIZE_MB < 1024 )); then
+        echo "Not enough free space to create persistent storage" >&2
+        cleanup
+        exit 1
     fi
+
+    echo "Creating ${PERSISTENT_SIZE_MB}M bytes persistent storage file."
+    echo "This will not be fast."
+
+    echo "endless_live_storage_marker" > "${DIR_IMAGES_ENDLESS}/persistent.img"
+    truncate -s ${PERSISTENT_SIZE_MB}M "${DIR_IMAGES_ENDLESS}/persistent.img"
 fi
 
 echo
