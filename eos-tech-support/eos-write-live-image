@@ -55,7 +55,6 @@ FORCE=
 PERSONALITY=base
 PRODUCT=eos
 LABEL=
-DEBUG=
 PERSISTENT=
 PERSISTENT_SIZE=
 
@@ -214,7 +213,6 @@ while true; do
         --debug)
             shift
             set -x
-            DEBUG=--debug
             ;;
         -h|--help)
             usage
