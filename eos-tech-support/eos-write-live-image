@@ -52,7 +52,6 @@ MBR=
 EXPAND=
 SIZE=
 WRITABLE=
-BIOS=true
 WINDOWS_TOOL_PROVIDED=
 EXTRA_DATA_PATHS=()
 FORCE=
@@ -86,7 +85,6 @@ Options:
         --fill               Expand the image to fill the target disk
     -w, --writable           Allow image to be modified when run (which
                              prevents installing it later)
-        --no-bios            Do not create a BIOS boot partition
     -f, --force              don't ask to proceed before writing
     -P, --persistent         Allocate space for persistent storage, leaving a
                              few megabytes for logs from the Endless OS
@@ -202,9 +200,8 @@ while true; do
             PERSISTENT_FREE_SPACE="$1"
             shift
             ;;
-        --no-bios)
+        --no-bios)  # Undocumented, accepted for backwards-compatibility
             shift
-            BIOS=
             ;;
         --debug)
             shift
@@ -289,11 +286,6 @@ if [ -z "$FETCH_LATEST" ]; then
     fi
 fi
 
-if [ ! "$BIOS" ] && [ "$MBR" ]; then
-    echo "--no-bios and --mbr cannot be used together" >&2
-    exit 1
-fi
-
 if [ -n "$SIZE" ]; then
     SIZE_DESC=$SIZE
 else
@@ -309,7 +301,6 @@ echo
 echo "       Endless OS image: ${OS_IMAGE:-latest $PRODUCT $PERSONALITY image}"
 echo "  Installer for Windows: ${WINDOWS_TOOL:-latest release}"
 echo "      Image target size: ${SIZE_DESC}"
-echo "  Create BIOS partition: ${BIOS:-false}"
 echo "                 Target: ${OUTPUT}"
 echo
 
@@ -382,7 +373,7 @@ echo "Preparing $OUTPUT..."
 # to disk A, overwrite disk A with this tool, write I to disk B, then try
 # to boot from B with A still plugged in, the "UUID" from the stale ISO9660
 # header on A is still read by the kernel and taken as the UUID for disk A
-# as a whole, and its BIOS boot partition too (for good measure). This
+# as a whole. This
 # confuses eos-image-boot-setup into trying to mount a partition on disk A
 # rather than B.
 dd if=/dev/zero of="$OUTPUT" bs=4096 count=2 seek=8
@@ -399,37 +390,31 @@ MBR_PARTITIONS
 else
     # https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
     PARTITION_SYSTEM_GUID="c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
-    PARTITION_BIOS_BOOT_GUID="21686148-6449-6E6F-744E-656564454649"
     PARTITION_BASIC_DATA_GUID="ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"
 
     # We want the data partition, "eoslive", to occupy all the space on the disk
-    # after the UEFI and BIOS boot partitions. But, we also want it to be numbered
-    # first: apparently Windows will only mount the partition numbered first,
-    # regardless of where it is on the disk.
+    # after the UEFI partition and the gap where the BIOS bootloader lives.
+    # But, we also want it to be numbered first: apparently Windows will only
+    # mount the partition numbered first, regardless of where it is on the disk.
     #
-    # It is important that the offset of the BIOS boot partition matches that
+    # It is important that the offset of the BIOS boot gap matches that
     # used in the Endless OS image builder, since it is embedded in the GRUB
     # image.
-    if [ "$BIOS" ]; then
-        sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
+    #
+    # The more standards-compliant thing to do is to create a partition for the
+    # BIOS bootloader, with GUID 21686148-6449-6E6F-744E-656564454649. However,
+    # Windows offers to format such partitions, so we don't do this any more.
+    # We leave a 1 MiB gap where the partition should be.
+    sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
 2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
-3 : size=1MiB, type=$PARTITION_BIOS_BOOT_GUID
-1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
+1 : start=131072, name=eoslive, type=$PARTITION_BASIC_DATA_GUID
 EFI_PARTITIONS
-    else
-        sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
-2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
-1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
-EFI_PARTITIONS
-    fi
+
     udevadm settle
     partprobe "$OUTPUT"
     PARTMAP=$(sfdisk --dump "$OUTPUT")
     DEVICE_IMAGES=$(find_by_type "$PARTMAP" "$PARTITION_BASIC_DATA_GUID")
     DEVICE_EFI=$(find_by_type "$PARTMAP" "$PARTITION_SYSTEM_GUID")
-    if [ "$BIOS" ]; then
-        DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
-    fi
 fi
 
 # Give udev a chance to notice the new partitions
@@ -573,10 +558,9 @@ else
     # Bootstrap code, built to jump to the offset of BIOS boot partition
     unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${OUTPUT}" bs=446 count=1
     udevadm settle  # udev recreates device files after any write to the device
-    # The rest of GRUB goes into a dedicated BIOS-boot partition
-    if [ "$BIOS" ]; then
-        unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
-    fi
+    # The rest of GRUB goes into a space between the ESP and the data partition,
+    # as documented above.
+    unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${OUTPUT}" bs=512 seek=129024 count=2048
 fi
 
 udevadm settle
