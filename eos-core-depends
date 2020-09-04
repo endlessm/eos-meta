@@ -52,7 +52,6 @@ eos-chrome-plugin-updater [amd64 armhf]
 eos-codecs-manager
 eos-desktop-extension
 eos-event-recorder-daemon
-eos-exploration-center
 eos-flatpak-autoinstall
 eos-gates
 eos-google-chrome-helper [amd64]
