@@ -10,7 +10,11 @@ set -o pipefail
 # the image partition. Additional images copied to the image partition will be
 # detected by the installer, but will not be bootable.
 
-ISO_MOUNTPOINT="/run/media/eos-write-live-image"
+MOUNTS=/run/media/eos-write-live-image
+ISO_MOUNTPOINT=$MOUNTS/iso
+ESP_MOUNTPOINT=$MOUNTS/esp
+EOSLIVE_MOUNTPOINT=$MOUNTS/eoslive
+
 
 EOS_WRITE_IMAGE=$(dirname "$0")/eos-write-image
 if [ ! -f "$EOS_WRITE_IMAGE" ]; then
@@ -108,25 +112,18 @@ function check_exists() {
     fi
 }
 
+function cleanup_mountpoint() {
+    if [ -d "$1" ]; then
+        umount "$1" || :
+        rmdir "$1"
+    fi
+}
+
 function cleanup() {
-    udisks_unmount "$DEVICE_IMAGES"
-    if [ ! "$MBR" ]; then
-        udisks_unmount "$DEVICE_EFI"
-    fi
-}
-
-function udisks_mount() {
-    udisksctl mount -b "$1" --no-user-interaction >&2
-    MOUNT_POINT=$(udisksctl info -b "$1" | awk '/MountPoints:/ { print $2 }')
-    if [ ! -d "$MOUNT_POINT" ]; then
-        echo "Failed to mount $1" >&2
-        exit 1
-    fi
-    echo "$MOUNT_POINT"
-}
-
-function udisks_unmount() {
-    udisksctl unmount -b "$1" --no-user-interaction >&2
+    cleanup_mountpoint "$ISO_MOUNTPOINT"
+    cleanup_mountpoint "$ESP_MOUNTPOINT"
+    cleanup_mountpoint "$EOSLIVE_MOUNTPOINT"
+    [ -d "$MOUNTS" ] && rmdir "$MOUNTS"
 }
 
 function find_by_type() {
@@ -435,25 +432,31 @@ EFI_PARTITIONS
     fi
 fi
 
-# Give udisks a chance to notice the new partitions
+# Give udev a chance to notice the new partitions
 udevadm settle
+
+# Below here we start mounting stuff, so register a cleanup function
+trap cleanup EXIT
 
 if [ ! "$MBR" ]; then
     mkfs.vfat -n efi "${DEVICE_EFI}"
     partprobe "$OUTPUT"
     udevadm settle
-    DIR_EFI=$(udisks_mount "$DEVICE_EFI")
+    mkdir -p "$ESP_MOUNTPOINT"
+    mount "$DEVICE_EFI" "$ESP_MOUNTPOINT"
+    DIR_EFI="$ESP_MOUNTPOINT"
 fi
 
 $MKFS_IMAGES $MKFS_ARGS eoslive "${DEVICE_IMAGES}"
 partprobe "$OUTPUT"
 udevadm settle
-DIR_IMAGES=$(udisks_mount "$DEVICE_IMAGES")
+mkdir -p "$EOSLIVE_MOUNTPOINT"
+mount "$DEVICE_IMAGES" "$EOSLIVE_MOUNTPOINT"
 
 echo
 echo "Copying boot files"
 
-DIR_IMAGES_ENDLESS="${DIR_IMAGES}/endless"
+DIR_IMAGES_ENDLESS="$EOSLIVE_MOUNTPOINT/endless"
 mkdir "$DIR_IMAGES_ENDLESS"
 unzip -q -d "${DIR_IMAGES_ENDLESS}" "${BOOT_ZIP}" "grub/*"
 
@@ -468,16 +471,16 @@ if [ ! "$WRITABLE" ]; then
 
     for EXTRA_DATA_PATH in "${EXTRA_DATA_PATHS[@]}"; do
         echo "Copying '$EXTRA_DATA_PATH'"
-        cp -r "$EXTRA_DATA_PATH" "$DIR_IMAGES/"
+        cp -r "$EXTRA_DATA_PATH" "$EOSLIVE_MOUNTPOINT/"
     done
 fi
 
 if [ ! "$WRITABLE" ] || [ "$WINDOWS_TOOL_PROVIDED" ]; then
     echo "Copying Windows-specific files"
 
-    cp "$WINDOWS_TOOL" "$DIR_IMAGES/"
+    cp "$WINDOWS_TOOL" "$EOSLIVE_MOUNTPOINT/"
     WINDOWS_TOOL_BASENAME="$(basename "$WINDOWS_TOOL")"
-    sed 's/$/\r/' <<AUTORUN_INF | iconv -f utf-8 -t utf-16 > "${DIR_IMAGES}/autorun.inf"
+    sed 's/$/\r/' <<AUTORUN_INF | iconv -f utf-8 -t utf-16 > "$EOSLIVE_MOUNTPOINT/autorun.inf"
 [AutoRun]
 label=${LABEL}
 icon=${WINDOWS_TOOL_BASENAME}
@@ -498,8 +501,6 @@ if [ "$ISO" ]; then
     cp "$ISO_MOUNTPOINT/endless/endless.squash" \
        "$ISO_MOUNTPOINT/endless/${OS_IMAGE_UNCOMPRESSED_BASENAME%.img}.squash.asc" \
        "$DIR_IMAGES_ENDLESS"
-    umount "$ISO_MOUNTPOINT"
-    rmdir "$ISO_MOUNTPOINT"
 else
     "$EOS_WRITE_IMAGE" "$OS_IMAGE" "-" > "${DIR_IMAGES_ENDLESS}/endless.img"
 fi
@@ -511,7 +512,6 @@ if [ "$EXPAND" ]; then
     if [ -n "$SIZE" ]; then
         if [ "$SIZE" -lt "$IMAGE_BYTES" ]; then
             echo "Cannot expand the image to $SIZE bytes, minimum size is $IMAGE_BYTES bytes" >&2
-            cleanup
             exit 1
         fi
 
@@ -520,7 +520,6 @@ if [ "$EXPAND" ]; then
 
         if [ "$EXTRA_BYTES" -gt "$FREE_SPACE_BYTES" ]; then
             echo "Cannot expand the image to $SIZE bytes, only $FREE_SPACE_BYTES bytes available" >&2
-            cleanup
             exit 1
         fi
     else
