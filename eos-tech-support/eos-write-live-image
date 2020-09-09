@@ -284,11 +284,6 @@ for command in "${!dependencies[@]}"; do
     fi
 done
 
-if [ -f "$OS_IMAGE" ] && \
-   [ "$(file --brief --mime-type "$OS_IMAGE")" = "application/x-iso9660-image" ]; then
-    ISO=true
-fi
-
 if [ -z "$FETCH_LATEST" ]; then
     if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
         echo "--os-image and --windows-tool are required if --latest is not specified" >&2
@@ -363,11 +358,12 @@ fi
 
 check_exists "$OS_IMAGE" "image"
 
-# If image does not have a .gz, .xz or .iso suffix, assume it is the
-# uncompressed .img
-if [ "$ISO" ]; then
+if [[ "$OS_IMAGE" == *.iso ]]; then
+    ISO=true
     OS_IMAGE_UNCOMPRESSED="${OS_IMAGE%.iso}.img"
 else
+    # If image does not have a .gz, .xz or .iso suffix, assume it is the
+    # uncompressed .img
     OS_IMAGE_UNCOMPRESSED="${OS_IMAGE%.?z}"
 fi
 OS_IMAGE_UNCOMPRESSED_BASENAME="$(basename "${OS_IMAGE_UNCOMPRESSED}")"
