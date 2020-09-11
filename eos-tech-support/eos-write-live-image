@@ -480,7 +480,7 @@ echo "Copying image files"
 if [ "$ISO" ]; then
     # Loop-mount the ISO and copy the endless.squash and  directory
     mkdir -p "$ISO_MOUNTPOINT"
-    mount -o loop "$OS_IMAGE" "$ISO_MOUNTPOINT"
+    mount -o ro,loop "$OS_IMAGE" "$ISO_MOUNTPOINT"
     cp "$ISO_MOUNTPOINT/endless/endless.squash" \
        "$ISO_MOUNTPOINT/endless/${OS_IMAGE_UNCOMPRESSED_BASENAME%.img}.squash.asc" \
        "$DIR_IMAGES_ENDLESS"
