@@ -394,8 +394,6 @@ else
 
     # We want the data partition, "eoslive", to occupy all the space on the disk
     # after the UEFI partition and the gap where the BIOS bootloader lives.
-    # But, we also want it to be numbered first: apparently Windows will only
-    # mount the partition numbered first, regardless of where it is on the disk.
     #
     # It is important that the offset of the BIOS boot gap matches that
     # used in the Endless OS image builder, since it is embedded in the GRUB
@@ -406,8 +404,8 @@ else
     # Windows offers to format such partitions, so we don't do this any more.
     # We leave a 1 MiB gap where the partition should be.
     sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
-2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
-1 : start=131072, name=eoslive, type=$PARTITION_BASIC_DATA_GUID
+1 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
+2 : start=131072, name=eoslive, type=$PARTITION_BASIC_DATA_GUID
 EFI_PARTITIONS
 
     udevadm settle
