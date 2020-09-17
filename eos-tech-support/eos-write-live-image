@@ -265,7 +265,10 @@ if [ "$NTFS" ]; then
     dependencies[$MKFS_IMAGES]='ntfs-3g'
 else
     MKFS_IMAGES="mkfs.exfat"
-    MKFS_ARGS=-n
+    # By default, mkfs.exfat picks the cluster size (allocation unit) based on
+    # the disk size.  On large disks this is 128 KiB, wasting a lot of space on
+    # Endless Key with many small files.  Force it to 8 sectors, ie 4096 bytes.
+    MKFS_ARGS='-s 8 -n'
     dependencies[$MKFS_IMAGES]='exfat-utils'
 fi
 
@@ -273,13 +276,17 @@ if [ "$EXPAND" ]; then
     dependencies[truncate]='coreutils'
 fi
 
+missing_packages=()
 for command in "${!dependencies[@]}"; do
     if ! command -v "$command" >/dev/null 2>&1; then
-        echo "$command is not installed... aborting!" >&2
-        echo "Try 'sudo apt-get install ${dependencies[$command]}'" >&2
-        exit 1
+        echo "$command is not installed" >&2
+        missing_packages+=("${dependencies[$command]}")
     fi
 done
+if [ ${#missing_packages[@]} -gt 0 ]; then
+    echo "Try 'sudo apt-get install ${missing_packages[*]}'" >&2
+    exit 1
+fi
 
 if [ -z "$FETCH_LATEST" ]; then
     if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
@@ -497,7 +504,7 @@ echo "Copying image files"
 if [ "$ISO" ]; then
     # Loop-mount the ISO and copy the endless.squash and  directory
     mkdir -p "$ISO_MOUNTPOINT"
-    mount -o loop "$OS_IMAGE" "$ISO_MOUNTPOINT"
+    mount -o ro,loop "$OS_IMAGE" "$ISO_MOUNTPOINT"
     cp "$ISO_MOUNTPOINT/endless/endless.squash" \
        "$ISO_MOUNTPOINT/endless/${OS_IMAGE_UNCOMPRESSED_BASENAME%.img}.squash.asc" \
        "$DIR_IMAGES_ENDLESS"
