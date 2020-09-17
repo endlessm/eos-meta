@@ -273,13 +273,17 @@ if [ "$EXPAND" ]; then
     dependencies[truncate]='coreutils'
 fi
 
+missing_packages=()
 for command in "${!dependencies[@]}"; do
     if ! command -v "$command" >/dev/null 2>&1; then
-        echo "$command is not installed... aborting!" >&2
-        echo "Try 'sudo apt-get install ${dependencies[$command]}'" >&2
-        exit 1
+        echo "$command is not installed" >&2
+        missing_packages+=("${dependencies[$command]}")
     fi
 done
+if [ ${#missing_packages[@]} -gt 0 ]; then
+    echo "Try 'sudo apt-get install ${missing_packages[*]}'" >&2
+    exit 1
+fi
 
 if [ -z "$FETCH_LATEST" ]; then
     if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
