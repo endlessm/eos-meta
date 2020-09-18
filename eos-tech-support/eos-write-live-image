@@ -265,10 +265,7 @@ if [ "$NTFS" ]; then
     dependencies[$MKFS_IMAGES]='ntfs-3g'
 else
     MKFS_IMAGES="mkfs.exfat"
-    # By default, mkfs.exfat picks the cluster size (allocation unit) based on
-    # the disk size.  On large disks this is 128 KiB, wasting a lot of space on
-    # Endless Key with many small files.  Force it to 8 sectors, ie 4096 bytes.
-    MKFS_ARGS='-s 8 -n'
+    MKFS_ARGS=-n
     dependencies[$MKFS_IMAGES]='exfat-utils'
 fi
 
