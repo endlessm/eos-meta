@@ -78,7 +78,7 @@ $PARTS"
 
 echo "Writing the following partition table to disk"
 echo "$TABLE"
-echo "$TABLE" | sfdisk --quiet --force "$TARGET_DISK"
+echo "$TABLE" | sfdisk --quiet --force --wipe always "$TARGET_DISK"
 
 # Give udisks a chance to notice the new partition
 partprobe "$TARGET_DISK"
