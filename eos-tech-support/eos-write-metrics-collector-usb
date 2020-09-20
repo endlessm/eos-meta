@@ -68,7 +68,7 @@ LABEL_TYPE="$(echo "$TABLE" | grep "label: " | cut -f2 -d' ')"
 if [ "$LABEL_TYPE" = "gpt" ]; then
     PARTS="start=2048, name=EOSMETRICS, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
 else
-    PARTS="start=2048, name=EOSMETRICS, type=c"
+    PARTS="start=2048, type=c"
 fi
 
 
