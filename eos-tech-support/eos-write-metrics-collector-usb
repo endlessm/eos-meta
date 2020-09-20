@@ -15,7 +15,7 @@ EOSMETRICS_LIBEXEC="/usr/share/libexec/eos-metrics"
 prompt_input()
 {
     echo "
-	 "
+         "
     read -p "Please enter the disk number you want to create for metrics? [] "
     response="${REPLY,,}" # to lower
     if [[ ! "$response" =~ ^[1-9]$ ]]; then
