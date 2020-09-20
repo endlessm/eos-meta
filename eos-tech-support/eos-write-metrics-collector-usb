@@ -12,6 +12,12 @@
 USB_DISK_NUM=0
 EOSMETRICS_LIBEXEC="/usr/share/libexec/eos-metrics"
 
+USERID=$(id -u)
+if [ "$USERID" != "0" ]; then
+    echo "Program requires superuser privileges" >&2
+    exit 1
+fi
+
 prompt_input()
 {
     echo "
