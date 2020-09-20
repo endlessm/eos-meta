@@ -57,27 +57,9 @@ then
     umount $MOUNTPOINT
 fi
 
-TABLE=$(sfdisk -d "$TARGET_DISK")
-
-HEADER=$(echo "$TABLE" | grep -v '^/')
-# Remove the last-lba line so that we fill the disk
-HEADER=$(echo "$HEADER" | sed -e '/^last-lba:/d')
-LABEL_TYPE="$(echo "$TABLE" | grep "label: " | cut -f2 -d' ')"
-
-# Add the basic data partition
-if [ "$LABEL_TYPE" = "gpt" ]; then
-    PARTS="start=2048, name=EOSMETRICS, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"
-else
-    PARTS="start=2048, type=c"
-fi
-
-
-# Reconstruct the table
-TABLE="$HEADER
-$PARTS"
-
-echo "Writing the following partition table to disk"
-echo "$TABLE"
+echo "Writing a new partition table to disk"
+TABLE="label: dos
+start=2048, type=c"
 echo "$TABLE" | sfdisk --quiet --force --wipe always "$TARGET_DISK"
 
 # Give udisks a chance to notice the new partition
@@ -85,11 +67,7 @@ partprobe "$TARGET_DISK"
 udevadm settle
 
 # Read the path to the new partition
-if [ "$LABEL_TYPE" = "gpt" ]; then
-    PART=$(sfdisk -d "$TARGET_DISK" | grep 'EOSMETRICS' | cut -f1 -d' ')
-else
-    PART=$(sfdisk -d "$TARGET_DISK" | grep 'type=c' | cut -f1 -d' ')
-fi
+PART=$(sfdisk -d "$TARGET_DISK" | grep 'type=c' | cut -f1 -d' ')
 
 echo "Formatting the new partition $PART"
 mkfs.vfat -n EOSMETRICS "$PART"
