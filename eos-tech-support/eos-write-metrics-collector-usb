@@ -63,8 +63,8 @@ start=2048, type=c"
 echo "$TABLE" | sfdisk --quiet --force --wipe always "$TARGET_DISK"
 
 # Give udisks a chance to notice the new partition
-partprobe "$TARGET_DISK"
 udevadm settle
+partprobe "$TARGET_DISK"
 
 # Read the path to the new partition
 PART=$(sfdisk -d "$TARGET_DISK" | grep 'type=c' | cut -f1 -d' ')
