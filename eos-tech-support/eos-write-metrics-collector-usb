@@ -16,7 +16,7 @@ prompt_input()
 {
     echo "
          "
-    read -p "Please enter the disk number you want to create for metrics? [] "
+    read -p "Please enter the disk number you want to create for metrics: "
     response="${REPLY,,}" # to lower
     if [[ ! "$response" =~ ^[1-9]$ ]]; then
         echo " Please re-input your selection "
@@ -47,7 +47,6 @@ if [ $USB_DISK_NUM -eq 0 ]; then
 fi
 
 prompt_input
-
 TARGET_DISK=${DISK[$((USER_CHOICE-1))]}
 
 echo "disk name $TARGET_DISK"
