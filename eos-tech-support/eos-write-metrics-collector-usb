@@ -56,38 +56,33 @@ then
     umount $MOUNTPOINT
 fi
 
-echo "Writing a new partition table to disk"
+echo "== Writing a new partition table to disk =="
 TABLE="label: dos
 start=2048, type=c"
 echo "$TABLE" | sfdisk --quiet --force --wipe always "$TARGET_DISK"
-
-# Give udisks a chance to notice the new partition
 udevadm settle
 partprobe "$TARGET_DISK"
 
-# Read the path to the new partition
 PART=$(sfdisk -d "$TARGET_DISK" | grep 'type=c' | cut -f1 -d' ')
-
-echo "Formatting the new partition $PART"
+echo "== Formatting the new partition $PART =="
 mkfs.vfat -n EOSMETRICS "$PART"
 udevadm settle
 
-echo "Trying to mount $PART"
+echo "== Mounting $PART =="
 if ! udisksctl mount -b "$PART" --no-user-interaction; then
     echo "Failed to mount FAT32 on $PART- exiting"
     exit 1
 fi
-
-# Read the path to the mountpoint
 TARGET_MOUNTPOINT=$(grep "$PART" /proc/mounts | cut -f2 -d' ')
 
 if test -n "$TARGET_MOUNTPOINT" -a -d "$TARGET_MOUNTPOINT" ; then
-    echo "Populating the partition"
+    echo "== Populating the partition =="
     cp -v $EOSMETRICS_LIBEXEC/metrics.py "$TARGET_MOUNTPOINT"
     cp -v $EOSMETRICS_LIBEXEC/eos-metrics-collector.exe "$TARGET_MOUNTPOINT"
     cp -v $EOSMETRICS_LIBEXEC/eos-metrics-uploader.exe "$TARGET_MOUNTPOINT"
 fi
 
+echo "== Unmounting $PART =="
 udisksctl unmount -b "$PART" --no-user-interaction
 sync
 echo "The USB device can now be removed and used to collect offline metrics"
