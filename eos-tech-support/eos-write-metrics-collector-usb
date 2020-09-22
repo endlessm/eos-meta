@@ -19,11 +19,12 @@ fi
 
 USB_DISK_NUM=0
 for device in /sys/block/* ; do
-    if [ udevadm info --query=property --path=$device | grep -q ^ID_BUS=usb ] ; then
+    if udevadm info --query=property --path=$device | grep -q ^ID_BUS=usb ; then
+        (( USB_DISK_NUM+=1 ))
         device_path="/dev/${device##*/}"
         DISK[$USB_DISK_NUM]=$device_path
-        (( USB_DISK_NUM+=1 ))
-        echo "$USB_DISK_NUM) / ${DISK[$((USB_DISK_NUM-1))]}"
+
+        echo "$USB_DISK_NUM) $device_path"
         echo "$(lsblk --output NAME,LABEL $device_path)"
     fi
 done
@@ -52,7 +53,7 @@ prompt_input()
 }
 prompt_input
 
-TARGET_DISK=${DISK[$((USER_CHOICE-1))]}
+TARGET_DISK=${DISK[$USER_CHOICE]}
 OLD_PARTS="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
 if [ ! -z "$OLD_PARTS" ]; then
     for part in $OLD_PARTS; do
