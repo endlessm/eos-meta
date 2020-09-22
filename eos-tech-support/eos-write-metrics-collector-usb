@@ -9,12 +9,27 @@
 # users to execute to collect/upload offline metrics
 # data.
 
-USB_DISK_NUM=0
 EOSMETRICS_LIBEXEC="/usr/share/libexec/eos-metrics"
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
     echo "Program requires superuser privileges" >&2
+    exit 1
+fi
+
+USB_DISK_NUM=0
+for device in /sys/block/* ; do
+    if [ udevadm info --query=property --path=$device | grep -q ^ID_BUS=usb ] ; then
+        device_path="/dev/${device##*/}"
+        DISK[$USB_DISK_NUM]=$device_path
+        (( USB_DISK_NUM+=1 ))
+        echo "$USB_DISK_NUM) / ${DISK[$((USB_DISK_NUM-1))]}"
+        echo "$(lsblk --output NAME,LABEL $device_path)"
+    fi
+done
+
+if [ $USB_DISK_NUM -eq 0 ]; then
+    echo "Please plug in a USB storage device."
     exit 1
 fi
 
@@ -35,24 +50,8 @@ prompt_input()
 
     USER_CHOICE=$response
 }
-
-for device in /sys/block/*
-do
-    if udevadm info --query=property --path=$device | grep -q ^ID_BUS=usb
-    then
-        DISK[$USB_DISK_NUM]="/dev/${device##*/}"
-        ((USB_DISK_NUM=USB_DISK_NUM+1))
-        echo "$USB_DISK_NUM) / ${DISK[$((USB_DISK_NUM-1))]}"
-        echo "`lsblk -o name,label /dev/${device##*/}`"
-    fi
-done
-
-if [ $USB_DISK_NUM -eq 0 ]; then
-    echo "Please plug in the USB storage device."
-    exit 1
-fi
-
 prompt_input
+
 TARGET_DISK=${DISK[$((USER_CHOICE-1))]}
 echo "disk name $TARGET_DISK"
 
