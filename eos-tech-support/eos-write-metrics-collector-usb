@@ -72,7 +72,7 @@ echo "$TABLE" | sfdisk --quiet --force --wipe always "$TARGET_DISK"
 udevadm settle
 partprobe "$TARGET_DISK"
 
-PART=$(sfdisk -d "$TARGET_DISK" | grep 'type=c' | cut -f1 -d' ')
+PART="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
 echo "== Formatting the new partition $PART =="
 mkfs.vfat -n EOSMETRICS "$PART"
 udevadm settle
