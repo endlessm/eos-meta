@@ -29,7 +29,7 @@ for device in /sys/block/* ; do
 done
 
 if [ $USB_DISK_NUM -eq 0 ]; then
-    echo "Please plug in a USB storage device."
+    echo "No USB storage device found, exiting"
     exit 1
 fi
 
