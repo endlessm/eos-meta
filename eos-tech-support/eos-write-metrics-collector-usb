@@ -53,8 +53,6 @@ prompt_input()
 prompt_input
 
 TARGET_DISK=${DISK[$((USER_CHOICE-1))]}
-echo "disk name $TARGET_DISK"
-
 OLD_PARTS="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
 if [ ! -z "$OLD_PARTS" ]; then
     for part in $OLD_PARTS; do
