@@ -54,14 +54,14 @@ fi
 
 prompt_input
 TARGET_DISK=${DISK[$((USER_CHOICE-1))]}
-
 echo "disk name $TARGET_DISK"
-OLD_PARTS=$(grep "$TARGET_DISK" /proc/mounts | cut -f1 -d' ' | tr '\n' ' ')
-if [ ! -z "$OLD_PARTS" ];
-then
-    for part in $OLD_PARTS
-    do
-        udisksctl unmount -b "$part" --no-user-interaction --force
+
+OLD_PARTS="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
+if [ ! -z "$OLD_PARTS" ]; then
+    for part in $OLD_PARTS; do
+        if findmnt --noheadings --output TARGET --source $part ; then
+            udisksctl unmount -b "$part" --no-user-interaction --force
+        fi
     done
 fi
 
