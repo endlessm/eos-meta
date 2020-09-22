@@ -82,14 +82,12 @@ if ! udisksctl mount -b "$PART" --no-user-interaction; then
     echo "Failed to mount FAT32 on $PART- exiting"
     exit 1
 fi
-TARGET_MOUNTPOINT=$(grep "$PART" /proc/mounts | cut -f2 -d' ')
 
-if test -n "$TARGET_MOUNTPOINT" -a -d "$TARGET_MOUNTPOINT" ; then
-    echo "== Populating the partition =="
-    cp -v $EOSMETRICS_LIBEXEC/metrics.py "$TARGET_MOUNTPOINT"
-    cp -v $EOSMETRICS_LIBEXEC/eos-metrics-collector.exe "$TARGET_MOUNTPOINT"
-    cp -v $EOSMETRICS_LIBEXEC/eos-metrics-uploader.exe "$TARGET_MOUNTPOINT"
-fi
+echo "== Populating the partition =="
+TARGET_MOUNTPOINT="$(findmnt --noheadings --output TARGET --source $PART)"
+cp -v $EOSMETRICS_LIBEXEC/metrics.py "$TARGET_MOUNTPOINT"
+cp -v $EOSMETRICS_LIBEXEC/eos-metrics-collector.exe "$TARGET_MOUNTPOINT"
+cp -v $EOSMETRICS_LIBEXEC/eos-metrics-uploader.exe "$TARGET_MOUNTPOINT"
 
 echo "== Unmounting $PART =="
 udisksctl unmount -b "$PART" --no-user-interaction
