@@ -48,12 +48,10 @@ prompt_input()
         echo " Please re-input your selection "
         prompt_input
     fi
-
-    USER_CHOICE=$response
 }
 prompt_input
 
-TARGET_DISK=${DISK[$USER_CHOICE]}
+TARGET_DISK=${DISK[$response]}
 OLD_PARTS="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
 if [ ! -z "$OLD_PARTS" ]; then
     for part in $OLD_PARTS; do
