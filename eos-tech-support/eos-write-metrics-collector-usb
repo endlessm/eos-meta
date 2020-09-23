@@ -60,15 +60,6 @@ if [ ! -z "$OLD_PARTS" ]; then
     done
 fi
 
-echo "== Clearing any existing ISO9660 or Joliet signatures from $TARGET_DISK =="
-# Erase any existing ISO9660 (0x8000 == 8 * 4096) or Joliet (0x9000 == 9 *
-# 4096) header on the disk. If an ISO image has previously been written to
-# $TARGET_DISK, partprobe may print "Warning: The driver descriptor says the
-# physical block size is 2048 bytes, but Linux says it is 512 bytes." and exit
-# with an error.
-dd if=/dev/zero of="$TARGET_DISK" bs=4096 count=2 seek=8 status=none
-udevadm settle
-
 echo "== Writing a new partition table to $TARGET_DISK =="
 TABLE="label: dos
 start=2048, type=c"
