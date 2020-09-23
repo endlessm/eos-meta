@@ -267,8 +267,11 @@ else
     MKFS_IMAGES="mkfs.exfat"
     # By default, mkfs.exfat picks the cluster size (allocation unit) based on
     # the disk size.  On large disks this is 128 KiB, wasting a lot of space on
-    # Endless Key with many small files.  Force it to 8 sectors, ie 4096 bytes.
-    MKFS_ARGS='-s 8 -n'
+    # Endless Key with many small files.  Using 4 KiB (the default for very
+    # small disks) appears to have some performance impact when reading large
+    # files.  As a compromise, force the cluster size to 64 sectors, i.e. 32
+    # KiB, which is the default for volumes between 256 MiB and 32 GiB.
+    MKFS_ARGS='-s 64 -n'
     dependencies[$MKFS_IMAGES]='exfat-utils'
 fi
 
