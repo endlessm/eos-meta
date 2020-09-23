@@ -60,7 +60,7 @@ if [ ! -z "$OLD_PARTS" ]; then
     done
 fi
 
-echo "== Writing a new partition table to disk =="
+echo "== Writing a new partition table to $TARGET_DISK =="
 TABLE="label: dos
 start=2048, type=c"
 echo "$TABLE" | sfdisk --quiet --force --wipe always "$TARGET_DISK"
@@ -70,7 +70,7 @@ udevadm settle
 partprobe "$TARGET_DISK"
 
 PART="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
-echo "== Formatting the new partition $PART =="
+echo "== Formatting $PART =="
 mkfs.vfat -n EOSMETRICS "$PART"
 udevadm settle
 
@@ -80,7 +80,7 @@ if ! udisksctl mount -b "$PART" --no-user-interaction; then
     exit 1
 fi
 
-echo "== Populating the partition =="
+echo "== Populating $PART =="
 TARGET_MOUNTPOINT="$(findmnt --noheadings --output TARGET --source $PART)"
 cp -v $EOSMETRICS_LIBEXEC/metrics.py "$TARGET_MOUNTPOINT"
 cp -v $EOSMETRICS_LIBEXEC/eos-metrics-collector.exe "$TARGET_MOUNTPOINT"
