@@ -64,6 +64,8 @@ echo "== Writing a new partition table to disk =="
 TABLE="label: dos
 start=2048, type=c"
 echo "$TABLE" | sfdisk --quiet --force --wipe always "$TARGET_DISK"
+
+echo "== Updating the kernel with the newly-created partitions =="
 udevadm settle
 partprobe "$TARGET_DISK"
 
