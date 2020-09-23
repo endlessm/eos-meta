@@ -36,19 +36,18 @@ fi
 
 prompt_input()
 {
-    echo "
-         "
-    read -p "Please enter the disk number you want to create for metrics: "
+    read -p "Select the disk you want to use for metrics collection: "
     response="${REPLY,,}" # to lower
     if [[ ! "$response" =~ ^[1-9]$ ]]; then
-        echo " Please re-input your selection "
+        echo " Invalid choice, enter a number between 1 and $USB_DISK_NUM."
         prompt_input
     fi
     if [ $((response)) -gt $((USB_DISK_NUM)) ]; then
-        echo " Please re-input your selection "
+        echo " Invalid choice, enter a number between 1 and $USB_DISK_NUM."
         prompt_input
     fi
 }
+echo ""
 prompt_input
 
 TARGET_DISK=${DISK[$response]}
