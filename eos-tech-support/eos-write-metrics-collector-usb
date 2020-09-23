@@ -67,7 +67,10 @@ echo "$TABLE" | sfdisk --quiet --force --wipe always "$TARGET_DISK"
 
 echo "== Updating the kernel with the newly-created partitions =="
 udevadm settle
-partprobe "$TARGET_DISK"
+# partprobe may return an non-zero exit if an ISO had been previously written
+# to the disk, which neither 'sfdisk --wipe' nor 'dd if=/dev/zero' are able to
+# avoid. Let's allow it to fail without halting the program.
+partprobe "$TARGET_DISK" || true
 
 PART="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
 echo "== Formatting $PART =="
