@@ -9,7 +9,7 @@
 # users to execute to collect/upload offline metrics
 # data.
 
-EOSMETRICS_LIBEXEC="/usr/share/libexec/eos-metrics"
+EOSMETRICS_LIBEXEC="/usr/lib/eos-event-recorder-daemon"
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
@@ -85,9 +85,7 @@ fi
 
 echo "== Populating $PART =="
 TARGET_MOUNTPOINT="$(findmnt --noheadings --output TARGET --source $PART)"
-cp -v $EOSMETRICS_LIBEXEC/metrics.py "$TARGET_MOUNTPOINT"
 cp -v $EOSMETRICS_LIBEXEC/eos-metrics-collector.exe "$TARGET_MOUNTPOINT"
-cp -v $EOSMETRICS_LIBEXEC/eos-metrics-uploader.exe "$TARGET_MOUNTPOINT"
 
 echo "== Unmounting $PART =="
 udisksctl unmount -b "$PART" --no-user-interaction
