@@ -1,6 +1,7 @@
 # Dependencies shared between OS metapackages
 adduser
 amd64-microcode [amd64]
+busybox
 bluez
 # Used for the initial hardware evaluation
 checkbox-ng
