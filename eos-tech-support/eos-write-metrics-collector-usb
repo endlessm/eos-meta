@@ -1,0 +1,93 @@
+#!/bin/bash -e
+
+# Detect the plugged in USB storage and prompt users
+# that the contents of the storage will be erased
+# and the whole disk will be reformatted to a single
+# FAT32 partition (dos).
+# Then copy both eos-metrics-collector and the
+# eos-metrics-uploader with .exe extension for the
+# users to execute to collect/upload offline metrics
+# data.
+
+EOSMETRICS_LIBEXEC="/usr/lib/eos-event-recorder-daemon"
+
+USERID=$(id -u)
+if [ "$USERID" != "0" ]; then
+    echo "Program requires superuser privileges" >&2
+    exit 1
+fi
+
+USB_DISK_NUM=0
+for device in /sys/block/* ; do
+    if udevadm info --query=property --path=$device | grep -q ^ID_BUS=usb ; then
+        (( USB_DISK_NUM+=1 ))
+        device_path="/dev/${device##*/}"
+        DISK[$USB_DISK_NUM]=$device_path
+
+        echo "$USB_DISK_NUM) $device_path"
+        echo "$(lsblk --output NAME,LABEL $device_path)"
+    fi
+done
+
+if [ $USB_DISK_NUM -eq 0 ]; then
+    echo "No USB storage device found, exiting"
+    exit 1
+fi
+
+prompt_input()
+{
+    read -p "Select the disk you want to use for metrics collection: "
+    response="${REPLY,,}" # to lower
+    if [[ ! "$response" =~ ^[1-9]$ ]]; then
+        echo " Invalid choice, enter a number between 1 and $USB_DISK_NUM."
+        prompt_input
+    fi
+    if [ $((response)) -gt $((USB_DISK_NUM)) ]; then
+        echo " Invalid choice, enter a number between 1 and $USB_DISK_NUM."
+        prompt_input
+    fi
+}
+echo ""
+prompt_input
+
+TARGET_DISK=${DISK[$response]}
+OLD_PARTS="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
+if [ ! -z "$OLD_PARTS" ]; then
+    for part in $OLD_PARTS; do
+        if findmnt --noheadings --output TARGET --source $part ; then
+            udisksctl unmount -b "$part" --no-user-interaction --force
+        fi
+    done
+fi
+
+echo "== Writing a new partition table to $TARGET_DISK =="
+TABLE="label: dos
+start=2048, type=c"
+echo "$TABLE" | sfdisk --quiet --force --wipe always "$TARGET_DISK"
+
+echo "== Updating the kernel with the newly-created partitions =="
+udevadm settle
+# partprobe may return an non-zero exit if an ISO had been previously written
+# to the disk, which neither 'sfdisk --wipe' nor 'dd if=/dev/zero' are able to
+# avoid. Let's allow it to fail without halting the program.
+partprobe "$TARGET_DISK" || true
+
+PART="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
+echo "== Formatting $PART =="
+mkfs.vfat -n EOSMETRICS "$PART"
+udevadm settle
+
+echo "== Mounting $PART =="
+if ! udisksctl mount -b "$PART" --no-user-interaction; then
+    echo "Failed to mount FAT32 on $PART- exiting"
+    exit 1
+fi
+
+echo "== Populating $PART =="
+TARGET_MOUNTPOINT="$(findmnt --noheadings --output TARGET --source $PART)"
+cp -v $EOSMETRICS_LIBEXEC/eos-metrics-collector.exe "$TARGET_MOUNTPOINT"
+
+echo "== Unmounting $PART =="
+udisksctl unmount -b "$PART" --no-user-interaction
+sync
+echo "The USB device can now be removed and used to collect offline metrics"
