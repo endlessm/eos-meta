@@ -107,6 +107,7 @@ fprintd
 fuse-overlayfs
 gdb
 gedit
+git
 # For showing the keyboard layout from the control center
 gkbd-capplet
 gnome-bluetooth
