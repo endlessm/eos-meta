@@ -123,7 +123,9 @@ function cleanup() {
     cleanup_mountpoint "$ISO_MOUNTPOINT"
     cleanup_mountpoint "$ESP_MOUNTPOINT"
     cleanup_mountpoint "$EOSLIVE_MOUNTPOINT"
-    [ -d "$MOUNTS" ] && rmdir "$MOUNTS"
+    if [ -d "$MOUNTS" ]; then
+        rmdir "$MOUNTS"
+    fi
 }
 
 function find_by_type() {
