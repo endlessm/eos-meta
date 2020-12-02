@@ -71,6 +71,7 @@ udevadm settle
 # to the disk, which neither 'sfdisk --wipe' nor 'dd if=/dev/zero' are able to
 # avoid. Let's allow it to fail without halting the program.
 partprobe "$TARGET_DISK" || true
+udevadm settle
 
 PART="$(lsblk --noheadings --output PATH $TARGET_DISK | sed '1d')"
 echo "== Formatting $PART =="
