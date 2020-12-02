@@ -692,6 +692,52 @@ let diagnostics = [
         },
     },
     {
+        title: 'EFI variable list',
+        content: function() { return trySpawn('ls -l /sys/firmware/efi/efivars'); },
+    },
+    {
+        title: 'Secure Boot Platform Key',
+        content: function() { return extractCertificates(); }
+    },
+    {
+        title: 'EFI variable contents',
+        content: function () {
+            let output = '';
+            let temp = trySpawn('od -An -j 4 -t d1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c');
+            if (temp.length)
+                output += 'SecureBoot: ' + temp;
+
+            temp = trySpawn('od -An -j 4 -t d1 /sys/firmware/efi/efivars/SecureBootOption-955b9041-133a-4bcf-90d1-97e1693c0e30');
+            if (temp.length)
+                output += 'SecureBootOption: ' + temp;
+
+            temp = trySpawn('od -An -j 4 -t d1 /sys/firmware/efi/efivars/EOSPAYG_securitylevel-d89c3871-ae0c-4fc5-a409-dc717aee61e7');
+            if (temp.length)
+                output += 'Security Level: ' + temp;
+
+            temp = trySpawn('od -An -j 4 -t d1 /sys/firmware/efi/efivars/EOSPAYG_debug-d89c3871-ae0c-4fc5-a409-dc717aee61e7');
+            if (temp.length)
+                output += 'Debug: ' + temp;
+
+            return output;
+        }
+    },
+    {
+        title: 'PAYG status',
+        content: function () {
+            let output = 'Daemon security level: ';
+            try {
+                let [res, stdout, stderr, exitStatus] = GLib.spawn_command_line_sync('/usr/lib/x86_64-linux-gnu/eos-paygd1 -s');
+                output += stdout[0] + '\n';
+            } catch (e) {
+                output += 'Unreadable\n';
+            }
+
+            output += trySpawn('eos-payg-ctl');
+            return output;
+        }
+    },
+    {
         title: 'Coredump',
         coredumpInfo: true,
         content: function() {
@@ -851,6 +897,22 @@ function dumpCoredumps(filename, verboseFlag) {
 function buildFilename(prefix, extension) {
     let date = GLib.DateTime.new_now_local();
     return prefix + '-' + date.format('%y%m%d_%H%M%S_UTC%z') + extension;
+}
+
+function extractCertificates() {
+    let pk = '/sys/firmware/efi/efivars/PK-8be4df61-93ca-11d2-aa0d-00e098032b8c';
+    let certDir = buildFilename('/tmp/eos-diagnostics-certs', '');
+
+    if (GLib.access(pk, 4) != 0)  /* literal 4 should be R_OK */
+        return;
+
+    GLib.mkdir_with_parents(certDir, parseInt('0700', 8));
+    trySpawn('dd if=' + pk + ' of=' + certDir + '/pk iflag=skip_bytes skip=4');
+    trySpawn('sig-list-to-certs ' + certDir + '/pk ' + certDir + '/pk');
+
+    let output = trySpawn('openssl x509 -inform der -text -in ' + certDir + '/pk-0.der');
+    GLib.spawn_command_line_sync('rm -rf ' + certDir);
+    return output;
 }
 
 /* Parse command line arguments. */
