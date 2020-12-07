@@ -435,33 +435,6 @@ function collectTemperatureInfo() {
     }
 }
 
-function collectChromiumPluginsInfo() {
-    let oldVersion = tryReadFile('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/VERSION.txt');
-    if (oldVersion) {
-        oldVersion += ' (via old updater)\n';
-    }
-
-    let flashOutput = 'Flash Version: ';
-    let flashPath = Gio.file_new_for_path('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/libpepflashplayer.so');
-    if (flashPath.query_exists(null)) {
-        flashOutput += tryReadFile('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Flash_VERSION.txt',
-                                   'not available') + '\n';
-    } else {
-        flashOutput += 'not installed\n';
-    }
-
-    let widevineOutput = 'Widevine Version: ';
-    let widevinePath = Gio.file_new_for_path('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/libwidevinecdm.so');
-    if (widevinePath.query_exists(null)) {
-        widevineOutput += tryReadFile('/var/lib/chromium-plugins-extra/eos-chrome-plugin-updater/Widevine_VERSION.txt',
-                                      'not available') + '\n';
-    } else {
-        widevineOutput += 'not installed\n';
-    }
-
-    return flashOutput + widevineOutput;
-}
-
 function collectEosDevInfo() {
     let output = '';
     let signalDir = Gio.File.new_for_path('/var/cache/debconf');
@@ -653,10 +626,6 @@ let diagnostics = [
     {
         title: 'Temperature',
         content: function() { return collectTemperatureInfo(); },
-    },
-    {
-        title: 'Chromium plugins',
-        content: function() { return collectChromiumPluginsInfo(); }
     },
     {
         title: 'Codecs',
