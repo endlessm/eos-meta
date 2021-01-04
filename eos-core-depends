@@ -14,6 +14,8 @@ hunspell-pt-br
 hunspell-th
 hunspell-vi
 
+alsa-topology-conf
+alsa-ucm-conf
 alsa-utils
 apt
 apt-transport-https
