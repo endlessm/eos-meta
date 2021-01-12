@@ -59,7 +59,7 @@ if [ "$STAGE" == "dev" ] ; then
 	echo "Error: missing required PASSWORD for dev stage" >&2
 	exit 1
     fi
-    base_url="https://endless:${PASSWORD}@origin.ostree.endlessm.com/staging/dev"
+    base_url="https://endless:${PASSWORD}@ostree.endlessm.com/staging/dev"
     new_collection_id="com.endlessm.Dev.Os"
     # dev stages stay on the major version (e.g., eos3.2)
     series="eos${major_version}"
