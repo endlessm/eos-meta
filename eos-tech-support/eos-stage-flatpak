@@ -70,7 +70,7 @@ if [ "$STAGE" == "dev" ] ; then
 	echo "Error: missing required PASSWORD for dev stage" >&2
 	exit 1
     fi
-    base_url="https://endless:${PASSWORD}@origin.ostree.endlessm.com/staging/dev"
+    base_url="https://endless:${PASSWORD}@ostree.endlessm.com/staging/dev"
 elif [ "$STAGE" == "demo" ] ; then
     base_url="https://ostree.endlessm.com/staging/demo"
 elif [ "$STAGE" == "prod" ] ; then
