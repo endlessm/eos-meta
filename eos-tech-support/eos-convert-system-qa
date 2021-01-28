@@ -79,21 +79,21 @@ fi
 
 # Change OSTree and Flatpak servers to staging.
 if $OSTREE || $APPS; then
-    # Get the HTTP password for the dev repos.
-    read -p "OSTree password: " OSTREE_PASSWORD
-    if [ -z "$OSTREE_PASSWORD" ]; then
-        echo "error: No password supplied" >&2
-        exit 1
-    fi
-
     # Change the Flatpak runtime and apps server URLs to the dev stage.
     if $APPS; then
+        # Get the HTTP password for the dev repos.
+        read -p "OSTree password: " OSTREE_PASSWORD
+        if [ -z "$OSTREE_PASSWORD" ]; then
+            echo "error: No password supplied" >&2
+            exit 1
+        fi
+
         eos-stage-flatpak dev "${OSTREE_PASSWORD}"
     fi
 
     # Change OSTree server URL to the dev stage.
     if $OSTREE; then
-        eos-stage-ostree dev "${OSTREE_PASSWORD}"
+        eos-stage-ostree dev
     fi
 fi
 
