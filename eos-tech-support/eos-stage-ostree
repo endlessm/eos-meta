@@ -3,23 +3,22 @@
 function usage {
     cat <<EOF
 Usage:
-    $0 STAGE [PASSWORD]
+    $0 STAGE
 Arguments:
     STAGE     One of the following:
-                - dev: development staging (requires password)
-                       (note that the dev stage does not automatically
-                       update to the next major release series)
+                - dev: development staging (note that the dev stage does
+                       not automatically update to the next major release
+                       series)
                 - demo: beta testing in advance of production releases
                 - prod: full production releases for general availability
-    PASSWORD  Development password (for staging branch only)
 EOF
 }
 
-if [ $# -lt 1 ] || [ $# -gt 2 ] ; then
+if [ $# -ne 1 ] ; then
     if [ $# -lt 1 ] ; then
         echo "Error: missing STAGE argument" >&2
     else
-        echo "Error: extra arguments after STAGE PASSWORD" >&2
+        echo "Error: extra arguments after STAGE" >&2
     fi
     echo >&2
     usage >&2
@@ -27,11 +26,6 @@ if [ $# -lt 1 ] || [ $# -gt 2 ] ; then
 fi
 
 STAGE="$1"
-
-PASSWORD=
-if [ $# -ge 2 ] ; then
-    PASSWORD="$2"
-fi
 
 if [ $EUID != 0 ] ; then
     echo "Program requires superuser privileges" >&2
@@ -55,11 +49,7 @@ case "$major_version" in
 esac
 
 if [ "$STAGE" == "dev" ] ; then
-    if [ -z "$PASSWORD" ] ; then
-	echo "Error: missing required PASSWORD for dev stage" >&2
-	exit 1
-    fi
-    base_url="https://endless:${PASSWORD}@origin.ostree.endlessm.com/staging/dev"
+    base_url="https://ostree.endlessm.com/staging/dev"
     new_collection_id="com.endlessm.Dev.Os"
     # dev stages stay on the major version (e.g., eos3.2)
     series="eos${major_version}"
