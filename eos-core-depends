@@ -155,8 +155,6 @@ ibus-unikey
 iio-sensor-proxy
 # Used by cups-filters
 imagemagick
-# Needed to support some Epson scanners
-imagescan-driver
 libblockdev-crypto2
 # Needed to unpack Apple DMG files for the Endless Key project
 libfsapfs-utils
