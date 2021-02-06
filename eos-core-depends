@@ -189,7 +189,6 @@ openssh-server
 # For flatpak-builder
 patch
 podman
-podman-docker
 # For modem support
 ppp
 printer-driver-all-enforce

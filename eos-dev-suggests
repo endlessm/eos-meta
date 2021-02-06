@@ -6,10 +6,6 @@
 # scripts have special provisions to consider anything listed here as a
 # required part of our distro.
 
-# Robert McQueen is prototyping these container-based development tools.
-# They will probably be added to the ostree once ready.
-toolbox
-
 # Robert McQueen is prototyping this for encrypted home directories.
 # It will probably be added to the ostree once ready.
 fscrypt
