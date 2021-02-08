@@ -13,18 +13,6 @@ fscrypt
 # Matthew Leeds is working on flatpak functionality that would use this
 bindfs
 
-# Dan Nicholson points out that this is used by osc for handling
-# control.tar.xz files, useful for development.
-python-lzma
-
-# Dan Nicholson requests this for ancillary tools, e.g. it's useful for
-# running obs-add-package or jenkins-infra locally.
-ubuntu-keyring
-
-# Daniel Drake is working on aarch64 bringup which needs this arch-specific
-# dependency. (aarch64 packages are not yet published)
-skales
-
 # Other
 ack-grep
 alsa-tools

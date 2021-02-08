@@ -42,7 +42,7 @@ obs-build
 osc
 patchutils
 pbuilder
-pep8
+python3-pep8
 pyflakes3
 quilt
 screen
