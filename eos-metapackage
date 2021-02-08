@@ -105,7 +105,7 @@ sub check_installable {
 	});
 
 	if (@cmd > 0) {
-		unshift(@cmd, ("apt-get", "install", "--download-only", "--dry-run", "--quiet"));
+		unshift(@cmd, ("apt-get", "install", "--no-install-recommends", "--download-only", "--dry-run", "--quiet"));
 		doit(@cmd);
 	}
 }
