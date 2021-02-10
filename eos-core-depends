@@ -31,6 +31,8 @@ brasero-cdrkit
 cdrdao
 cheese
 cracklib-runtime
+# Runtime for podman containers
+crun
 cups
 cups-browsed
 cups-pk-helper
@@ -199,6 +201,9 @@ python3-pip
 python3-venv
 rhythmbox (>= 2.99.1)
 rhythmbox-plugins
+# Legacy container runtime, needed to delete containers from
+# older versions of podman that used it as default (T31300)
+runc
 rtkit
 shotwell
 simple-scan
