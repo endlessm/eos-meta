@@ -195,9 +195,6 @@ podman-toolbox
 # For modem support
 ppp
 printer-driver-all-enforce
-printer-driver-cnijfilter
-printer-driver-cnijfilter2
-printer-driver-escp
 python3-pip
 python3-venv
 rhythmbox (>= 2.99.1)
