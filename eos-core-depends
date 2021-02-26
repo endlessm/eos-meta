@@ -29,7 +29,6 @@ bolt
 brasero
 brasero-cdrkit
 cdrdao
-cheese
 cracklib-runtime
 # Runtime for podman containers
 crun
