@@ -99,6 +99,7 @@ policykit-1
 python3-gi
 pulseaudio
 pulseaudio-module-bluetooth
+rsync
 shim-efi-image-signed [amd64]
 # Used for the initial hardware evaluation
 smartmontools
