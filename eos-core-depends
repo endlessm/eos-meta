@@ -230,3 +230,6 @@ xdg-desktop-portal-gtk
 yelp
 # Used by mutter for showing dialogs
 zenity
+# Support for configuring gaming mouse
+libratbag
+openrazer
