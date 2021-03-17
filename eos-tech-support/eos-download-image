@@ -21,6 +21,8 @@ KEYRING_SYSTEM_PATH = "/usr/share/keyrings/eos-image-keyring.gpg"
 
 # CloudFront limits the maximum file size to 20 GB
 # http://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/cloudfront-limits.html
+# Our current CDN, Fastly, does not have this limitation, but fragmenting the
+# download is harmless.
 CDN_MAX_SIZE = 20 * 2 ** 30
 
 TIMEOUT = (
@@ -258,7 +260,8 @@ class EosDownloadImage(object):
                        action='store_true',
                        help='Fetch images from the Endless internal network')
         p.add_argument('-s', '--size', type=int,
-                       help='Size in bytes of compressed image (use with --url)')
+                       help='Expected size in bytes of compressed image (for '
+                            'use with --url)')
 
         # Mode
         m = p.add_mutually_exclusive_group()
@@ -270,7 +273,7 @@ class EosDownloadImage(object):
                        help='Fetch the Windows USB creator/installer, '
                             'not an Endless OS image')
         m.add_argument('-u', '--url',
-                       help='Fetch compressed image by URL (use with --size)')
+                       help='Fetch compressed image by URL')
 
         # Which image? NB. product is not part of this group, because it *is*
         # valid together with --mirror
@@ -285,9 +288,6 @@ class EosDownloadImage(object):
                        help='Fetch an ISO image, not a raw disk image')
 
         self.args = args = p.parse_args()
-
-        if args.product == 'fnde' and args.personality == 'base':
-            args.personality = 'fnde_aluno'
 
         if args.url is not None and args.url.startswith(INTERNAL_BASE_URL):
             args.internal = True
@@ -345,9 +345,6 @@ class EosDownloadImage(object):
     def fetch_image_url(self):
         '''Downloads an image using the specified URL and size.'''
         args = self.args
-        if args.size is None:
-            log("--size must be used when using --url")
-            sys.exit(1)
 
         what = 'iso' if args.url.endswith('.iso') else 'full'
         # Create a fake meta object for download_and_verify()
