@@ -181,6 +181,8 @@ malcontent-control
 modemmanager
 nautilus
 nautilus-extension-brasero
+network-manager-l2tp-gnome
+network-manager-openconnect-gnome 
 network-manager-openvpn-gnome
 network-manager-vpnc-gnome
 openprinting-ppds
