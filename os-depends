@@ -10,6 +10,7 @@ dbus-user-session
 dbus-x11
 dconf-cli
 dirmngr
+dmidecode
 dosfstools
 dracut
 eject
@@ -28,6 +29,7 @@ eos-version-number
 exfat-fuse
 exfat-utils
 fake-hwclock
+fdisk
 file
 fonts-dejavu
 fscrypt
@@ -58,6 +60,7 @@ intel-microcode [amd64]
 iproute2
 # NetworkManager uses this to avoid IP address conflicts
 iputils-arping
+iputils-ping
 kmod
 less
 # Needed to make gdb useful
@@ -78,9 +81,11 @@ lsb-release
 # Used for the initial hardware evaluation
 mesa-utils
 mobile-broadband-provider-info
+nano
 net-tools
 network-manager
 network-manager-gnome
+nftables
 ntfs-3g
 nvidia-driver-bin [amd64]
 nvidia-kernel-drivers [amd64]
@@ -96,6 +101,7 @@ parted
 # Used for the initial hardware evaluation
 plainbox-provider-checkbox
 policykit-1
+procps
 python3-gi
 pulseaudio
 pulseaudio-module-bluetooth
@@ -109,6 +115,7 @@ sudo
 # Used for booting unified kernel EFI image on PAYG
 systemd-boot-signed [amd64]
 systemd-sysv
+systemd
 # ARM boot loader
 u-boot-tools [armhf]
 udev
