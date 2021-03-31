@@ -178,6 +178,8 @@ libpam-gnome-keyring
 libsasl2-modules
 # Parental controls
 malcontent-control
+# For running the image builder from Endless
+mmdebstrap
 modemmanager
 nautilus
 nautilus-extension-brasero
