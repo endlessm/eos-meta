@@ -154,6 +154,7 @@ ibus-unikey
 iio-sensor-proxy
 # Used by cups-filters
 imagemagick
+ipp-usb
 libblockdev-crypto2
 # Needed to unpack Apple DMG files for the Endless Key project
 libfsapfs-utils
@@ -202,6 +203,7 @@ python3-venv
 # older versions of podman that used it as default (T31300)
 runc
 rtkit
+sane-airscan
 shotwell
 simple-scan
 # For rootless podman
