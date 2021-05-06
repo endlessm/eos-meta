@@ -210,7 +210,7 @@ smbclient
 sound-icons
 speech-dispatcher-espeak-ng
 strace
-system-config-printer-gnome
+system-config-printer-common
 system-config-printer-udev
 systemd-coredump
 thermald [amd64]
