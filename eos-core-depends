@@ -224,7 +224,6 @@ unrar
 # For data transfer with iOS devices
 usbmuxd
 vainfo
-vinagre
 vino
 whiptail
 wget
