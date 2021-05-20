@@ -222,7 +222,6 @@ unrar
 # For data transfer with iOS devices
 usbmuxd
 vainfo
-vino
 whiptail
 wget
 xinput
