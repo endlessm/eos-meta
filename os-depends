@@ -81,6 +81,7 @@ lsb-release
 # Used for the initial hardware evaluation
 mesa-utils
 mobile-broadband-provider-info
+mtr-tiny
 nano
 net-tools
 network-manager
