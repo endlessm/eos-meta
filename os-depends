@@ -5,7 +5,7 @@ busybox
 bluez
 # Used for the initial hardware evaluation
 checkbox-ng
-cryptsetup-run
+cryptsetup
 dbus-user-session
 dbus-x11
 dconf-cli
