@@ -174,7 +174,7 @@ libpam-gnome-keyring
 # Assumed useful for apps that use libsasl2
 libsasl2-modules
 # Parental controls
-malcontent-control
+malcontent-gui
 # For running the image builder from Endless
 mmdebstrap
 modemmanager
