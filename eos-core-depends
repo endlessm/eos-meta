@@ -28,6 +28,8 @@ bluez-obexd
 bolt
 brasero
 brasero-cdrkit
+# Provides the default --init executable for podman
+catatonit
 cdrdao
 cracklib-runtime
 # Runtime for podman containers
