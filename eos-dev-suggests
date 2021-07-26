@@ -37,5 +37,5 @@ python3-boto
 python3-boto3
 qemu-utils
 resolvconf
-shim
+shim-unsigned
 x11-apps
