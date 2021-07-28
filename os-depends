@@ -5,7 +5,7 @@ busybox
 bluez
 # Used for the initial hardware evaluation
 checkbox-ng
-cryptsetup-run
+cryptsetup
 dbus-user-session
 dbus-x11
 dconf-cli
@@ -80,6 +80,7 @@ lsb-base
 lsb-release
 # Used for the initial hardware evaluation
 mesa-utils
+mesa-vulkan-drivers
 mobile-broadband-provider-info
 mtr-tiny
 nano

@@ -28,6 +28,8 @@ bluez-obexd
 bolt
 brasero
 brasero-cdrkit
+# Provides the default --init executable for podman
+catatonit
 cdrdao
 cracklib-runtime
 # Runtime for podman containers
@@ -35,7 +37,7 @@ crun
 cups
 cups-pk-helper
 debconf-i18n
-# For NetworkManager connection sharing
+# For NetworkManager connection sharing and podman DNS resolution
 dnsmasq-base
 # For brasero video DVD functionality
 dvdauthor
@@ -132,6 +134,8 @@ gnome-system-monitor
 gnome-terminal
 gnome-user-guide
 gnome-user-share
+# For podman DNS resolution between containers in a network
+golang-github-containernetworking-plugin-dnsname
 gsfonts
 gstreamer1.0-gl
 gvfs-backends
