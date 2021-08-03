@@ -21,7 +21,7 @@ if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
 fi
 
 warning_blob
-read -p "Are you sure you want to proceed? [y/n] "
+read -p "Are you sure you want to proceed? [y/N] "
 response="${REPLY,,}" # to lower
 if [[ ! "$response" =~ ^(yes|y)$ ]]; then
     exit 1
