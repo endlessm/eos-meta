@@ -8,7 +8,7 @@ function warning_blob() {
     echo "reboot, and clone the current deployment as the rollback deployment."
     echo ""
     echo "WARNING: If you're not an Endless developer you will not be able to"
-    echo "meaningfully using apt."
+    echo "meaningfully use apt."
     echo ""
 }
 
