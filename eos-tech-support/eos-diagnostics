@@ -655,6 +655,19 @@ let diagnostics = [
         }
     },
     {
+        title: 'Flatpak refs',
+        content: function() {
+            let output = trySpawn('ostree refs --repo=/var/lib/flatpak/repo');
+            let refs = output.split('\n');
+            refs.sort();
+            return refs.join('\n');
+        },
+    },
+    {
+        title: 'Flatpak system repository configuration',
+        content: function() { return tryReadFile('/var/lib/flatpak/repo/config'); },
+    },
+    {
         title: 'Processes',
         content: function() { return trySpawn('ps aux'); },
     },
