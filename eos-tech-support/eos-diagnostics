@@ -516,11 +516,6 @@ let diagnostics = [
         content: function() { return tryReadFile('/ostree/repo/config'); },
     },
     {
-        title: 'OSTree repository configuration (extra SD)',
-        content: function() { return tryReadFile('/var/endless-extra/flatpak/repo/config',
-                                                 'not a split system (or SD card missing)'); },
-    },
-    {
         title: 'Product identification',
         hardwareInfo: true,
         content: function() { return collectBoardInfo(); },
@@ -658,6 +653,19 @@ let diagnostics = [
         content() {
             return trySpawn('flatpak history --columns=all');
         }
+    },
+    {
+        title: 'Flatpak refs',
+        content: function() {
+            let output = trySpawn('ostree refs --repo=/var/lib/flatpak/repo');
+            let refs = output.split('\n');
+            refs.sort();
+            return refs.join('\n');
+        },
+    },
+    {
+        title: 'Flatpak system repository configuration',
+        content: function() { return tryReadFile('/var/lib/flatpak/repo/config'); },
     },
     {
         title: 'Processes',
