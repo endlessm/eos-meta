@@ -116,8 +116,6 @@ sudo
 systemd-boot-signed [amd64]
 systemd-sysv
 systemd
-# ARM boot loader
-u-boot-tools [armhf]
 udev
 usb-modeswitch
 vim-tiny
