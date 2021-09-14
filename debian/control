@@ -129,15 +129,6 @@ Description: EndlessOS Kernel Team Development Tools
  .
  This set provides the platform specific package list for amd64.
 
-Package: eos-dev-kernel-armhf
-Architecture: armhf
-Depends: ${misc:Depends}, ${eos:Depends}
-Description: EndlessOS Kernel Team Development Tools
- This is a collection of development tools for the Kernel team that make
- development and debugging of EndlessOS easier and more efficient.
- .
- This set provides the platform specific package list for armhf.
-
 Package: eos-tech-support
 Architecture: all
 Depends: ${eos:Depends},
