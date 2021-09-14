@@ -28,7 +28,6 @@ eos-updater
 eos-version-number
 exfat-fuse
 exfat-utils
-fake-hwclock
 fdisk
 file
 fonts-dejavu
