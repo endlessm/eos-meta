@@ -57,29 +57,6 @@ Description: Target packages of the Endless distribution for arm64
  .
  This set provides the platform specific package list for arm64.
 
-Package: eos-core-ec100
-Architecture: armhf
-Depends: ${misc:Depends}, ${eos:Depends}
-Description: Target packages of the Endless distribution for odroidu2
- This package depends on all packages required for the Endless OS core images
- .
- It is also used to help ensure proper upgrades, so it is recommended that
- it not be removed.
- .
- This set provides the platform specific package list for armhf-ec100
-
-Package: eos-core-s905x
-Architecture: armhf
-Depends: ${misc:Depends}, ${eos:Depends}
-Provides: eos-core-libretechcc
-Description: Target packages of the Endless distribution for S905X-based boards
- This package depends on all packages required for the Endless OS core images
- .
- It is also used to help ensure proper upgrades, so it is recommended that
- it not be removed.
- .
- This set provides the platform specific package list for armhf-s905x
-
 Package: eos-core-nexthw
 Architecture: amd64
 Depends: ${misc:Depends}, ${eos:Depends}
@@ -126,24 +103,6 @@ Description: Target packages of the Endless installer
  installer tool.
  .
  This set provides the platform specific package list for nexthw.
-
-Package: eos-installer-meta-ec100
-Architecture: armhf
-Depends: ${misc:Depends}, ${eos:Depends}
-Description: Target packages of the Endless installer
- This metapackage depends on all packages required for the Endless
- installer tool.
- .
- This set provides the platform specific package list for armhf-ec100.
-
-Package: eos-installer-meta-s905x
-Architecture: armhf
-Depends: ${misc:Depends}, ${eos:Depends}
-Description: Target packages of the Endless installer
- This metapackage depends on all packages required for the Endless
- installer tool.
- .
- This set provides the platform specific package list for armhf-s905x.
 
 Package: eos-dev
 Architecture: all

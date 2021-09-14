@@ -1,3 +1,0 @@
-include s905x-depends
-include os-s905x-depends
-eos-installer-meta
