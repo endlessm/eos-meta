@@ -1,3 +1,0 @@
-include ec100-depends
-include os-ec100-depends
-eos-installer-meta

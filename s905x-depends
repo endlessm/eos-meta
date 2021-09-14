@@ -1,4 +1,0 @@
-# s905x hardware specific packages
-mali400-drivers-meson8
-linux-image-generic:arm64
-u-boot-amlogic:arm64
