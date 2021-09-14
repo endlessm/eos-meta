@@ -17,13 +17,11 @@ ibus-gtk3
 libcanberra-gtk3-module
 libcanberra-pulse
 libcaribou-gtk3-module
-# Mali used on arm
-libegl-mesa0 [!armhf]
-libegl1 [!armhf]
-# Mali used on arm
-libgles2 [!armhf]
+libegl-mesa0
+libegl1
+libgles2
 libglib2.0-data
-libglu1-mesa [!armhf]
+libglu1-mesa
 libgl1-mesa-dri
 libgl1-nvidia-glvnd-glx [amd64]
 libglx-mesa0
