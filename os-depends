@@ -53,8 +53,6 @@ grub-efi-amd64-image-signed [amd64 i386]
 grub-efi-ia32-image [amd64 i386]
 # Used for the initial hardware evaluation
 hdparm
-# Required for unknown reasons (see T19310)
-im-config
 intel-microcode [amd64]
 iproute2
 # NetworkManager uses this to avoid IP address conflicts
