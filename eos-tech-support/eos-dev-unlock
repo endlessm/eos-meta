@@ -1,15 +1,19 @@
 #!/bin/bash -e
 
 function warning_blob() {
-    echo "This script uses \"ostree admin unlock\" to create a writable /usr"
-    echo "overlay, and makes some other basic tweaks so that apt works in this"
-    echo "setup. By default, the changes made to the overlay will be lost on"
-    echo "reboot; passing --hotfix will make the changes persist across "
-    echo "reboot, and clone the current deployment as the rollback deployment."
-    echo ""
-    echo "WARNING: If you're not an Endless developer you will not be able to"
-    echo "meaningfully use apt."
-    echo ""
+    cat <<MR_BLOBBY
+This script uses "ostree admin unlock" to create a writable /usr overlay, and
+makes some other basic tweaks so that apt works in this setup. This allows
+Endless OS developers to test changes to the OS, but is not a supported
+configuration for regular use.
+
+By default, the changes made to the overlay will be lost on reboot. Passing
+--hotfix will make the changes persist across reboot, keeping the current
+deployment as the rollback deployment, but the changes will be lost on the next
+OS update. You may wish to mask eos-updater.service if you want to make
+long-lived changes.
+
+MR_BLOBBY
 }
 
 if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then

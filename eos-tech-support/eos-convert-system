@@ -1,15 +1,19 @@
 #!/bin/bash -e
 
 function warning_blob() {
-    echo "This script converts an EOS system from using OSTree to using apt for"
-    echo "package management, and makes other changes that are generally"
-    echo "desired for development systems, such as making the journal"
-    echo "persistent."
-    echo ""
-    echo "WARNING: If you're not an Endless developer this will prevent you"
-    echo "from installing OS updates or meaningfully using apt. Also note"
-    echo "that these changes are IRREVERSIBLE."
-    echo ""
+    cat <<MR_BLOBBY
+This script converts an Endless OS system from using OSTree to using apt for
+package management, and makes other changes that are generally desired for
+development systems, such as making the journal persistent.
+
+This is not a supported configuration. This script is intended only for
+developing Endless OS itself. eos-dev-unlock is a safer, reversible alternative
+for testing OS changes. You almost certainly SHOULD NOT continue.
+
+WARNING: These changes are IRREVERSIBLE.
+                           ============
+
+MR_BLOBBY
 }
 
 if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
@@ -21,7 +25,7 @@ if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
 fi
 
 warning_blob
-read -p "Are you sure you want to proceed? [y/n] "
+read -p "Are you sure you want to proceed? [y/N] "
 response="${REPLY,,}" # to lower
 if [[ ! "$response" =~ ^(yes|y)$ ]]; then
     exit 1
