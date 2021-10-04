@@ -2,14 +2,16 @@
 
 function warning_blob() {
     cat <<MR_BLOBBY
-This script converts an EOS system from using OSTree to using apt for
-package management, and makes other changes that are generally
-desired for development systems, such as making the journal
-persistent.
+This script converts an Endless OS system from using OSTree to using apt for
+package management, and makes other changes that are generally desired for
+development systems, such as making the journal persistent.
 
-WARNING: If you're not an Endless developer this will prevent you
-from installing OS updates or meaningfully using apt. Also note
-that these changes are IRREVERSIBLE.
+This is not a supported configuration. This script is intended only for
+developing Endless OS itself. eos-dev-unlock is a safer, reversible alternative
+for testing OS changes. You almost certainly SHOULD NOT continue.
+
+WARNING: These changes are IRREVERSIBLE.
+                           ============
 
 MR_BLOBBY
 }
