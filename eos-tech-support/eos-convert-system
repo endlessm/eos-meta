@@ -1,15 +1,17 @@
 #!/bin/bash -e
 
 function warning_blob() {
-    echo "This script converts an EOS system from using OSTree to using apt for"
-    echo "package management, and makes other changes that are generally"
-    echo "desired for development systems, such as making the journal"
-    echo "persistent."
-    echo ""
-    echo "WARNING: If you're not an Endless developer this will prevent you"
-    echo "from installing OS updates or meaningfully using apt. Also note"
-    echo "that these changes are IRREVERSIBLE."
-    echo ""
+    cat <<MR_BLOBBY
+This script converts an EOS system from using OSTree to using apt for
+package management, and makes other changes that are generally
+desired for development systems, such as making the journal
+persistent.
+
+WARNING: If you're not an Endless developer this will prevent you
+from installing OS updates or meaningfully using apt. Also note
+that these changes are IRREVERSIBLE.
+
+MR_BLOBBY
 }
 
 if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
