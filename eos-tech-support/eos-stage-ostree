@@ -32,26 +32,26 @@ if [ $EUID != 0 ] ; then
     exit 1
 fi
 
-# Get the OS product.major version to build the branch series from. By
-# default, the system updates from the product version (e.g., eos3).
-major_version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
-product_version=${major_version%%.*}
-series="eos${product_version}"
+# Systems should remain on the same series they are already, i.e.,
+# latest1 for non-LTS, eosX for LTS
+refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
+branch=${refspec#*:}
+series=${branch#*/*/*/}
 
-# On 3.4+, eos3a is used as the series as the 3.3 to 3.4 transition
-# implemented a checkpoint on the eos3 branch.
-#
-# https://phabricator.endlessm.com/T21855
-case "$major_version" in
-    3.[4-9]|3.[1-9][0-9])
-        series=eos3a
-        ;;
-esac
+# But if we are switching away from the dev stage we also want to switch away
+# from the eosX.Y, so systems get updates past the lifetime of the series they
+# are currently at. Let's assume someone who was previously on the dev channel
+# will prefer the non-LTS ref and default to latest1 here.
+url=$(ostree config get 'remote "eos".url')
+if [ "$url" == "https://ostree.endlessm.com/staging/dev" && "$STAGE" != "dev" ] ; then
+    series="latest1"
+fi
 
 if [ "$STAGE" == "dev" ] ; then
     base_url="https://ostree.endlessm.com/staging/dev"
     new_collection_id="com.endlessm.Dev.Os"
     # dev stages stay on the major version (e.g., eos3.2)
+    major_version=$(. /etc/os-release && echo $VERSION | cut -d. -f1-2)
     series="eos${major_version}"
     # Check for an update every time the updater runs
     interval_days=0
@@ -70,16 +70,11 @@ else
     exit 1
 fi
 
-# Get the current refspec.
-refspec=$(ostree admin status | awk '/refspec:/{print $3}' | head -n1)
-branch=${refspec#*:}
-
 # Construct the new branch with the series depending on the stage.
 new_branch="${branch%/*}/${series}"
 echo "Using OSTree branch $new_branch"
 
-# Get the current URL and convert to the new stage.
-url=$(ostree config get 'remote "eos".url')
+# Convert the current URL to the new stage.
 repo=${url##*/}
 new_url="${base_url}/${repo}"
 
