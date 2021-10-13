@@ -35,6 +35,7 @@ cracklib-runtime
 # Runtime for podman containers
 crun
 cups
+cups-browsed
 cups-pk-helper
 debconf-i18n
 # For NetworkManager connection sharing and podman DNS resolution
