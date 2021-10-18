@@ -200,6 +200,7 @@ ppp
 printer-driver-all-enforce
 python3-pip
 python3-venv
+rfkill
 # Legacy container runtime, needed to delete containers from
 # older versions of podman that used it as default (T31300)
 runc
