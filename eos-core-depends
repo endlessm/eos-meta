@@ -206,7 +206,6 @@ rfkill
 runc
 rtkit
 sane-airscan
-shotwell
 simple-scan
 # For rootless podman
 slirp4netns
