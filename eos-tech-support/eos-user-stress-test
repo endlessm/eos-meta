@@ -114,7 +114,7 @@ case $command in
         ;;
     heavy)
         check_deps_heavy
-        command_launch shotwell
+        command_launch flatpak run org.gnome.Shotwell
         command_launch flatpak run org.gimp.Gimp ${DATA_FILES}/coffee-2mp.jpg
         command_launch loimpress --norestore \
             ${DATA_FILES}/example-presentation.odp
