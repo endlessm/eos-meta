@@ -130,7 +130,6 @@ gnome-software
 gnome-software-plugin-flatpak
 gnome-sushi
 gnome-system-monitor
-gnome-terminal
 gnome-user-guide
 gnome-user-share
 # For podman DNS resolution between containers in a network
