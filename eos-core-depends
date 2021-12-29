@@ -112,7 +112,6 @@ git
 # For showing the keyboard layout from the control center
 gkbd-capplet
 gnome-bluetooth
-gnome-calculator
 gnome-clocks
 gnome-contacts
 gnome-control-center
