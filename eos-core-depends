@@ -227,8 +227,8 @@ wget
 xinput
 # Assuming useful for Orca screen reader
 xbrlapi
-xdg-desktop-portal
-xdg-desktop-portal-gtk
+# Allows Flatpak apps to access various session & system services in a managed fashion.
+xdg-desktop-portal-gnome
 yelp
 # Used by mutter for showing dialogs
 zenity
