@@ -173,6 +173,8 @@ libnss-mdns
 libnss-systemd
 # For auto-unlocking keyrings
 libpam-gnome-keyring
+# Translations for libpipewire
+libpipewire-0.3-common
 # Assumed useful for apps that use libsasl2
 libsasl2-modules
 # Parental controls
