@@ -118,6 +118,8 @@ gnome-control-center
 gnome-disk-utility
 gnome-initial-setup
 gnome-keyring-pkcs11
+# So GNOME Shell can provide default names when creating folders
+gnome-menus
 gnome-online-accounts
 gnome-orca
 gnome-remote-desktop
