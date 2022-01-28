@@ -130,7 +130,7 @@ gnome-software-plugin-flatpak
 gnome-sushi
 gnome-system-monitor
 gnome-terminal
-gnome-user-guide
+gnome-user-docs
 gnome-user-share
 # For podman DNS resolution between containers in a network
 golang-github-containernetworking-plugin-dnsname
