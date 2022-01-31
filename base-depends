@@ -27,7 +27,7 @@ libgl1-nvidia-glvnd-glx [amd64]
 libglx-mesa0
 libnss-altfiles
 libnss-myhostname
-locales
+locales-all
 lzma
 mawk
 netbase
