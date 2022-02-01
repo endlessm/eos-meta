@@ -18,7 +18,6 @@ alsa-topology-conf
 alsa-ucm-conf
 alsa-utils
 apt
-apt-transport-https
 apt-utils
 avahi-daemon
 # For field debugging
