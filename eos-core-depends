@@ -121,7 +121,6 @@ gnome-keyring-pkcs11
 # So GNOME Shell can provide default names when creating folders
 gnome-menus
 gnome-online-accounts
-gnome-orca
 gnome-remote-desktop
 gnome-screenshot
 gnome-shell-extension-appindicator
@@ -190,6 +189,7 @@ network-manager-openvpn-gnome
 network-manager-vpnc-gnome
 openprinting-ppds
 openssh-server
+orca
 # For flatpak-builder
 patch
 podman
