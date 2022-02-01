@@ -77,6 +77,7 @@ evolution-plugins
 file-roller
 flatpak
 flatpak-builder
+fonts-ancient-scripts
 fonts-arabeyes
 fonts-crosextra-caladea
 fonts-crosextra-carlito
@@ -99,6 +100,7 @@ fonts-sil-andika
 fonts-sil-gentium
 fonts-sil-gentium-basic
 fonts-sil-padauk
+fonts-symbola
 fonts-thai-tlwg
 fonts-uralic
 foomatic-db-compressed-ppds
@@ -218,7 +220,6 @@ thermald [amd64]
 tmate
 tracker
 tracker-miner-fs
-ttf-ancient-fonts
 # For rootless podman
 uidmap
 unrar
