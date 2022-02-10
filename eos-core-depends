@@ -74,7 +74,6 @@ evolution-plugin-bogofilter
 # For Outlook import
 evolution-plugin-pstimport
 evolution-plugins
-file-roller
 flatpak
 flatpak-builder
 fonts-arabeyes
