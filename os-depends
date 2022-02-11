@@ -65,6 +65,8 @@ libpam-fprintd
 libpam-fscrypt
 libpam-runtime
 libpam-systemd
+# Bluetooth support for PipeWire
+libspa-0.2-bluetooth
 linux-firmware
 # Kernel package. All arm installs use platform specific kernels, so
 # those appear in the platform specific -depends files. For amd64,
@@ -95,13 +97,14 @@ ostree
 ostree-boot
 p7zip-full
 parted
+pipewire
+pipewire-audio-client-libraries
+pipewire-pulse
 # Used for the initial hardware evaluation
 plainbox-provider-checkbox
 policykit-1
 procps
 python3-gi
-pulseaudio
-pulseaudio-module-bluetooth
 rsync
 shim-efi-image-signed [amd64]
 # Used for the initial hardware evaluation
@@ -118,6 +121,7 @@ usb-modeswitch
 vim-tiny
 virtualbox-guest-utils [amd64]
 virtualbox-guest-x11 [amd64]
+wireplumber
 wpasupplicant
 xauth
 xdg-user-dirs
