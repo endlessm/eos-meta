@@ -13,6 +13,9 @@ gstreamer1.0-plugins-good
 gstreamer1.0-tools
 gstreamer1.0-vaapi
 ibus-gtk3
+# pipewire-pulse must be listed before libcanberra-pulse, otherwise
+# it'll pull pulseaudio
+pipewire-pulse
 libcanberra-gtk3-module
 libcanberra-pulse
 libcaribou-gtk3-module
@@ -26,10 +29,14 @@ libgl1-nvidia-glvnd-glx [amd64]
 libglx-mesa0
 libnss-altfiles
 libnss-myhostname
+libspa-0.2-bluetooth
 locales-all
 lzma
 mawk
 netbase
+pipewire
+pipewire-audio-client-libraries
 sound-theme-freedesktop
+wireplumber
 xdg-utils
 xz-utils
