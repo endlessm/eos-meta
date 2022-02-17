@@ -97,7 +97,9 @@ p7zip-full
 parted
 # Used for the initial hardware evaluation
 plainbox-provider-checkbox
-policykit-1
+polkitd-javascript
+polkitd
+pkexec
 procps
 python3-gi
 rsync
