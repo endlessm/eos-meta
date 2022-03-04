@@ -29,6 +29,7 @@ eos-version-number
 exfat-utils
 fdisk
 file
+firmware-sof-signed
 fonts-dejavu
 fscrypt
 # Used for the initial hardware evaluation
