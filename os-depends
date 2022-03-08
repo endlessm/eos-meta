@@ -87,6 +87,7 @@ network-manager-gnome
 nftables
 ntfs-3g
 nvidia-driver-bin [amd64]
+nvidia-driver-libs [amd64]
 nvidia-kernel-drivers [amd64]
 nvidia-kernel-drivers-blob-signed [amd64]
 nvidia-modprobe [amd64]
