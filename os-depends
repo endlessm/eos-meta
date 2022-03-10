@@ -77,6 +77,7 @@ lsb-base
 lsb-release
 # Used for the initial hardware evaluation
 mesa-utils
+mesa-utils-extra
 mesa-vulkan-drivers
 mobile-broadband-provider-info
 mtr-tiny
