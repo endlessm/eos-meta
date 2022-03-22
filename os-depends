@@ -62,6 +62,7 @@ kmod
 less
 # Needed to make gdb useful
 libc-dbg
+libgles-nvidia2 [amd64]
 libpam-fprintd
 libpam-fscrypt
 libpam-runtime
