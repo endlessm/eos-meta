@@ -176,6 +176,7 @@ libpipewire-0.3-common
 libsasl2-modules
 # Parental controls
 malcontent-gui
+make
 # For running the image builder from Endless
 mmdebstrap
 modemmanager
