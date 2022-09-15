@@ -117,7 +117,7 @@ spice-webdavd
 sudo
 switcheroo-control
 # Used for booting unified kernel EFI image on PAYG
-systemd-boot-signed [amd64]
+systemd-boot [amd64]
 systemd-sysv
 systemd
 udev
