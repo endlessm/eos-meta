@@ -535,6 +535,10 @@ let diagnostics = [
         },
     },
     {
+        title: 'RTC',
+        content: function() { return tryReadFile('/proc/driver/rtc'); },
+    },
+    {
         title: 'Disks',
         hardwareInfo: true,
         content: function() { return trySpawn('udisksctl dump'); },
