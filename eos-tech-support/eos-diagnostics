@@ -627,6 +627,10 @@ let diagnostics = [
         content: function() { return collectTemperatureInfo(); },
     },
     {
+        title: 'Power',
+        content() { return trySpawn('upower --dump'); }
+    },
+    {
         title: 'Codecs',
         content: function() {
             return trySpawn('find /var/lib/codecs') + '\n' +
