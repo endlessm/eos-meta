@@ -118,6 +118,7 @@ sudo
 switcheroo-control
 # Used for booting unified kernel EFI image on PAYG
 systemd-boot [amd64]
+systemd-oomd
 systemd-sysv
 systemd-timesyncd
 systemd
