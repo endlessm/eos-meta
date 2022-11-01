@@ -76,6 +76,7 @@ linux-firmware
 # signed for UEFI.
 linux-signed-image-generic [amd64]
 linux-image-generic [arm64]
+low-memory-monitor
 lsb-base
 lsb-release
 # Used for the initial hardware evaluation
