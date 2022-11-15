@@ -135,6 +135,7 @@ Architecture: all
 Depends: ${eos:Depends},
          ${misc:Depends},
          ostree (>= 2018.8),
+         pulseaudio-utils,
          usbutils,
 Description: EndlessOS Technical Support Tools
  This is a collection of technical support tools that are installed by default
