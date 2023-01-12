@@ -17,6 +17,8 @@ hunspell-vi
 alsa-topology-conf
 alsa-ucm-conf
 alsa-utils
+# udev rules to allow unprivileged adb access to Android devices over USB
+android-sdk-platform-tools-common
 apt
 apt-utils
 avahi-daemon
@@ -210,6 +212,8 @@ slirp4netns
 smbclient
 sound-icons
 speech-dispatcher-espeak-ng
+# udev rules for games controllers (T33130)
+steam-devices
 strace
 system-config-printer-common
 system-config-printer-udev
