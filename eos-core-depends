@@ -17,6 +17,8 @@ hunspell-vi
 alsa-topology-conf
 alsa-ucm-conf
 alsa-utils
+# udev rules to allow unprivileged adb access to Android devices over USB
+android-sdk-platform-tools-common
 apt
 apt-utils
 avahi-daemon
