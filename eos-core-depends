@@ -210,6 +210,8 @@ slirp4netns
 smbclient
 sound-icons
 speech-dispatcher-espeak-ng
+# udev rules for games controllers (T33130)
+steam-devices
 strace
 system-config-printer-common
 system-config-printer-udev
