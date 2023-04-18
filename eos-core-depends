@@ -50,6 +50,7 @@ efitools [amd64]
 elfutils
 eog
 eos-acknowledgements
+eos-adblock-plus-extensions
 eos-b43fw-install
 eos-browser-tools
 eos-desktop-extension
