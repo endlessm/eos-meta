@@ -116,7 +116,7 @@ dependencies=(
 for command in "${!dependencies[@]}"; do
     if ! which "$command" >/dev/null 2>&1; then
         echo "$command is not installed... aborting!" >&2
-        echo "Try 'sudo apt-get install ${dependencies[$command]}'" >&2
+        echo "Try 'sudo apt-get install ${dependencies[$command]}' on Debian-based OSes or 'rpm-ostree install --apply-live ${dependencies[$command]}' on Fedora Silverblue" >&2
         exit 1
     fi
 done
