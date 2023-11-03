@@ -27,8 +27,6 @@ avahi-utils
 baobab
 bluez-obexd
 bolt
-brasero
-brasero-cdrkit
 # Provides the default --init executable for podman
 catatonit
 cdrdao
@@ -41,8 +39,6 @@ cups-pk-helper
 debconf-i18n
 # For NetworkManager connection sharing and podman DNS resolution
 dnsmasq-base
-# For brasero video DVD functionality
-dvdauthor
 e2fsprogs-l10n
 # For PAYG secure boot key management
 efitools [amd64]
@@ -183,7 +179,6 @@ malcontent-gui
 mmdebstrap
 modemmanager
 nautilus
-nautilus-extension-brasero
 network-manager-l2tp-gnome
 network-manager-openconnect-gnome 
 network-manager-openvpn-gnome
