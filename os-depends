@@ -96,6 +96,7 @@ nvidia-driver-libs [amd64]
 nvidia-kernel-drivers [amd64]
 nvidia-kernel-drivers-blob-signed [amd64]
 nvidia-modprobe [amd64]
+nvidia-suspend-common [amd64]
 open-vm-tools-desktop [amd64]
 openssh-client
 ostree
