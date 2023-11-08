@@ -27,6 +27,7 @@ avahi-utils
 baobab
 bluez-obexd
 bolt
+bootupd
 brasero
 brasero-cdrkit
 # Provides the default --init executable for podman
