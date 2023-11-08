@@ -10,5 +10,6 @@ if get_option('check-deps')
     env : [
       'DH_VERBOSE=1',
     ],
+    timeout : 60,
   )
 endif
