@@ -11,7 +11,6 @@ gnome-accessibility-themes
 gstreamer1.0-libav
 gstreamer1.0-plugins-good
 gstreamer1.0-tools
-gstreamer1.0-vaapi
 ibus-gtk3
 # pipewire-pulse must be listed before libcanberra-pulse, otherwise
 # it'll pull pulseaudio
