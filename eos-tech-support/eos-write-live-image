@@ -274,7 +274,7 @@ else
     # files.  As a compromise, force the cluster size to 64 sectors, i.e. 32
     # KiB, which is the default for volumes between 256 MiB and 32 GiB.
     MKFS_ARGS='-s 64 -n'
-    dependencies[$MKFS_IMAGES]='exfat-utils'
+    dependencies[$MKFS_IMAGES]='exfatprogs'
 fi
 
 if [ "$EXPAND" ]; then

@@ -108,7 +108,7 @@ fi
 declare -A dependencies
 dependencies=(
     [dd]='coreutils'
-    [mkfs.exfat]='exfat-utils'
+    [mkfs.exfat]='exfatprogs'
     [partprobe]='parted'
     [pv]='pv'
     [xzcat]='xz-utils'
