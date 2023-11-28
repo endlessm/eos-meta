@@ -53,7 +53,6 @@ eos-event-recorder-daemon
 eos-flatpak-autoinstall
 eos-gates
 eos-google-chrome-helper [amd64]
-eos-hack-extension
 eos-installer
 eos-kalite-system-helper
 eos-kalite-tools
