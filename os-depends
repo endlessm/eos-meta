@@ -65,6 +65,7 @@ libc-dbg
 libgles-nvidia2 [amd64]
 libnvidia-allocator1 [amd64]
 libnvidia-egl-gbm1 [amd64]
+libnvidia-egl-wayland1 [amd64]
 libpam-fprintd
 libpam-fscrypt
 libpam-runtime
@@ -97,6 +98,8 @@ nvidia-kernel-drivers [amd64]
 nvidia-kernel-drivers-blob-signed [amd64]
 nvidia-modprobe [amd64]
 nvidia-suspend-common [amd64]
+nvidia-vulkan-common [amd64]
+nvidia-vulkan-icd [amd64]
 open-vm-tools-desktop [amd64]
 openssh-client
 ostree
