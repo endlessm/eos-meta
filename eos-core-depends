@@ -189,6 +189,7 @@ orca
 patch
 podman
 podman-toolbox
+power-profiles-daemon
 # For modem support
 ppp
 printer-driver-all-enforce
