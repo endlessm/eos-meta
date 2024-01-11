@@ -14,6 +14,7 @@ hunspell-pt-br
 hunspell-th
 hunspell-vi
 
+aardvark-dns
 alsa-topology-conf
 alsa-ucm-conf
 alsa-utils
@@ -176,6 +177,7 @@ malcontent-gui
 mmdebstrap
 modemmanager
 nautilus
+netavark
 network-manager-l2tp-gnome
 network-manager-openconnect-gnome 
 network-manager-openvpn-gnome
