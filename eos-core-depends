@@ -31,6 +31,7 @@ bolt
 # Provides the default --init executable for podman
 catatonit
 cdrdao
+console-data
 cracklib-runtime
 # Runtime for podman containers
 crun
