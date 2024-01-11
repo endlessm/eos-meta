@@ -21,7 +21,7 @@ if [ ! -f "$EOS_DOWNLOAD_IMAGE" ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o i:o:lh -l "installer:,os-image:,latest,help" -n "$0" -- "$@")
+ARGS=$(getopt -o i:o:luh -l "installer:,os-image:,latest,update-installer,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -31,19 +31,31 @@ Usage:
    $0 --latest DEVICE
 
 Arguments:
-    DEVICE	Device path (e.g. '/dev/sdb' or '/dev/mmcblk0')
+    DEVICE  Device path (e.g. '/dev/sdb' or '/dev/mmcblk0')
 
 Options:
-   -i,--installer PATH	Path to eosinstaller image
-   -o,--os-image  PATH	Path to Endless OS image to add to installer
-   -l,--latest		Fetch latest OS and/or eosinstaller image
+   -i,--installer PATH    Path to eosinstaller image
+   -o,--os-image  PATH    Path to Endless OS image to add to installer
+   -l,--latest            Fetch latest OS and/or eosinstaller image
+   -u,--update-installer  Update the installer image when using --latest
 
-If --latest is not specified, both --installer and --os-image are required.
+If --latest is specified and --os-image is missing, the newest Endless OS
+image will be downloaded.
 
-If --latest is specified and one or both of --installer or --os-image are
-missing, the latest image will be downloaded.
+If --latest is specified and --installer is missing, the newest eosinstaller
+image will be downloaded if it is needed, or if --update-installer is
+specified.
 EOF
 }
+
+INSTALLER_IMAGE=
+OS_IMAGE=
+FETCH_LATEST=
+UPDATE_INSTALLER=
+DEVICE=
+EOSIMAGES_PART=
+EOSIMAGES_MOUNTPOINT=
+PRINT_SUMMARY=true
 
 function check_exists() {
     if [ ! -f "$1" ]; then
@@ -51,6 +63,37 @@ function check_exists() {
         exit 1
     fi
 }
+
+function cleanup() {
+    if [ -n "$EOSIMAGES_MOUNTPOINT" ]; then
+        echo >&2
+        echo "Unmounting devices..." >&2
+        udisksctl unmount -b "$EOSIMAGES_PART" --no-user-interaction
+    fi
+    sync
+}
+
+function print_device_summary() {
+    pushd "$EOSIMAGES_MOUNTPOINT" > /dev/null
+
+    local eosimages_df
+    local other_os_images
+    eosimages_df=$(df -h . | tail -1 | tr -s ' ' | cut -d ' ' -f4)
+    other_os_images=$(find . -type f -not -name '*.asc')
+    echo "$DEVICE has $eosimages_df remaining and contains the following OS images:" >&2
+    while read -r other_os_image; do
+        local other_os_image_name
+        local other_os_image_du
+        other_os_image_name=$(basename "$other_os_image")
+        other_os_image_du=$(du -h "$other_os_image" | cut -f1)
+        echo "- $other_os_image_name ($other_os_image_du)" >&2
+    done <<< "$other_os_images"
+
+    popd > /dev/null
+}
+
+trap cleanup EXIT
+
 while true; do
     case "$1" in
         -i|--installer)
@@ -69,6 +112,10 @@ while true; do
         -l|--latest)
             shift
             FETCH_LATEST=true
+            ;;
+        -u|--update-installer)
+            shift
+            UPDATE_INSTALLER=true
             ;;
         -h|--help)
             usage
@@ -95,12 +142,16 @@ if [ $# -gt 1 ]; then
     exit 1
 fi
 
-
 DEVICE="$1"
 
 USERID=$(id -u)
 if [ "$USERID" != "0" ]; then
     echo "Program requires superuser privileges" >&2
+    exit 1
+fi
+
+if [ -f "$INSTALLER_IMAGE" ] && [ ! -f "$OS_IMAGE" ] && [ -z "$FETCH_LATEST" ]; then
+    echo "Error: --os-image is required if --installer is specified" >&2
     exit 1
 fi
 
@@ -133,77 +184,107 @@ if grep -qs "$DEVICE" /proc/mounts; then
     exit 1
 fi
 
-if [ ! -z "$FETCH_LATEST" ]; then
-    if [ -z "$INSTALLER_IMAGE" ]; then
+EOSIMAGES_PART=$(sfdisk -d "$DEVICE" | grep 'eosimages' | cut -f1 -d' ' || true)
+
+if [ ! -b "$EOSIMAGES_PART" ] && [ -n "$FETCH_LATEST" ]; then
+    # Automically reformat the device if it has no eosimage partition
+    echo >&2
+    echo "$DEVICE has no eosimage partition. A new eosinstaller image will be applied." >&2
+    UPDATE_INSTALLER=true
+fi
+
+if [ -n "$FETCH_LATEST" ]; then
+    if [ ! -f "$INSTALLER_IMAGE" ] && [ -n "$UPDATE_INSTALLER" ]; then
         INSTALLER_IMAGE=$($EOS_DOWNLOAD_IMAGE --product eosinstaller)
     fi
+
     if [ -z "$OS_IMAGE" ]; then
         OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --product eos)
     fi
 fi
 
-if [ ! -f "$INSTALLER_IMAGE" ] || [ ! -f "$OS_IMAGE" ]; then
-    echo "Error: --installer and --os-image are both required if --latest is not specified" >&2
-    echo >&2
-    usage
-    exit 2
+if [ ! -b "$EOSIMAGES_PART" ] && [ ! -f "$INSTALLER_IMAGE" ]; then
+    echo "$DEVICE is not a valid eosinstaller device... aborting!" >&2
+    exit 1
 fi
 
-# Write the image
-echo >&2
-echo "Writing $INSTALLER_IMAGE to $DEVICE..." >&2
-$EOS_WRITE_IMAGE --removable -f "$INSTALLER_IMAGE" "$DEVICE"
+if [ -f "$INSTALLER_IMAGE" ]; then
+    # Write the image
+    echo "Writing $INSTALLER_IMAGE to $DEVICE..." >&2
 
-# Get the current partition table
-TABLE=$(sfdisk -d "$DEVICE")
+    $EOS_WRITE_IMAGE --removable -f "$INSTALLER_IMAGE" "$DEVICE"
 
-# Split the partition table to header and partitions
-HEADER=$(echo "$TABLE" | grep -v '^/')
-PARTS=$(echo "$TABLE" | grep '^/' | sed -e 's/.*: //')
+    # Get the current partition table
+    TABLE=$(sfdisk -d "$DEVICE")
 
-# Grab the start and size of the last partition; add them to get the start of
-# our exFAT partition.
-ROOT_START=$(echo "$PARTS" | sed -n -e '$ s/.*start=[ ]\+\([0-9]\+\).*$/\1/p')
-ROOT_SIZE=$(echo "$PARTS" | sed -n -e '$ s/.*size=[ ]\+\([0-9]\+\).*$/\1/p')
-START=$(( ROOT_START + ROOT_SIZE ))
+    # Split the partition table to header and partitions
+    HEADER=$(echo "$TABLE" | grep -v '^/')
+    PARTS=$(echo "$TABLE" | grep '^/' | sed -e 's/.*: //')
 
-# Remove the last-lba line so that we fill the disk
-HEADER=$(echo "$HEADER" | sed -e '/^last-lba:/d')
+    # Grab the start and size of the last partition; add them to get the start of
+    # our exFAT partition.
+    ROOT_START=$(echo "$PARTS" | sed -n -e '$ s/.*start=[ ]\+\([0-9]\+\).*$/\1/p')
+    ROOT_SIZE=$(echo "$PARTS" | sed -n -e '$ s/.*size=[ ]\+\([0-9]\+\).*$/\1/p')
+    START=$(( ROOT_START + ROOT_SIZE ))
 
-# Prepend our partition
-PARTS="start=$START, name=eosimages, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7
-$PARTS"
+    # Remove the last-lba line so that we fill the disk
+    HEADER=$(echo "$HEADER" | sed -e '/^last-lba:/d')
 
-# Reconstruct the table
-TABLE="$HEADER
-$PARTS"
+    # Prepend our partition
+    PARTS="start=$START, name=eosimages, type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7
+    $PARTS"
 
-# Replace the partition table with our modified version
-echo "$TABLE" | sfdisk --force --no-reread "$DEVICE"
+    # Reconstruct the table
+    TABLE="$HEADER
+    $PARTS"
 
-# At this point udev should have seen that sfdisk closed the block device
-# which was opened for writing, so it will be reprobing.
-# Add udevadm settle here to avoid races.
-udevadm settle
-partprobe "$DEVICE"
+    # Replace the partition table with our modified version
+    echo "$TABLE" | sfdisk --force --no-reread "$DEVICE"
 
-# Grab the eosimages partition and create exfat fs on it
-PART=$(sfdisk -d "$DEVICE" | grep 'eosimages' | cut -f1 -d' ')
-mkfs.exfat -n eosimages "$PART"
+    # At this point udev should have seen that sfdisk closed the block device
+    # which was opened for writing, so it will be reprobing.
+    # Add udevadm settle here to avoid races.
+    udevadm settle
+    partprobe "$DEVICE"
 
-# Give udisks a chance to notice the new partition
-partprobe "$DEVICE"
-udevadm settle
+    # Grab the eosimages partition and create exfat fs on it
+    EOSIMAGES_PART=$(sfdisk -d "$DEVICE" | grep 'eosimages' | cut -f1 -d' ')
+    mkfs.exfat -n eosimages "$EOSIMAGES_PART"
+
+    # Give udisks a chance to notice the new partition
+    partprobe "$DEVICE"
+    udevadm settle
+fi
+
+if [ ! -b "$EOSIMAGES_PART" ]; then
+    echo >&2
+
+    echo "$DEVICE has no eosimages partition... aborting!" >&2
+    exit 1
+fi
 
 # Try to mount the exfat partition
-udisksctl mount -b "$PART" --no-user-interaction || exit 1
+udisksctl mount -b "$EOSIMAGES_PART" --no-user-interaction || exit 1
 # Grab the mount point
-MOUNTPOINT=$(grep "$PART" /proc/mounts | cut -f2 -d' ')
-if test -n "$MOUNTPOINT" -a -d "$MOUNTPOINT"
-then
-  # Write image and its signature
-  cp "$OS_IMAGE.asc" "$MOUNTPOINT"/
-  pv "$OS_IMAGE" > "$MOUNTPOINT"/"$(basename "$OS_IMAGE")"
+EOSIMAGES_MOUNTPOINT=$(grep "$EOSIMAGES_PART" /proc/mounts | cut -f2 -d' ')
+
+if [ -z "$EOSIMAGES_MOUNTPOINT" ] || [ ! -d "$EOSIMAGES_MOUNTPOINT" ]; then
+    echo >&2
+
+    echo "Failed to mount eosimages partition... aborting!" >&2
+    exit 1
 fi
-udisksctl unmount -b "$PART" --no-user-interaction
-sync
+
+if [ -f "$OS_IMAGE" ]; then
+    echo "Adding $OS_IMAGE to eosimages on $DEVICE..." >&2
+
+    # Write image and its signature
+    cp "$OS_IMAGE.asc" "$EOSIMAGES_MOUNTPOINT"/
+    pv "$OS_IMAGE" > "$EOSIMAGES_MOUNTPOINT"/"$(basename "$OS_IMAGE")"
+fi
+
+if [ -n "$PRINT_SUMMARY" ]; then
+    echo >&2
+
+    print_device_summary
+fi
