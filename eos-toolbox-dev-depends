@@ -11,6 +11,7 @@
 # size quite substantially. Developers that need the extra packages can
 # still install them manually using apt-get from an eos-toolbox container.
 
+aardvark-dns
 acl
 apt-file
 apt-utils
@@ -45,6 +46,7 @@ man-db
 manpages
 meson
 net-tools
+netavark
 obs-build
 openssh-client
 osc
