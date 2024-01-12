@@ -1,8 +1,7 @@
 Source: eos-meta
 Section: metapackages
 Priority: optional
-Maintainer: EndlessM Maintainers <maintainers@endlessm.com>
-Uploaders: Sjoerd Simons <sjoerd.simons@collabora.co.uk>, Hector Oron <hector.oron@collabora.co.uk>, Srdjan Grubor <sgnn7@sgnn7.org>
+Maintainer: Endless OS Maintainers <maintainers@endlessos.org>
 Standards-Version: 3.9.3
 Build-Depends: debhelper (>= 9),
                libdpkg-perl,
@@ -11,12 +10,6 @@ Homepage: http://www.endlessm.com
 
 Package: eos-core
 Architecture: any
-Replaces: endless-core
-Provides: endless-core
-Conflicts: endless-core,
-           libwebkit2gtk-4.0-37 (>= 1:2.18.4),
-           libjavascriptcoregtk-4.0-18 (>= 1:2.18.4),
-           base-files (>= 1:10.1)
 Depends: ${misc:Depends}, ${eos:Depends}
 Description: Target packages of the Endless distribution
  This package depends on all packages required for the Endless OS core images
