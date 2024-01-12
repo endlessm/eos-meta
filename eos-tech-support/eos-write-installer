@@ -58,6 +58,8 @@ EOSIMAGES_MOUNTPOINT=
 PRINT_SUMMARY=true
 INTERACTIVE=true
 
+EOSIMAGES_WAS_AUTO_MOUNTED=
+
 function check_exists() {
     if [ ! -f "$1" ]; then
         echo "Error: $1 does not exist or is not a file" >&2
@@ -66,7 +68,7 @@ function check_exists() {
 }
 
 function cleanup() {
-    if [ -n "$EOSIMAGES_MOUNTPOINT" ]; then
+    if [ -n "$EOSIMAGES_MOUNTPOINT" ] && [ -n "$EOSIMAGES_WAS_AUTO_MOUNTED" ]; then
         echo >&2
         echo "Unmounting devices..." >&2
         udisksctl unmount -b "$EOSIMAGES_PART" --no-user-interaction
@@ -109,6 +111,14 @@ function choose_device() {
             break
         fi
     done
+}
+
+function update_eosimages_part() {
+    EOSIMAGES_PART=$(lsblk "$DEVICE" --noheadings --raw --paths -o NAME,LABEL,PARTLABEL | grep eosimages | cut -f1 -d' ' || true)
+}
+
+function update_eosimages_mountpoint() {
+    EOSIMAGES_MOUNTPOINT=$(lsblk "$EOSIMAGES_PART" --nodeps --noheadings --raw -o MOUNTPOINT || true)
 }
 
 function print_device_summary() {
@@ -175,12 +185,6 @@ fi
 
 DEVICE="$1"
 
-USERID=$(id -u)
-if [ "$USERID" != "0" ]; then
-    echo "Program requires superuser privileges" >&2
-    exit 1
-fi
-
 if [ -f "$INSTALLER_IMAGE" ] && [ ! -f "$OS_IMAGE" ] && [ -z "$FETCH_LATEST" ]; then
     echo "Error: --os-image is required if --installer is specified" >&2
     exit 1
@@ -218,13 +222,7 @@ if [ ! -b "$DEVICE" ]; then
     exit 1
 fi
 
-if grep -qs "$DEVICE" /proc/mounts; then
-    # Protect against overwriting the device currently in use
-    echo "$DEVICE is currently in use -- please unmount and try again" >&2
-    exit 1
-fi
-
-EOSIMAGES_PART=$(sfdisk -d "$DEVICE" | grep 'eosimages' | cut -f1 -d' ' || true)
+update_eosimages_part
 
 if [ ! -b "$EOSIMAGES_PART" ] && [ -n "$FETCH_LATEST" ]; then
     # Automically reformat the device if it has no eosimage partition
@@ -249,13 +247,21 @@ if [ ! -b "$EOSIMAGES_PART" ] && [ ! -f "$INSTALLER_IMAGE" ]; then
 fi
 
 if [ -f "$INSTALLER_IMAGE" ]; then
+    echo >&2
+
+    if grep -qs "$DEVICE" /proc/mounts; then
+        # Protect against overwriting the device currently in use
+        echo "$DEVICE is currently in use -- please unmount and try again" >&2
+        exit 1
+    fi
+
     # Write the image
     echo "Writing $INSTALLER_IMAGE to $DEVICE..." >&2
 
-    $EOS_WRITE_IMAGE --removable -f "$INSTALLER_IMAGE" "$DEVICE"
+    sudo "$EOS_WRITE_IMAGE" --removable -f "$INSTALLER_IMAGE" "$DEVICE"
 
     # Get the current partition table
-    TABLE=$(sfdisk -d "$DEVICE")
+    TABLE=$(sudo sfdisk -d "$DEVICE")
 
     # Split the partition table to header and partitions
     HEADER=$(echo "$TABLE" | grep -v '^/')
@@ -279,20 +285,22 @@ if [ -f "$INSTALLER_IMAGE" ]; then
     $PARTS"
 
     # Replace the partition table with our modified version
-    echo "$TABLE" | sfdisk --force --no-reread "$DEVICE"
+    echo "$TABLE" | sudo sfdisk --force --no-reread "$DEVICE"
 
     # At this point udev should have seen that sfdisk closed the block device
     # which was opened for writing, so it will be reprobing.
     # Add udevadm settle here to avoid races.
     udevadm settle
-    partprobe "$DEVICE"
+    sudo partprobe "$DEVICE"
 
     # Grab the eosimages partition and create exfat fs on it
-    EOSIMAGES_PART=$(sfdisk -d "$DEVICE" | grep 'eosimages' | cut -f1 -d' ')
-    mkfs.exfat -n eosimages "$EOSIMAGES_PART"
+    update_eosimages_part
+    if [ -n "$EOSIMAGES_PART" ]; then
+        sudo mkfs.exfat -n eosimages "$EOSIMAGES_PART"
+    fi
 
     # Give udisks a chance to notice the new partition
-    partprobe "$DEVICE"
+    sudo partprobe "$DEVICE"
     udevadm settle
 fi
 
@@ -303,10 +311,13 @@ if [ ! -b "$EOSIMAGES_PART" ]; then
     exit 1
 fi
 
-# Try to mount the exfat partition
-udisksctl mount -b "$EOSIMAGES_PART" --no-user-interaction || exit 1
-# Grab the mount point
-EOSIMAGES_MOUNTPOINT=$(grep "$EOSIMAGES_PART" /proc/mounts | cut -f2 -d' ')
+update_eosimages_mountpoint
+if [ -z "$EOSIMAGES_MOUNTPOINT" ] || [ ! -d "$EOSIMAGES_MOUNTPOINT" ]; then
+    # Try to mount the exfat partition
+    udisksctl mount -b "$EOSIMAGES_PART" --no-user-interaction || exit 1
+    EOSIMAGES_WAS_AUTO_MOUNTED=true
+    update_eosimages_mountpoint
+fi
 
 if [ -z "$EOSIMAGES_MOUNTPOINT" ] || [ ! -d "$EOSIMAGES_MOUNTPOINT" ]; then
     echo >&2
@@ -316,6 +327,8 @@ if [ -z "$EOSIMAGES_MOUNTPOINT" ] || [ ! -d "$EOSIMAGES_MOUNTPOINT" ]; then
 fi
 
 if [ -f "$OS_IMAGE" ]; then
+    echo >&2
+
     echo "Adding $OS_IMAGE to eosimages on $DEVICE..." >&2
 
     # Write image and its signature
