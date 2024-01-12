@@ -27,8 +27,8 @@ eval set -- "$ARGS"
 usage() {
     cat >&2 <<EOF
 Usage:
-   $0 --os-image PATH --installer PATH DEVICE
-   $0 --latest DEVICE
+   $0 --os-image PATH --installer PATH [DEVICE]
+   $0 --latest [DEVICE]
 
 Arguments:
     DEVICE  Device path (e.g. '/dev/sdb' or '/dev/mmcblk0')
@@ -56,6 +56,7 @@ DEVICE=
 EOSIMAGES_PART=
 EOSIMAGES_MOUNTPOINT=
 PRINT_SUMMARY=true
+INTERACTIVE=true
 
 function check_exists() {
     if [ ! -f "$1" ]; then
@@ -71,6 +72,43 @@ function cleanup() {
         udisksctl unmount -b "$EOSIMAGES_PART" --no-user-interaction
     fi
     sync
+}
+
+function choose_device() {
+    # Prompt the user for a device
+    local device_names=()
+    local device_labels=()
+    local all_devices
+    
+    all_devices=$(lsblk --nodeps --noheadings --paths -o NAME)
+
+    while read -r device_name; do
+        local device_model
+        local device_size
+
+        device_model=$(lsblk "$device_name" --nodeps --noheadings -o MODEL)
+        device_size=$(lsblk "$device_name" --nodeps --noheadings --raw -o SIZE)
+
+        if [ -n "$device_model" ]; then
+            device_names+=("$device_name")
+            device_labels+=("$device_model ($device_size, $device_name)")
+        fi
+    done <<< "$all_devices"
+
+    echo "Choose a removable storage device to use:" >&2
+
+    local PS3="Choose a device: "
+    select option in "${device_labels[@]}" "Quit"; do
+        local selected_index
+
+        if [ "$option" = "Quit" ]; then
+            exit 1
+        elif [ -n "$option" ]; then
+            selected_index=$((REPLY-1))
+            DEVICE=${device_names[$selected_index]}
+            break
+        fi
+    done
 }
 
 function print_device_summary() {
@@ -128,13 +166,6 @@ while true; do
     esac
 done
 
-if [ $# -lt 1 ]; then
-    echo "Error: missing DEVICE" >&2
-    echo >&2
-    usage
-    exit 1
-fi
-
 if [ $# -gt 1 ]; then
     echo "Error: extra arguments after DEVICE" >&2
     echo >&2
@@ -152,6 +183,15 @@ fi
 
 if [ -f "$INSTALLER_IMAGE" ] && [ ! -f "$OS_IMAGE" ] && [ -z "$FETCH_LATEST" ]; then
     echo "Error: --os-image is required if --installer is specified" >&2
+    exit 1
+fi
+
+if [ -z "$DEVICE" ] && [ -n "$INTERACTIVE" ]; then
+    choose_device
+fi
+
+if [ -z "$DEVICE" ]; then
+    echo "Error: missing DEVICE" >&2
     exit 1
 fi
 
