@@ -82,16 +82,15 @@ function choose_device() {
     local device_labels=()
     local all_devices
     
-    all_devices=$(lsblk --nodeps --noheadings --paths -o NAME)
+    # Device model may be blank, which breaks with read -r because it
+    # compresses whitespace. We'll stick it at the end as a crude workaround.
+    all_devices=$(lsblk --nodeps --noheadings --paths --raw -o NAME,SIZE,HOTPLUG,MODEL)
 
-    while read -r device_name; do
-        local device_hotplug
-        local device_model
-        local device_size
-
-        device_hotplug=$(lsblk "$device_name" --nodeps --noheadings --raw -o HOTPLUG)
-        device_model=$(lsblk "$device_name" --nodeps --noheadings -o MODEL)
-        device_size=$(lsblk "$device_name" --nodeps --noheadings --raw -o SIZE)
+    while read -r device_name device_size device_hotplug device_model; do
+        # The device name and model may contain unsafe characters which are
+        # hex-escaped by lsblk --raw.
+        device_name=$(printf '%b' "$device_name")
+        device_model=$(printf '%b' "$device_model")
 
         if [ "$device_hotplug" -eq 1 ] && [ -n "$device_model" ]; then
             device_names+=("$device_name")
@@ -121,7 +120,7 @@ function choose_device() {
 }
 
 function update_eosimages_part() {
-    EOSIMAGES_PART=$(lsblk "$DEVICE" --noheadings --raw --paths -o NAME,LABEL,PARTLABEL | grep eosimages | cut -f1 -d' ' || true)
+    EOSIMAGES_PART=$(lsblk "$DEVICE" --noheadings --raw --paths -o NAME,LABEL,PARTLABEL | grep eosimages | cut -f1 -d' ' | xargs printf '%b' || true)
 }
 
 function update_eosimages_mountpoint() {
