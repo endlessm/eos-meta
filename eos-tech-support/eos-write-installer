@@ -99,6 +99,11 @@ function choose_device() {
         fi
     done <<< "$all_devices"
 
+    if [ ${#device_labels[@]} -eq 0 ]; then
+        echo "No removable storage devices are available... aborting!" >&2
+        exit 1
+    fi
+
     echo "Choose a removable storage device to use:" >&2
 
     local PS3="Choose a device: "
