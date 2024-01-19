@@ -133,6 +133,8 @@ vim-tiny
 virtualbox-guest-utils [amd64]
 virtualbox-guest-x11 [amd64]
 wpasupplicant
+# Required for the Xwayland-session script in at-spi2-core
+x11-utils
 xauth
 xdg-user-dirs
 xdg-user-dirs-gtk
