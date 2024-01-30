@@ -763,6 +763,33 @@ let diagnostics = [
         }
     },
     {
+        title: 'PAYG logs',
+        content() {
+            let logDir = Gio.File.new_for_path("/var/log/eos-payg");
+            let enumerator, fileInfos;
+
+            try {
+                enumerator = logDir.enumerate_children('standard::name', Gio.FileQueryInfoFlags.NONE, null);
+                fileInfos = Array.from(enumerator);
+            } catch (e) {
+                return '';
+            }
+
+            /* Log files are named eos-paygd-YYYYMMDD.log; sort chronologically */
+            fileInfos.sort((a, b) => a.get_name().localeCompare(b.get_name()));
+
+            let decoder = new TextDecoder('utf-8', {fatal: false});
+            return fileInfos.map(fileInfo => {
+                try {
+                    const [ok, contents, length] = enumerator.get_child(fileInfo).load_contents(null);
+                    return fileInfo.get_name() + '\n' + decoder.decode(contents);
+                } catch (e) {
+                    return '' + e;
+                }
+            }).join('\n');
+        }
+    },
+    {
         title: 'Coredump',
         coredumpInfo: true,
         content: function() {
