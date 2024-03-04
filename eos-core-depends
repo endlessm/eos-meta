@@ -63,7 +63,6 @@ eos-media
 eos-metrics-instrumentation
 eos-phone-home
 eos-updater-tools
-eos-watermark-extension
 evince
 evolution
 # For spam filtering
