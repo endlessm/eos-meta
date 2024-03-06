@@ -643,6 +643,7 @@ let diagnostics = [
         title: 'Codecs',
         content: function() {
             return trySpawn('find /var/lib/codecs') + '\n' +
+                   trySpawn('gst-inspect-1.0 libav') +
                    trySpawn('gst-inspect-1.0 -b');
         },
     },
