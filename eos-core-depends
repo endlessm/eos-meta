@@ -46,7 +46,6 @@ e2fsprogs-l10n
 efitools [amd64]
 # For flatpak-builder
 elfutils
-eog
 eos-acknowledgements
 eos-b43fw-install
 eos-browser-tools
