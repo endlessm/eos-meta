@@ -239,7 +239,6 @@ x-content/software=nautilus-autorun-software.desktop
 x-content/video-dvd=org.gnome.Totem.desktop
 x-content/video-svcd=org.gnome.Totem.desktop
 x-content/video-vcd=org.gnome.Totem.desktop
-x-scheme-handler/endlessm-app=eos-launch.desktop
 x-scheme-handler/ghelp=org.gnome.Yelp.desktop
 x-scheme-handler/help=org.gnome.Yelp.desktop
 x-scheme-handler/http=org.chromium.Chromium.desktop
