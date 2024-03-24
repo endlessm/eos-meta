@@ -32,6 +32,8 @@ bolt
 catatonit
 cdrdao
 console-data
+# podman's configuration refers to plugins from this package
+containernetworking-plugins
 # Provides the default storage configuration for podman
 containers-storage
 cracklib-runtime
