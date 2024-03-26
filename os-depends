@@ -112,7 +112,7 @@ polkitd-javascript
 polkitd
 pkexec
 procps
-pulseaudio-utils
+pulseaudio-utils (< 1:0.0)
 python3-gi
 rsync
 shim-efi-image-signed [amd64]
