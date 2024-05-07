@@ -50,6 +50,7 @@ EOF
 
 INSTALLER_IMAGE=
 OS_IMAGE=
+OS_IMAGE_SIGNATURE=
 FETCH_LATEST=
 UPDATE_INSTALLER=
 DEVICE=
@@ -63,6 +64,19 @@ EOSIMAGES_WAS_AUTO_MOUNTED=
 function check_exists() {
     if [ ! -f "$1" ]; then
         echo "Error: $1 does not exist or is not a file" >&2
+        exit 1
+    fi
+}
+
+function find_os_image_signature() {
+    local asc="${OS_IMAGE:?}.asc"
+    local sha256="$OS_IMAGE.sha256"
+    if [ -f "$asc" ]; then
+        OS_IMAGE_SIGNATURE="$asc"
+    elif [ -f "$sha256" ]; then
+        OS_IMAGE_SIGNATURE="$sha256"
+    else
+        echo "Error: Neither $asc (GPG signature) nor $sha256 (sha256sum file) exist" >&2
         exit 1
     fi
 }
@@ -133,7 +147,7 @@ function print_device_summary() {
     local eosimages_df
     local other_os_images
     eosimages_df=$(df -h . | tail -1 | tr -s ' ' | cut -d ' ' -f4)
-    other_os_images=$(find . -type f -not -name '*.asc')
+    other_os_images=$(find . -type f -not '(' -name '*.asc' -o -name '*.sha256' ')' )
     echo "$DEVICE has $eosimages_df remaining and contains the following OS images:" >&2
     while read -r other_os_image; do
         local other_os_image_name
@@ -160,7 +174,7 @@ while true; do
             shift
             OS_IMAGE="$1"
             check_exists "$OS_IMAGE"
-            check_exists "$OS_IMAGE.asc"
+            find_os_image_signature
             shift
             ;;
         -l|--latest)
@@ -244,6 +258,7 @@ if [ -n "$FETCH_LATEST" ]; then
 
     if [ -z "$OS_IMAGE" ]; then
         OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --product eos)
+        find_os_image_signature
     fi
 fi
 
@@ -338,7 +353,7 @@ if [ -f "$OS_IMAGE" ]; then
     echo "Adding $OS_IMAGE to eosimages on $DEVICE..." >&2
 
     # Write image and its signature
-    cp "$OS_IMAGE.asc" "$EOSIMAGES_MOUNTPOINT"/
+    cp "$OS_IMAGE_SIGNATURE" "$EOSIMAGES_MOUNTPOINT"/
     pv "$OS_IMAGE" > "$EOSIMAGES_MOUNTPOINT"/"$(basename "$OS_IMAGE")"
 fi
 
