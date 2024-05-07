@@ -21,7 +21,7 @@ if [ ! -f "$EOS_DOWNLOAD_IMAGE" ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o i:o:luh -l "installer:,os-image:,latest,update-installer,help" -n "$0" -- "$@")
+ARGS=$(getopt -o i:o:luh -l "installer:,os-image:,latest,update-installer,debug,help" -n "$0" -- "$@")
 eval set -- "$ARGS"
 
 usage() {
@@ -38,6 +38,7 @@ Options:
    -o,--os-image  PATH    Path to Endless OS image to add to installer
    -l,--latest            Fetch latest OS and/or eosinstaller image
    -u,--update-installer  Update the installer image when using --latest
+      --debug             Turn on debugging messages
 
 If --latest is specified and --os-image is missing, the newest Endless OS
 image will be downloaded.
@@ -184,6 +185,10 @@ while true; do
         -u|--update-installer)
             shift
             UPDATE_INSTALLER=true
+            ;;
+        --debug)
+            set -x
+            shift
             ;;
         -h|--help)
             usage
