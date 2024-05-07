@@ -4,10 +4,10 @@ import argparse
 import collections
 import datetime
 import dateutil.parser
-import distutils.version
 import gzip
 import json
 import os
+import packaging.version
 import requests
 import shlex
 import subprocess
@@ -349,7 +349,7 @@ class EosDownloadImage(object):
 
         manifest = response.json()
         images = list(manifest['images'].values())
-        images.sort(key=lambda i: distutils.version.LooseVersion(i['version']))
+        images.sort(key=lambda i: packaging.version.Version(i['version']))
         return manifest, images
 
     def fetch_image_url(self):
