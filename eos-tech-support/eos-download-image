@@ -14,6 +14,8 @@ import subprocess
 import sys
 import urllib.parse
 
+from gi.repository import GLib
+
 INTERNAL_BASE_URL = "http://images.endlessm-sf.com"
 PUBLIC_BASE_URL = "https://images-dl.endlessm.com"
 KEYRING_FILENAME = "eos-image-keyring.gpg"
@@ -55,12 +57,18 @@ def url_dirname(url):
 
 # Simple download progress output, but not when sending to a log file
 if os.isatty(sys.stderr.fileno()):
-    def progress(path, percent):
-        end = '\n' if percent >= 100 else ''
-        print('\r{} ({}%)'.format(path, percent), end=end,
-              file=sys.stderr)
+    def progress(path, received, total):
+        percent = int(100 * received / total) if total else 100
+        if percent >= 100:
+            size = GLib.format_size(total)
+            end = "\n"
+        else:
+            size = f"{GLib.format_size(received)} / {GLib.format_size(total)}"
+            end = ""
+        erase_line = "\r\033[K"
+        sys.stderr.write(f"{erase_line}{path} ({size}, {percent}%){end}")
 else:
-    def progress(path, percent):
+    def progress(path, received, total):
         pass
 
 
@@ -134,7 +142,7 @@ class EosDownloadImage(object):
         if src_size == 0:
             with open(dest, 'w'):
                 pass
-            progress(dest, 100)
+            progress(dest, 0, 0)
             return
 
         # Break the download up into ranges if it exceeds the CDN maximum
@@ -160,7 +168,7 @@ class EosDownloadImage(object):
                 exit(1)
 
             received = dest_size
-            progress(dest, int(100 * received / src_size))
+            progress(dest, received, src_size)
             while ranges:
                 start, stop = ranges.popleft()
                 headers['Range'] = 'bytes={}-{}'.format(start, stop)
@@ -171,7 +179,7 @@ class EosDownloadImage(object):
                 for chunk in resp.iter_content(chunk_size=8192):
                     received += len(chunk)
                     f.write(chunk)
-                    progress(dest, int(100 * received / src_size))
+                    progress(dest, received, src_size)
 
                 if received != stop + 1:
                     ranges.appendleft((received, stop))
