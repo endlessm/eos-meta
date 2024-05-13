@@ -128,6 +128,7 @@ Architecture: all
 Depends: ${eos:Depends},
          ${misc:Depends},
          ostree (>= 2018.8),
+         python3-packaging,
          pulseaudio-utils,
          usbutils,
 Description: EndlessOS Technical Support Tools
