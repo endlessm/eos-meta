@@ -585,8 +585,7 @@ let diagnostics = [
         hardwareInfo: true,
         content: function() {
             return trySpawn('wpctl status') + '\n' +
-                   trySpawn('pw-cli info all') + '\n' +
-                   trySpawn('pw-dump');
+                   trySpawn('pw-cli info all')
         },
     },
     {
