@@ -228,6 +228,7 @@ usbmuxd
 vainfo
 whiptail
 wget
+wireguard-tools
 xinput
 # Assuming useful for Orca screen reader
 xbrlapi
