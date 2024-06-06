@@ -15,6 +15,7 @@ ibus-gtk4
 # pipewire-pulse must be listed before libcanberra-pulse, otherwise
 # it'll pull pulseaudio
 pipewire-pulse
+libcamera-ipa
 libcanberra-gtk3-module
 libcanberra-pulse
 libcaribou-gtk3-module
