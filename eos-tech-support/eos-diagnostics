@@ -435,20 +435,6 @@ function collectTemperatureInfo() {
     }
 }
 
-function collectEosDevInfo() {
-    let output = '';
-    let signalDir = Gio.File.new_for_path('/var/cache/debconf');
-    if (signalDir.query_exists(null)) {
-        output += '***************************************************************\n';
-        output += '*                           WARNING                           *\n';
-        output += '* eos-dev-unlock or eos-convert-system was run on the system! *\n';
-        output += '***************************************************************\n';
-        output += '\n';
-    }
-
-    return output;
-}
-
 function isCoredumpdEnabled() {
     let pattern = tryReadFile('/proc/sys/kernel/core_pattern', '');
     return (pattern.indexOf('systemd-coredump') >= 0);
@@ -801,8 +787,6 @@ let diagnostics = [
 
 function dumpDiagnostics(filename, verboseFlag, fullJournalFlag) {
     let fullDump = '';
-
-    fullDump += collectEosDevInfo();
 
     diagnostics.forEach(function(diag) {
         let content = diag.content(verboseFlag, fullJournalFlag);
