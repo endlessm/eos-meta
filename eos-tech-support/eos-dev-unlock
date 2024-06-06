@@ -42,9 +42,3 @@ systemctl stop eos-autoupdater.service
 systemctl stop eos-updater.service
 
 ostree admin unlock "$@"
-
-# Some tweaks to make apt work
-if [ ! -d /var/cache/debconf ]; then
-  OSTREE_DEPLOY_CURRENT=$(ostree admin --print-current-dir)
-  cp -a $OSTREE_DEPLOY_CURRENT/var/cache/debconf /var/cache/
-fi
