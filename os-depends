@@ -85,6 +85,7 @@ mesa-utils
 mesa-utils-extra
 mesa-vulkan-drivers
 mobile-broadband-provider-info
+mokutil [amd64]
 mtr-tiny
 nano
 net-tools
