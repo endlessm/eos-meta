@@ -317,21 +317,25 @@ if [ -f "$INSTALLER_IMAGE" ]; then
     # which was opened for writing, so it will be reprobing.
     # Add udevadm settle here to avoid racing with udev deleting and recreating
     # the block device
-    udevadm settle
+    sudo udevadm settle
     # Now inform the kernel that the partition table has changed, and wait for
     # it and udev to finish digesting that.
     sudo partprobe "$DEVICE"
-    udevadm settle
+    sudo udevadm settle
 
     # Grab the eosimages partition and create exfat fs on it
     update_eosimages_part
     if [ -n "$EOSIMAGES_PART" ]; then
         sudo mkfs.exfat -n eosimages "$EOSIMAGES_PART"
+    else
+        echo "Error: Newly-created eosimages partition not found" >&2
+        exit 1
+
     fi
 
     # Give udisks a chance to notice the new partition
     sudo partprobe "$DEVICE"
-    udevadm settle
+    sudo udevadm settle
 fi
 
 if [ ! -b "$EOSIMAGES_PART" ]; then
