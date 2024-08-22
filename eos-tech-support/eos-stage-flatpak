@@ -8,7 +8,7 @@ REMOTE_NAME=
 function usage {
     cat <<EOF
 Usage:
-    $0 STAGE [PASSWORD]
+    $0 [-h] [-r REMOTE_NAME] STAGE [PASSWORD]
 Arguments:
     STAGE     One of the following:
                 - dev: development staging (requires password)
