@@ -1,0 +1,28 @@
+eos_scripts = [
+    'eos-break-links',
+    'eos-check-disk',
+    'eos-convert-passwd',
+    'eos-convert-system',
+    'eos-convert-system-qa',
+    'eos-dev-unlock',
+    'eos-diagnostics',
+    'eos-download-image',
+    'eos-enable-coredumps',
+    'eos-fix-mbr-swap-removal',
+    'eos-fix-ostree-repo',
+    'eos-list-users',
+    'eos-procmem-sample',
+    'eos-reset-password',
+    'eos-rollback',
+    'eos-stage-flatpak',
+    'eos-stage-ostree',
+    'eos-sysmem-sampler',
+    'eos-uninstall-dualboot',
+    'eos-user-stress-test',
+    'eos-write-image',
+    'eos-write-installer',
+    'eos-write-live-image',
+    'eos-write-metrics-collector-usb',
+  ]
+
+install_data(eos_scripts, install_dir : get_option('bindir'))

@@ -13,3 +13,8 @@ if get_option('check-deps')
     timeout : 60,
   )
 endif
+
+install_data('endless-mimeapps.list',
+             install_dir : get_option('datadir') / 'applications')
+
+subdir('eos-tech-support')

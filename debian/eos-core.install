@@ -1,2 +1,2 @@
 debian/10periodic etc/apt/apt.conf.d
-debian/endless-mimeapps.list usr/share/applications
+usr/share/applications/endless-mimeapps.list
