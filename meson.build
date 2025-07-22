@@ -13,3 +13,5 @@ if get_option('check-deps')
     timeout : 60,
   )
 endif
+
+subdir('eos-tech-support')
