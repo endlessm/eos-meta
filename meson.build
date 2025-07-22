@@ -14,4 +14,7 @@ if get_option('check-deps')
   )
 endif
 
+install_data('endless-mimeapps.list',
+             install_dir : get_option('datadir') / 'applications')
+
 subdir('eos-tech-support')
