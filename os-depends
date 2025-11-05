@@ -76,7 +76,7 @@ linux-firmware
 # use the linux-signed-image variant, which contains the kernel
 # signed for UEFI.
 linux-signed-image-generic [amd64]
-linux-image-generic [arm64]
+linux-image-generic [arm64] | linux-rpi [arm64]
 low-memory-monitor
 lsb-base
 lsb-release
