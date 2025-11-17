@@ -42,7 +42,6 @@ Description: Target packages of the Endless distribution for amd64
 Package: eos-core-arm64
 Architecture: arm64
 Depends: ${misc:Depends}, ${eos:Depends}
-Provides: eos-core-rpi3
 Description: Target packages of the Endless distribution for arm64
  This package depends on all packages required for the Endless OS core images
  .
@@ -63,6 +62,18 @@ Description: Target packages of the Endless distribution for amd64 nexthw
  This set provides the platform specific package list for amd64 nexthw
  builds. These builds provide newer hardware enablement on top of the
  standard amd64 builds.
+
+Package: eos-core-rpi
+Architecture: arm64
+Depends: ${misc:Depends}, ${eos:Depends}
+Description: Target packages of the Endless distribution for RPi devices
+ This package depends on all packages required for the Endless OS core images
+ .
+ It is also used to help ensure proper upgrades, so it is recommended that
+ it not be removed.
+ .
+ This set provides the platform specific package list for RPi devices.
+
 
 Package: eos-installer-meta
 Architecture: any
