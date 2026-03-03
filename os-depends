@@ -29,6 +29,7 @@ eos-version-number
 exfatprogs
 fdisk
 file
+firmware-nvidia-gsp [amd64]
 firmware-sof-signed
 fonts-dejavu
 fscrypt
