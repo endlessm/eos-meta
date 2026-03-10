@@ -27,6 +27,7 @@ debootstrap
 devscripts
 diffutils
 endless-ca-cert
+eos-payg-admin
 findutils
 flatpak-xdg-utils
 gdb
