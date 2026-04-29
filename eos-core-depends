@@ -162,6 +162,8 @@ libgphoto2-l10n
 libgpod-common
 # Assuming useful for cups
 libmagickcore-6.q16-6-extra
+# Needed for ModemManager fcc-unlock scripts
+libmbim-utils
 # Assuming needed for MTP support
 libmtp-runtime
 # For DNS lookup of .local domains
