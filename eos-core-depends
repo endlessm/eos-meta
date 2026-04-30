@@ -104,6 +104,8 @@ fonts-uralic
 foomatic-db-compressed-ppds
 force-quit-dialog-extension
 fprintd
+fwupd
+fwupd-signed [amd64]
 # For rootless podman
 fuse-overlayfs
 gdb
