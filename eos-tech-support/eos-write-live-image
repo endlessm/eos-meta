@@ -368,20 +368,33 @@ fi
 
 check_exists "$OS_IMAGE" "image"
 
+# Below here we start mounting stuff, so register a cleanup function
+trap cleanup EXIT
+
 if [[ "$OS_IMAGE" == *.iso ]]; then
     ISO=true
     OS_IMAGE_UNCOMPRESSED="${OS_IMAGE%.iso}.img"
+    OS_IMAGE_UNCOMPRESSED_BASENAME="$(basename "${OS_IMAGE_UNCOMPRESSED}")"
+
+    # Loop-mount the ISO and copy the endless.squash and  directory
+    mkdir -p "$ISO_MOUNTPOINT"
+    mount -o ro,loop "$OS_IMAGE" "$ISO_MOUNTPOINT"
+    find $ISO_MOUNTPOINT
+
+    EXTRACTED_SIGNATURE="$ISO_MOUNTPOINT/endless/${OS_IMAGE_UNCOMPRESSED_BASENAME}.asc"
+    BOOT_ZIP="$ISO_MOUNTPOINT/endless/${OS_IMAGE_UNCOMPRESSED_BASENAME%.img}.boot.zip"
 else
     # If image does not have a .gz, .xz or .iso suffix, assume it is the
     # uncompressed .img
     OS_IMAGE_UNCOMPRESSED="${OS_IMAGE%.?z}"
-fi
-OS_IMAGE_UNCOMPRESSED_BASENAME="$(basename "${OS_IMAGE_UNCOMPRESSED}")"
+    OS_IMAGE_UNCOMPRESSED_BASENAME="$(basename "${OS_IMAGE_UNCOMPRESSED}")"
 
-EXTRACTED_SIGNATURE="${OS_IMAGE_UNCOMPRESSED}.asc"
+    EXTRACTED_SIGNATURE="${OS_IMAGE_UNCOMPRESSED}.asc"
+    BOOT_ZIP="${OS_IMAGE_UNCOMPRESSED%.img}.boot.zip"
+fi
+
 check_exists "$EXTRACTED_SIGNATURE" "uncompressed image signature"
 
-BOOT_ZIP="${OS_IMAGE_UNCOMPRESSED%.img}.boot.zip"
 check_exists "$BOOT_ZIP" "bootloader bundle"
 check_exists "$BOOT_ZIP.asc" "bootloader bundle signature"
 
@@ -448,9 +461,6 @@ fi
 # Give udev a chance to notice the new partitions
 udevadm settle
 
-# Below here we start mounting stuff, so register a cleanup function
-trap cleanup EXIT
-
 if [ ! "$MBR" ]; then
     mkfs.vfat -n efi "${DEVICE_EFI}"
     partprobe "$OUTPUT"
@@ -508,9 +518,6 @@ fi
 
 echo "Copying image files"
 if [ "$ISO" ]; then
-    # Loop-mount the ISO and copy the endless.squash and  directory
-    mkdir -p "$ISO_MOUNTPOINT"
-    mount -o ro,loop "$OS_IMAGE" "$ISO_MOUNTPOINT"
     cp "$ISO_MOUNTPOINT/endless/endless.squash" \
        "$ISO_MOUNTPOINT/endless/${OS_IMAGE_UNCOMPRESSED_BASENAME%.img}.squash.asc" \
        "$DIR_IMAGES_ENDLESS"
