@@ -117,6 +117,7 @@ pulseaudio-utils (< 1:0.0)
 python3-gi
 rpiboot
 rpiboot-firmware
+rpiboot-firmware-signed
 rsync
 shim-efi-image-signed [amd64]
 # Used for the initial hardware evaluation
