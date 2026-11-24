@@ -25,9 +25,8 @@ if [ ! -f "$EOS_DOWNLOAD_IMAGE" ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o o:x:lp:r:ns:wL:fPS:e:h \
+ARGS=$(getopt -o o:lp:r:ns:wfPS:e:h \
     -l os-image: \
-    -l windows-tool: \
     -l latest \
     -l personality: \
     -l product: \
@@ -35,7 +34,6 @@ ARGS=$(getopt -o o:x:lp:r:ns:wL:fPS:e:h \
     -l size: \
     -l fill \
     -l writable \
-    -l label: \
     -l force \
     -l debug \
     -l persistent \
@@ -49,12 +47,10 @@ NTFS=
 EXPAND=
 SIZE=
 WRITABLE=
-WINDOWS_TOOL_PROVIDED=
 EXTRA_DATA_PATHS=()
 FORCE=
 PERSONALITY=base
 PRODUCT=eos
-LABEL=
 PERSISTENT=
 PERSISTENT_FREE_SPACE=
 
@@ -73,19 +69,15 @@ Arguments:
 
 Options:
     -o, --os-image IMAGE     Path to Endless OS image
-    -x, --windows-tool PATH  Path to Endless OS installer tool for Windows
-    -l, --latest             Fetch latest OS image and/or Windows tool
+    -l, --latest             Fetch latest OS image
     -p, --personality        Fetch a different personality (default: $PERSONALITY)
     -r, --product            Fetch a different product (default: $PRODUCT)
-    -L, --label LABEL        Autorun.inf label (default: Endless OS)
     -s, --size SIZE          Expand the image to desired size in bytes
         --fill               Expand the image to fill the target disk
     -w, --writable           Allow image to be modified when run (which
                              prevents installing it later)
     -f, --force              don't ask to proceed before writing
-    -P, --persistent         Allocate space for persistent storage, leaving a
-                             few megabytes for logs from the Endless OS
-                             installer tool for Windows
+    -P, --persistent         Allocate space for persistent storage
     -S, --free-space SIZE    With --persistent, leave SIZE megabytes free on
                              the partition, rather than consuming almost all
                              free space
@@ -133,12 +125,6 @@ while true; do
             OS_IMAGE="$1"
             shift
             ;;
-        -x|--windows-tool)
-            shift
-            WINDOWS_TOOL="$1"
-            WINDOWS_TOOL_PROVIDED=true
-            shift
-            ;;
         -e|--extra-data)
             shift
             EXTRA_DATA_PATHS+=("$1")
@@ -174,11 +160,6 @@ while true; do
             shift
             EXPAND=true
             SIZE="$1"
-            shift
-            ;;
-        -L|--label)
-            shift
-            LABEL="$1"
             shift
             ;;
         -f|--force)
@@ -281,8 +262,8 @@ if [ ${#missing_packages[@]} -gt 0 ]; then
 fi
 
 if [ -z "$FETCH_LATEST" ]; then
-    if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
-        echo "--os-image and --windows-tool are required if --latest is not specified" >&2
+    if [ -z "$OS_IMAGE" ]; then
+        echo "--os-image is required if --latest is not specified" >&2
         usage >&2
         exit 2
     fi
@@ -301,7 +282,6 @@ fi
 echo "Summary:"
 echo
 echo "       Endless OS image: ${OS_IMAGE:-latest $PRODUCT $PERSONALITY image}"
-echo "  Installer for Windows: ${WINDOWS_TOOL:-latest release}"
 echo "      Image target size: ${SIZE_DESC}"
 echo "                 Target: ${OUTPUT}"
 echo
@@ -333,17 +313,7 @@ fi
 if [ -n "$FETCH_LATEST" ]; then
     if [ -z "$OS_IMAGE" ]; then
         OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --personality "${PERSONALITY}" --product "${PRODUCT}")
-        if [ -z "$LABEL" ]; then
-           LABEL="Endless OS ${PERSONALITY}"
-        fi
     fi
-    if [ -z "$WINDOWS_TOOL" ]; then
-        WINDOWS_TOOL=$($EOS_DOWNLOAD_IMAGE --windows-tool)
-    fi
-fi
-
-if [ -z "$LABEL" ]; then
-    LABEL="Endless OS"
 fi
 
 check_exists "$OS_IMAGE" "image"
@@ -364,8 +334,6 @@ check_exists "$EXTRACTED_SIGNATURE" "uncompressed image signature"
 BOOT_ZIP="${OS_IMAGE_UNCOMPRESSED%.img}.boot.zip"
 check_exists "$BOOT_ZIP" "bootloader bundle"
 check_exists "$BOOT_ZIP.asc" "bootloader bundle signature"
-
-check_exists "$WINDOWS_TOOL" "Windows tool"
 
 echo
 echo "Preparing $OUTPUT..."
@@ -438,24 +406,6 @@ if [ ! "$WRITABLE" ]; then
         echo "Copying '$EXTRA_DATA_PATH'"
         cp -r "$EXTRA_DATA_PATH" "$EOSLIVE_MOUNTPOINT/"
     done
-fi
-
-if [ ! "$WRITABLE" ] || [ "$WINDOWS_TOOL_PROVIDED" ]; then
-    echo "Copying Windows-specific files"
-
-    cp "$WINDOWS_TOOL" "$EOSLIVE_MOUNTPOINT/"
-    WINDOWS_TOOL_BASENAME="$(basename "$WINDOWS_TOOL")"
-    sed 's/$/\r/' <<AUTORUN_INF | iconv -f utf-8 -t utf-16 > "$EOSLIVE_MOUNTPOINT/autorun.inf"
-[AutoRun]
-label=${LABEL}
-icon=${WINDOWS_TOOL_BASENAME}
-open=${WINDOWS_TOOL_BASENAME}
-
-[Content]
-MusicFiles=false
-PictureFiles=false
-VideoFiles=false
-AUTORUN_INF
 fi
 
 echo "Copying image files"
