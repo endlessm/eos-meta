@@ -25,19 +25,15 @@ if [ ! -f "$EOS_DOWNLOAD_IMAGE" ]; then
     EOS_DOWNLOAD_IMAGE='eos-download-image'
 fi
 
-ARGS=$(getopt -o o:x:lp:r:nms:wL:fPS:e:h \
+ARGS=$(getopt -o o:lp:r:ns:wfPS:e:h \
     -l os-image: \
-    -l windows-tool: \
     -l latest \
     -l personality: \
     -l product: \
     -l ntfs \
-    -l mbr \
     -l size: \
     -l fill \
     -l writable \
-    -l no-bios \
-    -l label: \
     -l force \
     -l debug \
     -l persistent \
@@ -48,17 +44,13 @@ ARGS=$(getopt -o o:x:lp:r:nms:wL:fPS:e:h \
 eval set -- "$ARGS"
 
 NTFS=
-MBR=
 EXPAND=
 SIZE=
 WRITABLE=
-BIOS=true
-WINDOWS_TOOL_PROVIDED=
 EXTRA_DATA_PATHS=()
 FORCE=
 PERSONALITY=base
 PRODUCT=eos
-LABEL=
 PERSISTENT=
 PERSISTENT_FREE_SPACE=
 
@@ -77,20 +69,15 @@ Arguments:
 
 Options:
     -o, --os-image IMAGE     Path to Endless OS image
-    -x, --windows-tool PATH  Path to Endless OS installer tool for Windows
-    -l, --latest             Fetch latest OS image and/or Windows tool
+    -l, --latest             Fetch latest OS image
     -p, --personality        Fetch a different personality (default: $PERSONALITY)
     -r, --product            Fetch a different product (default: $PRODUCT)
-    -L, --label LABEL        Autorun.inf label (default: Endless OS)
     -s, --size SIZE          Expand the image to desired size in bytes
         --fill               Expand the image to fill the target disk
     -w, --writable           Allow image to be modified when run (which
                              prevents installing it later)
-        --no-bios            Do not create a BIOS boot partition
     -f, --force              don't ask to proceed before writing
-    -P, --persistent         Allocate space for persistent storage, leaving a
-                             few megabytes for logs from the Endless OS
-                             installer tool for Windows
+    -P, --persistent         Allocate space for persistent storage
     -S, --free-space SIZE    With --persistent, leave SIZE megabytes free on
                              the partition, rather than consuming almost all
                              free space
@@ -100,7 +87,6 @@ Options:
 
 Developer options (you probably don't want to use these):
     -n, --ntfs               Format the image partition as NTFS, not exFAT
-    -m, --mbr                Format DEVICE as MBR, not GPT
         --debug              Enable debugging output
 EOF
 }
@@ -139,12 +125,6 @@ while true; do
             OS_IMAGE="$1"
             shift
             ;;
-        -x|--windows-tool)
-            shift
-            WINDOWS_TOOL="$1"
-            WINDOWS_TOOL_PROVIDED=true
-            shift
-            ;;
         -e|--extra-data)
             shift
             EXTRA_DATA_PATHS+=("$1")
@@ -168,10 +148,6 @@ while true; do
             shift
             NTFS=true
             ;;
-        -m|--mbr)
-            shift
-            MBR=true
-            ;;
         -w|--writable)
             shift
             WRITABLE=true
@@ -186,11 +162,6 @@ while true; do
             SIZE="$1"
             shift
             ;;
-        -L|--label)
-            shift
-            LABEL="$1"
-            shift
-            ;;
         -f|--force)
             shift
             FORCE=true
@@ -203,10 +174,6 @@ while true; do
             shift
             PERSISTENT_FREE_SPACE="$1"
             shift
-            ;;
-        --no-bios)
-            shift
-            BIOS=
             ;;
         --debug)
             shift
@@ -295,16 +262,11 @@ if [ ${#missing_packages[@]} -gt 0 ]; then
 fi
 
 if [ -z "$FETCH_LATEST" ]; then
-    if [ -z "$WINDOWS_TOOL" ] || [ -z "$OS_IMAGE" ]; then
-        echo "--os-image and --windows-tool are required if --latest is not specified" >&2
+    if [ -z "$OS_IMAGE" ]; then
+        echo "--os-image is required if --latest is not specified" >&2
         usage >&2
         exit 2
     fi
-fi
-
-if [ ! "$BIOS" ] && [ "$MBR" ]; then
-    echo "--no-bios and --mbr cannot be used together" >&2
-    exit 1
 fi
 
 if [ -n "$SIZE" ]; then
@@ -320,9 +282,7 @@ fi
 echo "Summary:"
 echo
 echo "       Endless OS image: ${OS_IMAGE:-latest $PRODUCT $PERSONALITY image}"
-echo "  Installer for Windows: ${WINDOWS_TOOL:-latest release}"
 echo "      Image target size: ${SIZE_DESC}"
-echo "  Create BIOS partition: ${BIOS:-false}"
 echo "                 Target: ${OUTPUT}"
 echo
 
@@ -353,17 +313,7 @@ fi
 if [ -n "$FETCH_LATEST" ]; then
     if [ -z "$OS_IMAGE" ]; then
         OS_IMAGE=$($EOS_DOWNLOAD_IMAGE --personality "${PERSONALITY}" --product "${PRODUCT}")
-        if [ -z "$LABEL" ]; then
-           LABEL="Endless OS ${PERSONALITY}"
-        fi
     fi
-    if [ -z "$WINDOWS_TOOL" ]; then
-        WINDOWS_TOOL=$($EOS_DOWNLOAD_IMAGE --windows-tool)
-    fi
-fi
-
-if [ -z "$LABEL" ]; then
-    LABEL="Endless OS"
 fi
 
 check_exists "$OS_IMAGE" "image"
@@ -385,8 +335,6 @@ BOOT_ZIP="${OS_IMAGE_UNCOMPRESSED%.img}.boot.zip"
 check_exists "$BOOT_ZIP" "bootloader bundle"
 check_exists "$BOOT_ZIP.asc" "bootloader bundle signature"
 
-check_exists "$WINDOWS_TOOL" "Windows tool"
-
 echo
 echo "Preparing $OUTPUT..."
 
@@ -395,55 +343,29 @@ echo "Preparing $OUTPUT..."
 # to disk A, overwrite disk A with this tool, write I to disk B, then try
 # to boot from B with A still plugged in, the "UUID" from the stale ISO9660
 # header on A is still read by the kernel and taken as the UUID for disk A
-# as a whole, and its BIOS boot partition too (for good measure). This
+# as a whole (for good measure). This
 # confuses eos-image-boot-setup into trying to mount a partition on disk A
 # rather than B.
 dd if=/dev/zero of="$OUTPUT" bs=4096 count=2 seek=8
 udevadm settle
 
-if [ "$MBR" ]; then
-    sfdisk --label dos "$OUTPUT" <<MBR_PARTITIONS
-1 : type=7
-MBR_PARTITIONS
-    udevadm settle
-    partprobe "$OUTPUT"
-    PARTMAP=$(sfdisk --dump "$OUTPUT")
-    DEVICE_IMAGES=$(find_by_type "$PARTMAP" "7")
-else
-    # https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
-    PARTITION_SYSTEM_GUID="c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
-    PARTITION_BIOS_BOOT_GUID="21686148-6449-6E6F-744E-656564454649"
-    PARTITION_BASIC_DATA_GUID="ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"
+# https://en.wikipedia.org/wiki/GUID_Partition_Table#Partition_type_GUIDs
+PARTITION_SYSTEM_GUID="c12a7328-f81f-11d2-ba4b-00a0c93ec93b"
+PARTITION_BASIC_DATA_GUID="ebd0a0a2-b9e5-4433-87c0-68b6b72699c7"
 
-    # We want the data partition, "eoslive", to occupy all the space on the disk
-    # after the UEFI and BIOS boot partitions. But, we also want it to be numbered
-    # first: apparently Windows will only mount the partition numbered first,
-    # regardless of where it is on the disk.
-    #
-    # It is important that the offset of the BIOS boot partition matches that
-    # used in the Endless OS image builder, since it is embedded in the GRUB
-    # image.
-    if [ "$BIOS" ]; then
-        sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
-2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
-3 : size=1MiB, type=$PARTITION_BIOS_BOOT_GUID
-1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
-EFI_PARTITIONS
-    else
-        sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
+# We want the data partition, "eoslive", to occupy all the space on the disk
+# after the UEFI boot partition. But, we also want it to be numbered first:
+# apparently Windows will only mount the partition numbered first, regardless of
+# where it is on the disk.
+sfdisk --label gpt "$OUTPUT" <<EFI_PARTITIONS
 2 : start=2048, size=62MiB, type=$PARTITION_SYSTEM_GUID
 1 : name=eoslive, type=$PARTITION_BASIC_DATA_GUID
 EFI_PARTITIONS
-    fi
-    udevadm settle
-    partprobe "$OUTPUT"
-    PARTMAP=$(sfdisk --dump "$OUTPUT")
-    DEVICE_IMAGES=$(find_by_type "$PARTMAP" "$PARTITION_BASIC_DATA_GUID")
-    DEVICE_EFI=$(find_by_type "$PARTMAP" "$PARTITION_SYSTEM_GUID")
-    if [ "$BIOS" ]; then
-        DEVICE_BIOS=$(find_by_type "$PARTMAP" "$PARTITION_BIOS_BOOT_GUID")
-    fi
-fi
+udevadm settle
+partprobe "$OUTPUT"
+PARTMAP=$(sfdisk --dump "$OUTPUT")
+DEVICE_IMAGES=$(find_by_type "$PARTMAP" "$PARTITION_BASIC_DATA_GUID")
+DEVICE_EFI=$(find_by_type "$PARTMAP" "$PARTITION_SYSTEM_GUID")
 
 # Give udev a chance to notice the new partitions
 udevadm settle
@@ -451,14 +373,12 @@ udevadm settle
 # Below here we start mounting stuff, so register a cleanup function
 trap cleanup EXIT
 
-if [ ! "$MBR" ]; then
-    mkfs.vfat -n efi "${DEVICE_EFI}"
-    partprobe "$OUTPUT"
-    udevadm settle
-    mkdir -p "$ESP_MOUNTPOINT"
-    mount "$DEVICE_EFI" "$ESP_MOUNTPOINT"
-    DIR_EFI="$ESP_MOUNTPOINT"
-fi
+mkfs.vfat -n efi "${DEVICE_EFI}"
+partprobe "$OUTPUT"
+udevadm settle
+mkdir -p "$ESP_MOUNTPOINT"
+mount "$DEVICE_EFI" "$ESP_MOUNTPOINT"
+DIR_EFI="$ESP_MOUNTPOINT"
 
 $MKFS_IMAGES $MKFS_ARGS eoslive "${DEVICE_IMAGES}"
 partprobe "$OUTPUT"
@@ -486,24 +406,6 @@ if [ ! "$WRITABLE" ]; then
         echo "Copying '$EXTRA_DATA_PATH'"
         cp -r "$EXTRA_DATA_PATH" "$EOSLIVE_MOUNTPOINT/"
     done
-fi
-
-if [ ! "$WRITABLE" ] || [ "$WINDOWS_TOOL_PROVIDED" ]; then
-    echo "Copying Windows-specific files"
-
-    cp "$WINDOWS_TOOL" "$EOSLIVE_MOUNTPOINT/"
-    WINDOWS_TOOL_BASENAME="$(basename "$WINDOWS_TOOL")"
-    sed 's/$/\r/' <<AUTORUN_INF | iconv -f utf-8 -t utf-16 > "$EOSLIVE_MOUNTPOINT/autorun.inf"
-[AutoRun]
-label=${LABEL}
-icon=${WINDOWS_TOOL_BASENAME}
-open=${WINDOWS_TOOL_BASENAME}
-
-[Content]
-MusicFiles=false
-PictureFiles=false
-VideoFiles=false
-AUTORUN_INF
 fi
 
 echo "Copying image files"
@@ -575,22 +477,6 @@ echo
 echo "Finalizing"
 
 cleanup
-
-if [ "$MBR" ]; then
-    # Bootstrap code, which will jump to sector 1
-    unzip -q -p "${BOOT_ZIP}" "ntfs/boot.img" | dd of="${OUTPUT}" bs=446 count=1
-    udevadm settle  # udev recreates device files after any write to the device
-    # The rest of GRUB goes after the MBR and before the first partition.
-    unzip -q -p "${BOOT_ZIP}" "ntfs/core.img" | dd of="${OUTPUT}" bs=512 seek=1
-else
-    # Bootstrap code, built to jump to the offset of BIOS boot partition
-    unzip -q -p "${BOOT_ZIP}" "live/boot.img" | dd of="${OUTPUT}" bs=446 count=1
-    udevadm settle  # udev recreates device files after any write to the device
-    # The rest of GRUB goes into a dedicated BIOS-boot partition
-    if [ "$BIOS" ]; then
-        unzip -q -p "${BOOT_ZIP}" "live/core.img" | dd of="${DEVICE_BIOS}" bs=512
-    fi
-fi
 
 udevadm settle
 sync

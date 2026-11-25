@@ -263,9 +263,8 @@ class EosDownloadImage(object):
 
         p = argparse.ArgumentParser(
             description='Fetches and verifies an Endless OS image (default); '
-                        'fetches the Endless Installer for Windows; '
                         'or mirrors an entire Endless OS product.',
-            epilog='In the default and --windows-tool modes, the path to the '
+            epilog='In the default mode, the path to the '
                    'downloaded file (and nothing else) is printed to stdout, '
                    'for consumption by other scripts.')
         p.add_argument('-o', '--outdir',
@@ -286,17 +285,13 @@ class EosDownloadImage(object):
         m.add_argument('-m', '--mirror',
                        action='store_true',
                        help='Mirror all versions and personalities')
-        m.add_argument('-w', '--windows-tool',
-                       action='store_true',
-                       help='Fetch the Windows USB creator/installer, '
-                            'not an Endless OS image')
         m.add_argument('-u', '--url',
                        help='Fetch compressed image by URL')
 
         # Which image? NB. product is not part of this group, because it *is*
         # valid together with --mirror
         g = p.add_argument_group(title='image selection (ignored with '
-                                       '--mirror or --windows-tool)')
+                                       '--mirror)')
         g.add_argument('-p', '--personality',
                        help='Image personality (default: base)',
                        default='base')
@@ -317,28 +312,12 @@ class EosDownloadImage(object):
         if self.args.outdir:
             os.makedirs(self.args.outdir, exist_ok=True)
 
-        if self.args.windows_tool:
-            self.fetch_windows_tool()
-        elif self.args.mirror:
+        if self.args.mirror:
             self.mirror_images()
         elif self.args.url:
             self.fetch_image_url()
         else:
             self.fetch_image()
-
-    def fetch_windows_tool(self):
-        '''Downloads the latest release of the Endless Installer for Windows
-        (endless-installer.exe), replacing an existing file in outdir if needed.
-
-        Prints the path to the downloaded file to stdout, to be consumed by
-        eos-write-live-image.'''
-
-        filename = 'endless-installer.exe'
-        url = '{}/endless-installer/{}'.format(self.base, filename)
-        dest = os.path.join(self.args.outdir, filename)
-        log("Fetching Windows Installer")
-        self.download(url, dest)
-        print(dest)
 
     def fetch_manifest(self):
         manifest_url = '{base}/releases-{product}-3.json'.format(
